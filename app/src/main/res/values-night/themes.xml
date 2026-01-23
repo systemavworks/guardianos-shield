@@ -1,0 +1,21 @@
+<!-- app/src/main/res/values-night/themes.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.GuardianShield" parent="Theme.Material3.Dark.NoActionBar">
+        <!-- Colores ciberseguridad -->
+        <item name="colorPrimary">@color/cyber_primary</item>
+        <item name="colorSecondary">@color/cyber_secondary</item>
+        <item name="colorTertiary">@color/cyber_tertiary</item>
+        <item name="colorError">@color/cyber_error</item>
+        
+        <!-- Fondo y superficie -->
+        <item name="android:windowBackground">@color/cyber_background</item>
+        <item name="android:statusBarColor">@color/cyber_surface</item>
+        <item name="android:navigationBarColor">@color/cyber_surface</item>
+        
+        <!-- Transparencia para barras del sistema -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+</resources>

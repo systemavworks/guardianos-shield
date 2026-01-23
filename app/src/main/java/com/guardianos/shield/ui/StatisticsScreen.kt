@@ -3,7 +3,6 @@ package com.guardianos.shield.ui
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,10 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.guardianos.shield.data.BlockedSiteEntity
 import com.guardianos.shield.data.StatisticEntity
 import kotlin.math.max
@@ -59,7 +60,6 @@ fun StatisticsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Resumen rápido
             item {
                 QuickSummaryCard(
                     todayBlocked = todayBlocked,
@@ -68,7 +68,6 @@ fun StatisticsScreen(
                 )
             }
 
-            // Selector de período
             item {
                 PeriodSelector(
                     selectedPeriod = selectedPeriod,
@@ -76,7 +75,6 @@ fun StatisticsScreen(
                 )
             }
 
-            // Gráfico de barras
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -96,7 +94,6 @@ fun StatisticsScreen(
                 }
             }
 
-            // Desglose por categoría
             item {
                 CategoryBreakdownCard(
                     adultContent = weeklyStats.sumOf { it.adultContentBlocked },
@@ -106,7 +103,6 @@ fun StatisticsScreen(
                 )
             }
 
-            // Top sitios bloqueados
             item {
                 Text(
                     "Sitios más bloqueados",
@@ -123,7 +119,6 @@ fun StatisticsScreen(
                 TopBlockedSiteItem(domain = domain, count = count)
             }
 
-            // Recomendaciones
             item {
                 RecommendationsCard(todayBlocked = todayBlocked)
             }
@@ -252,6 +247,7 @@ fun BarChart(
 ) {
     val maxValue = data.maxOrNull() ?: 1
     val animatedProgress = remember { Animatable(0f) }
+    val textMeasurer = rememberTextMeasurer()
 
     LaunchedEffect(data) {
         animatedProgress.animateTo(
@@ -266,8 +262,8 @@ fun BarChart(
                 .fillMaxWidth()
                 .height(200.dp)
         ) {
-            val barWidth = size.width / (data.size * 2)
-            val spacing = barWidth / 2
+            val barWidth = size.width / (data.size * 2f)
+            val spacing = barWidth / 2f
 
             data.forEachIndexed { index, value ->
                 val barHeight = (value.toFloat() / maxValue) * size.height * animatedProgress.value
@@ -279,22 +275,32 @@ fun BarChart(
                     size = Size(barWidth, barHeight)
                 )
 
-                // Valor encima de la barra
-                drawContext.canvas.nativeCanvas.drawText(
-                    value.toString(),
-                    x + barWidth / 2,
-                    size.height - barHeight - 10f,
-                    android.graphics.Paint().apply {
-                        textSize = 30f
-                        textAlign = android.graphics.Paint.Align.CENTER
-                    }
+                val text = value.toString()
+                val textLayoutResult = textMeasurer.measure(
+                    text = text,
+                    style = TextStyle.Default.copy(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                val textX = x + barWidth / 2f - textLayoutResult.size.width / 2f
+                val textY = size.height - barHeight - 30f
+
+                drawText(
+                    textMeasurer = textMeasurer,
+                    text = text,
+                    topLeft = Offset(textX, textY),
+                    style = TextStyle.Default.copy(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black
+                    )
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Etiquetas
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly

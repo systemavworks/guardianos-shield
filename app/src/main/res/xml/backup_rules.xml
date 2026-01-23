@@ -1,0 +1,11 @@
+<!-- app/src/main/res/xml/backup_rules.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- ❌ NUNCA respaldar base de datos ni preferencias -->
+    <exclude domain="database" path="."/>
+    <exclude domain="sharedpref" path="."/>
+    
+    <!-- ✅ Solo respaldar recursos no sensibles (si los hubiera) -->
+    <exclude domain="file" path="temp/"/>
+    <exclude domain="cache" path="."/>
+</full-backup-content>

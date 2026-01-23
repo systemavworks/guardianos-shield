@@ -1,3 +1,32 @@
+<!-- app/src/main/res/values/strings.xml -->
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">GuardianOS Shield</string>
+    <!-- ... tus strings existentes ... -->
+    
+    <!-- Strings para SettingsScreen -->
+    <string name="notifications_blocked">Notificaciones de bloqueo</string>
+    <string name="auto_malware_block">Bloqueo automático de malware</string>
+    <string name="block_adult_content">Bloquear contenido adulto</string>
+    <string name="block_social_media">Bloquear redes sociales</string>
+    <string name="data_retention">Retención de datos</string>
+    <string name="export_statistics">Exportar estadísticas</string>
+    <string name="clear_history">Limpiar historial</string>
+    <string name="privacy_policy">Política de privacidad</string>
+    <string name="source_code">Código fuente</string>
+    
+    <!-- Strings para ParentalControlScreen -->
+    <string name="parental_pin">PIN Parental</string>
+    <string name="create_pin">Crear PIN</string>
+    <string name="verify_pin">Verificar PIN</string>
+    <string name="profile_info">Información del Perfil</string>
+    <string name="restriction_level">Nivel de Restricción</string>
+    <string name="usage_schedule">Horario de Uso Permitido</string>
+    
+    <!-- Strings para StatisticsScreen -->
+    <string name="today">Hoy</string>
+    <string name="this_week">Esta semana</string>
+    <string name="this_month">Este mes</string>
+    <string name="blocked_sites">Sitios bloqueados</string>
+    <string name="category_breakdown">Desglose por categoría</string>
+    <string name="top_blocked_sites">Sitios más bloqueados</string>
 </resources>

@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.guardianos.shield.data.CustomFilterEntity
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -221,8 +222,13 @@ fun FilterItem(
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium
                     )
+                    // ✅ Corrección: usamos addedAt (Long) → Date → formato
+                    val formattedDate = android.text.format.DateFormat.format(
+                        "dd/MM/yyyy",
+                        Date(filter.addedAt)
+                    )
                     Text(
-                        "Agregado: ${android.text.format.DateFormat.format("dd/MM/yyyy", filter.addedDate)}",
+                        "Agregado: $formattedDate",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -344,9 +350,9 @@ fun AddFilterDialog(
 }
 
 fun isValidDomain(domain: String): Boolean {
-    // Validación básica de dominio
-    val domainPattern = Regex("^(\\*\\.)?([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$")
-    return domainPattern.matches(domain)
+    if (domain.isEmpty()) return false
+    val clean = domain.removePrefix("*.").lowercase()
+    return android.util.Patterns.DOMAIN_NAME.matcher(clean).matches()
 }
 
 // ============ IMPORTADOR DE LISTAS ============

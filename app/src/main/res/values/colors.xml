@@ -1,0 +1,29 @@
+<!-- app/src/main/res/values/colors.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cybersecurity Professional Colors -->
+    <color name="cyber_primary">#00D9FF</color>        <!-- Cyan brillante -->
+    <color name="cyber_onPrimary">#000000</color>
+    <color name="cyber_secondary">#00FF88</color>       <!-- Verde neón -->
+    <color name="cyber_onSecondary">#000000</color>
+    <color name="cyber_tertiary">#FFAA00</color>        <!-- Naranja -->
+    <color name="cyber_error">#FF0044</color>           <!-- Rojo amenaza -->
+    <color name="cyber_background">#0A0E27</color>      <!-- Navy oscuro -->
+    <color name="cyber_surface">#0F1629</color>         <!-- Azul profundo -->
+    <color name="cyber_onBackground">#FFFFFF</color>
+    <color name="cyber_onSurface">#FFFFFF</color>
+    <color name="cyber_outline">#8892B0</color>
+    
+    <!-- Mantener compatibilidad con Material Theme -->
+    <color name="md_theme_primary">@color/cyber_primary</color>
+    <color name="md_theme_onPrimary">@color/cyber_onPrimary</color>
+    <color name="md_theme_secondary">@color/cyber_secondary</color>
+    <color name="md_theme_onSecondary">@color/cyber_onSecondary</color>
+    <color name="md_theme_tertiary">@color/cyber_tertiary</color>
+    <color name="md_theme_error">@color/cyber_error</color>
+    <color name="md_theme_background">@color/cyber_background</color>
+    <color name="md_theme_surface">@color/cyber_surface</color>
+    <color name="md_theme_onBackground">@color/cyber_onBackground</color>
+    <color name="md_theme_onSurface">@color/cyber_onSurface</color>
+    <color name="md_theme_outline">@color/cyber_outline</color>
+</resources>
