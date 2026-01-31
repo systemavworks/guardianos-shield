@@ -265,7 +265,7 @@ Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](L
 
 ## 👥 Autores
 
-- - **Victor Shift Lara**Desarrollo inicial* - [TuGitHub](https://github.com/systemavworks)
+- - **Victor Shift Lara** Desarrollo inicial* - [TuGitHub](https://github.com/systemavworks)
     
 
 ## 🙏 Agradecimientos
