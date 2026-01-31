@@ -52,144 +52,238 @@ GuardianOS Shield es una aplicación Android de control parental que filtra cont
 ```
 Aquí está el esquema visual de las capas de la aplicación **Guardianos Shield**:
 
+# Guardianos Shield - Arquitectura de la Aplicación
+
+## 📋 Tabla de Contenidos
+- [Descripción General](#descripción-general)
+- [Arquitectura en Capas](#arquitectura-en-capas)
+- [Componentes Principales](#componentes-principales)
+- [Flujo de Datos](#flujo-de-datos)
+- [Tecnologías Utilizadas](#tecnologías-utilizadas)
+
+## Descripción General
+
+**Guardianos Shield** es una aplicación de control parental para Android que utiliza filtrado DNS mediante VPN local, monitoreo de aplicaciones y navegación segura para proteger a los menores en el uso de dispositivos móviles.
+
+## Arquitectura en Capas
 ```
-╔════════════════════════════════════════════════════════════════════════╗
-║                         GUARDIANOS SHIELD                              ║
-║                    Aplicación de Control Parental                      ║
-╚════════════════════════════════════════════════════════════════════════╝
-
-┌────────────────────────────────────────────────────────────────────────┐
-│                          CAPA DE INTERFAZ (UI)                         │
-├────────────────────────────────────────────────────────────────────────┤
-│  📱 MainActivity.kt                                                    │
-│  ┌──────────────────────────────────────────────────────────────┐    │
-│  │ • ParentalControlScreen.kt    - Control parental             │    │
-│  │ • StatisticsScreen.kt          - Estadísticas de uso         │    │
-│  │ • SettingsScreen.kt            - Configuración               │    │
-│  │ • CustomFiltersScreen.kt       - Filtros personalizados      │    │
-│  │ • SafeBrowserActivity.kt       - Navegador seguro            │    │
-│  └──────────────────────────────────────────────────────────────┘    │
-│  🎨 Theme (Material Design 3)                                          │
-└────────────────────────────────────────────────────────────────────────┘
-                                    ↕
-┌────────────────────────────────────────────────────────────────────────┐
-│                      CAPA DE LÓGICA DE NEGOCIO                        │
-├────────────────────────────────────────────────────────────────────────┤
-│  🧠 GuardianRepository.kt - Coordinador central de datos              │
-│  📊 SettingsDataStore.kt  - Gestión de preferencias                   │
-└────────────────────────────────────────────────────────────────────────┘
-                                    ↕
-┌────────────────────────────────────────────────────────────────────────┐
-│                        CAPA DE SERVICIOS                              │
-├────────────────────────────────────────────────────────────────────────┤
-│                                                                        │
-│  🛡️ FILTRADO Y PROTECCIÓN                                            │
-│  ┌──────────────────────────────────────────────────────────────┐    │
-│  │ • DnsFilterService.kt       - Servicio VPN de filtrado DNS   │    │
-│  │ • LocalBlocklist.kt         - Lista de bloqueo local         │    │
-│  │ • SafeBrowsingService.kt    - Navegación segura              │    │
-│  └──────────────────────────────────────────────────────────────┘    │
-│                                                                        │
-│  📱 MONITOREO DE APLICACIONES                                         │
-│  ┌──────────────────────────────────────────────────────────────┐    │
-│  │ • AppMonitorService.kt      - Monitor completo de apps       │    │
-│  │ • LightweightMonitorService - Monitor ligero                 │    │
-│  │ • UsageStatsMonitor.kt      - Estadísticas de uso            │    │
-│  │ • RealisticAppBlocker.kt    - Bloqueo inteligente de apps    │    │
-│  └──────────────────────────────────────────────────────────────┘    │
-│                                                                        │
-│  ⚙️ GESTIÓN Y MANTENIMIENTO                                           │
-│  ┌──────────────────────────────────────────────────────────────┐    │
-│  │ • ScheduleManager.kt        - Horarios y programación        │    │
-│  │ • LogCleanupWorker.kt       - Limpieza de logs (WorkManager) │    │
-│  └──────────────────────────────────────────────────────────────┘    │
-│                                                                        │
-└────────────────────────────────────────────────────────────────────────┘
-                                    ↕
-┌────────────────────────────────────────────────────────────────────────┐
-│                      CAPA DE PERSISTENCIA (DATA)                      │
-├────────────────────────────────────────────────────────────────────────┤
-│  🗄️ GuardianDatabase.kt (Room Database)                              │
-│                                                                        │
-│  ┌──────────────────────────────────────────────────────────────┐    │
-│  │ TABLAS Y DAOs:                                               │    │
-│  │                                                              │    │
-│  │ • BlockedSiteEntity + BlockedSiteDao   - Sitios bloqueados  │    │
-│  │ • CustomFilterEntity + CustomFilterDao - Filtros custom     │    │
-│  │ • DnsLogEntity + DnsLogDao            - Logs de DNS         │    │
-│  │ • StatisticEntity + StatisticDao      - Estadísticas        │    │
-│  │ • UserProfileEntity + UserProfileDao  - Perfiles de usuario │    │
-│  │ • DomainStat.kt                       - Stats por dominio   │    │
-│  └──────────────────────────────────────────────────────────────┘    │
-└────────────────────────────────────────────────────────────────────────┘
-                                    ↕
-┌────────────────────────────────────────────────────────────────────────┐
-│                    RECURSOS Y CONFIGURACIÓN                           │
-├────────────────────────────────────────────────────────────────────────┤
-│  📂 ASSETS                                                             │
-│  └─ blocklist_domains.txt  - Lista maestra de dominios bloqueados    │
-│                                                                        │
-│  📂 RAW                                                                │
-│  └─ blocklist_backup.txt   - Backup de lista de bloqueo              │
-│                                                                        │
-│  📂 DRAWABLE                                                           │
-│  └─ Iconos: shield, warning, launcher                                │
-│                                                                        │
-│  📂 XML                                                                │
-│  ├─ network_security_config.xml  - Configuración de red              │
-│  ├─ backup_rules.xml             - Reglas de backup                  │
-│  └─ data_extraction_rules.xml    - Extracción de datos               │
-└────────────────────────────────────────────────────────────────────────┘
-                                    ↕
-┌────────────────────────────────────────────────────────────────────────┐
-│                  PERMISOS Y SISTEMA ANDROID                           │
-├────────────────────────────────────────────────────────────────────────┤
-│  📋 AndroidManifest.xml                                               │
-│                                                                        │
-│  🔐 PERMISOS REQUERIDOS (inferidos):                                  │
-│  ┌──────────────────────────────────────────────────────────────┐    │
-│  │ • BIND_VPN_SERVICE          - Crear servicio VPN             │    │
-│  │ • PACKAGE_USAGE_STATS        - Acceso a estadísticas de uso  │    │
-│  │ • INTERNET                   - Acceso a internet             │    │
-│  │ • FOREGROUND_SERVICE         - Servicios en primer plano     │    │
-│  │ • RECEIVE_BOOT_COMPLETED     - Iniciar al arrancar           │    │
-│  │ • QUERY_ALL_PACKAGES         - Consultar apps instaladas     │    │
-│  └──────────────────────────────────────────────────────────────┘    │
-│                                                                        │
-│  ⚡ COMPONENTES ANDROID:                                              │
-│  ┌──────────────────────────────────────────────────────────────┐    │
-│  │ • VpnService              - Filtrado DNS mediante VPN        │    │
-│  │ • Service (Foreground)    - Monitoreo continuo               │    │
-│  │ • WorkManager             - Tareas programadas               │    │
-│  │ • DataStore               - Almacenamiento de preferencias   │    │
-│  │ • Room Database           - Base de datos local              │    │
-│  └──────────────────────────────────────────────────────────────┘    │
-└────────────────────────────────────────────────────────────────────────┘
-
-╔════════════════════════════════════════════════════════════════════════╗
-║                        FLUJO DE DATOS PRINCIPAL                        ║
-╠════════════════════════════════════════════════════════════════════════╣
-║                                                                        ║
-║  Internet/Red → DnsFilterService (VPN) → LocalBlocklist → Room DB     ║
-║       ↓                                        ↓                       ║
-║  Análisis DNS → Logging → StatisticEntity → UI (Estadísticas)        ║
-║                                                                        ║
-║  Apps Usuario → UsageStatsMonitor → RealisticAppBlocker → ScheduleManager
-║                        ↓                                               ║
-║                  UserProfileEntity → Políticas de control             ║
-║                                                                        ║
-╚════════════════════════════════════════════════════════════════════════╝
+┌─────────────────────────────────────────────────────────────────┐
+│                      CAPA DE PRESENTACIÓN (UI)                  │
+│  Material Design 3 + Jetpack Compose                            │
+├─────────────────────────────────────────────────────────────────┤
+│  • MainActivity.kt                                              │
+│  • ParentalControlScreen.kt    - Gestión de controles          │
+│  • StatisticsScreen.kt          - Dashboard de estadísticas    │
+│  • SettingsScreen.kt            - Configuración de la app      │
+│  • CustomFiltersScreen.kt       - Filtros personalizados       │
+│  • SafeBrowserActivity.kt       - Navegador seguro integrado   │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓↑
+┌─────────────────────────────────────────────────────────────────┐
+│                   CAPA DE LÓGICA DE NEGOCIO                     │
+├─────────────────────────────────────────────────────────────────┤
+│  • GuardianRepository.kt   - Repositorio central de datos       │
+│  • SettingsDataStore.kt    - Gestión de preferencias           │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓↑
+┌─────────────────────────────────────────────────────────────────┐
+│                       CAPA DE SERVICIOS                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  🛡️ FILTRADO Y PROTECCIÓN                                      │
+│  ├─ DnsFilterService.kt      - Servicio VPN de filtrado DNS    │
+│  ├─ LocalBlocklist.kt        - Lista de bloqueo local          │
+│  └─ SafeBrowsingService.kt   - Navegación segura               │
+│                                                                 │
+│  📱 MONITOREO DE APLICACIONES                                   │
+│  ├─ AppMonitorService.kt           - Monitor completo de apps  │
+│  ├─ LightweightMonitorService.kt   - Monitor optimizado        │
+│  ├─ UsageStatsMonitor.kt           - Estadísticas de uso       │
+│  └─ RealisticAppBlocker.kt         - Bloqueo inteligente       │
+│                                                                 │
+│  ⚙️ GESTIÓN Y MANTENIMIENTO                                     │
+│  ├─ ScheduleManager.kt       - Programación de horarios        │
+│  └─ LogCleanupWorker.kt      - Limpieza automática de logs     │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓↑
+┌─────────────────────────────────────────────────────────────────┐
+│                  CAPA DE PERSISTENCIA (DATA)                    │
+│  Room Database + DataStore                                      │
+├─────────────────────────────────────────────────────────────────┤
+│  • GuardianDatabase.kt - Base de datos principal                │
+│                                                                 │
+│  ENTIDADES Y DAOs:                                              │
+│  ├─ BlockedSiteEntity + BlockedSiteDao   - Sitios bloqueados   │
+│  ├─ CustomFilterEntity + CustomFilterDao - Filtros custom      │
+│  ├─ DnsLogEntity + DnsLogDao            - Registro DNS         │
+│  ├─ StatisticEntity + StatisticDao      - Métricas de uso      │
+│  ├─ UserProfileEntity + UserProfileDao  - Perfiles usuarios    │
+│  └─ DomainStat.kt                       - Estadísticas dominio │
+└─────────────────────────────────────────────────────────────────┘
+                              ↓↑
+┌─────────────────────────────────────────────────────────────────┐
+│                    RECURSOS Y CONFIGURACIÓN                     │
+├─────────────────────────────────────────────────────────────────┤
+│  📂 Assets                                                       │
+│  └─ blocklist_domains.txt - Lista maestra de dominios          │
+│                                                                 │
+│  📂 Raw Resources                                               │
+│  └─ blocklist_backup.txt - Backup de listas de bloqueo         │
+│                                                                 │
+│  📂 XML Configuration                                           │
+│  ├─ network_security_config.xml                                │
+│  ├─ backup_rules.xml                                            │
+│  └─ data_extraction_rules.xml                                   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**Características clave identificadas:**
+## Componentes Principales
 
-✅ **VPN Local** - Filtrado DNS sin servidores externos  
-✅ **Control parental** - Bloqueo de apps y sitios web  
-✅ **Monitoreo en tiempo real** - Seguimiento de uso de aplicaciones  
-✅ **Navegador seguro integrado** - SafeBrowserActivity  
-✅ **Sistema de horarios** - ScheduleManager para restricciones temporales  
-✅ **Análisis y estadísticas** - Reportes detallados de uso  
-✅ **Filtros personalizables** - CustomFilters definidos por el usuario
+### 🔐 Sistema VPN de Filtrado DNS
+
+El núcleo de la protección se basa en un servicio VPN local que intercepta y filtra peticiones DNS:
+
+- **DnsFilterService**: Implementa `VpnService` para crear un túnel VPN local
+- **LocalBlocklist**: Gestiona listas de dominios bloqueados
+- Sin servidores externos - toda la filtración ocurre en el dispositivo
+
+### 📊 Sistema de Monitoreo
+
+Seguimiento en tiempo real del uso de aplicaciones:
+
+- **AppMonitorService**: Monitoreo completo de aplicaciones
+- **LightweightMonitorService**: Versión optimizada para bajo consumo
+- **UsageStatsMonitor**: Integración con Android UsageStats API
+- **RealisticAppBlocker**: Bloqueo inteligente basado en patrones de uso
+
+### 🗄️ Persistencia de Datos
+
+Arquitectura de datos robusta usando Room:
+```kotlin
+GuardianDatabase
+├── BlockedSite (Sitios bloqueados por el usuario/admin)
+├── CustomFilter (Reglas de filtrado personalizadas)
+├── DnsLog (Registro de consultas DNS)
+├── Statistic (Métricas de uso y actividad)
+└── UserProfile (Perfiles de usuarios/menores)
+```
+
+### 🎨 Interfaz de Usuario
+
+Desarrollada con Jetpack Compose y Material Design 3:
+
+- **Pantalla de Control Parental**: Gestión de restricciones
+- **Estadísticas**: Visualización de uso y actividad
+- **Navegador Seguro**: WebView integrado con filtrado
+- **Configuración**: Personalización de la aplicación
+- **Filtros Custom**: Creación de reglas personalizadas
+
+## Flujo de Datos
+
+### Flujo de Filtrado DNS
+```
+Internet/Red
+    ↓
+DnsFilterService (VPN)
+    ↓
+LocalBlocklist (verificación)
+    ↓
+[PERMITIR] → Conexión normal
+[BLOQUEAR] → Bloqueo + Log
+    ↓
+DnsLogEntity (Room DB)
+    ↓
+StatisticsScreen (UI)
+```
+
+### Flujo de Monitoreo de Apps
+```
+Apps del Usuario
+    ↓
+UsageStatsMonitor
+    ↓
+RealisticAppBlocker
+    ↓
+ScheduleManager (verificación de horarios)
+    ↓
+[PERMITIR] → Continuar
+[BLOQUEAR] → Interrupción de app
+    ↓
+StatisticEntity (Room DB)
+    ↓
+UserProfileEntity (actualización de métricas)
+```
+
+## Permisos de Android Requeridos
+
+La aplicación requiere los siguientes permisos del sistema:
+
+| Permiso | Propósito |
+|---------|-----------|
+| `BIND_VPN_SERVICE` | Crear servicio VPN para filtrado DNS |
+| `PACKAGE_USAGE_STATS` | Acceder a estadísticas de uso de apps |
+| `INTERNET` | Conexión a internet |
+| `FOREGROUND_SERVICE` | Ejecutar servicios en primer plano |
+| `RECEIVE_BOOT_COMPLETED` | Iniciar servicios al arrancar el dispositivo |
+| `QUERY_ALL_PACKAGES` | Consultar aplicaciones instaladas |
+
+## Tecnologías Utilizadas
+
+### Framework y Lenguaje
+- **Kotlin** - Lenguaje principal
+- **Android SDK** - Platform target
+
+### Jetpack Components
+- **Compose** - UI moderna declarativa
+- **Room** - Base de datos local
+- **DataStore** - Almacenamiento de preferencias
+- **WorkManager** - Tareas en segundo plano
+- **Lifecycle** - Gestión del ciclo de vida
+
+### Servicios Android
+- **VpnService** - Filtrado de red
+- **Foreground Service** - Monitoreo continuo
+- **UsageStatsManager** - Estadísticas del sistema
+
+### Construcción
+- **Gradle (KTS)** - Sistema de compilación
+- **ProGuard** - Ofuscación y optimización
+
+## Estructura del Proyecto
+```
+guardianos-shield/
+├── app/
+│   ├── src/main/
+│   │   ├── kotlin/com/guardianos/shield/
+│   │   │   ├── data/          # Capa de persistencia
+│   │   │   ├── service/       # Servicios de background
+│   │   │   ├── ui/            # Interfaz de usuario
+│   │   │   └── MainActivity.kt
+│   │   ├── assets/            # Recursos estáticos
+│   │   ├── res/               # Recursos Android
+│   │   └── AndroidManifest.xml
+│   └── build.gradle.kts
+├── gradle/
+├── build.gradle.kts
+└── settings.gradle.kts
+```
+
+## Características Principales
+
+✅ **Filtrado DNS sin servidor externo** - Privacidad total  
+✅ **Control parental completo** - Bloqueo de apps y sitios  
+✅ **Monitoreo en tiempo real** - Seguimiento de actividad  
+✅ **Navegador seguro integrado** - Navegación protegida  
+✅ **Gestión de horarios** - Restricciones temporales  
+✅ **Estadísticas detalladas** - Reportes de uso  
+✅ **Filtros personalizables** - Control total del usuario  
+✅ **Trabajo offline** - No requiere conexión constante  
+
+---
+
+**Licencia**: [Ver LICENSE](LICENSE)  
+**Contribuciones**: Las pull requests son bienvenidas
 ```
 
 ## 🔧 Configuración
