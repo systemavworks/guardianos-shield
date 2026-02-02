@@ -1,5 +1,3 @@
-<!-- app/src/main/res/values/colors.xml -->
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Cybersecurity Professional Colors -->
     <color name="cyber_primary">#00D9FF</color>        <!-- Cyan brillante -->

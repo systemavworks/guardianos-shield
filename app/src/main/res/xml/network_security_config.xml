@@ -1,34 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- app/src/main/res/xml/network_security_config.xml -->
 <network-security-config>
+    <!-- Configuración base: solo tráfico cifrado, sin cleartext -->
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
             <certificates src="system" />
-            <certificates src="user" />
+            <!-- Opcional: quitar user si no usas certificados personalizados -->
+            <!-- <certificates src="user" /> -->
         </trust-anchors>
     </base-config>
-    
-    <!-- Permitir tráfico cleartext solo para DNS local si es necesario -->
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">localhost</domain>
-        <domain includeSubdomains="true">127.0.0.1</domain>
-        <domain includeSubdomains="true">10.0.2.2</domain>
-    </domain-config>
-    
-    <!-- Configuración específica para Google Safe Browsing API -->
-    <domain-config>
+
+    <!-- Dominios específicos que usamos -->
+    <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">safebrowsing.googleapis.com</domain>
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </domain-config>
-    
-    <!-- Cloudflare DNS -->
-    <domain-config>
-        <domain includeSubdomains="true">1.1.1.3</domain>
-        <domain includeSubdomains="true">1.0.0.3</domain>
+
+    <!-- Solo si usas actualizaciones remotas desde GitHub en el futuro -->
+    <!--
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">raw.githubusercontent.com</domain>
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </domain-config>
+    -->
+
 </network-security-config>

@@ -1,7 +1,5 @@
-<!-- app/src/main/res/values/strings.xml -->
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- ... tus strings existentes ... -->
+    <string name="app_name">GuardianOS Shield</string>
     
     <!-- Strings para SettingsScreen -->
     <string name="notifications_blocked">Notificaciones de bloqueo</string>

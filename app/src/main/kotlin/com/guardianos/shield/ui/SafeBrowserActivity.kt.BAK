@@ -1,0 +1,598 @@
+package com.guardianos.shield.ui
+
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
+import android.os.Bundle
+import android.util.Log
+import android.webkit.*
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.lifecycleScope
+import com.guardianos.shield.data.BlockedSiteEntity
+import com.guardianos.shield.data.GuardianDatabase
+import com.guardianos.shield.data.GuardianRepository
+import com.guardianos.shield.ui.theme.GuardianShieldTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.URL
+
+class SafeBrowserActivity : ComponentActivity() {
+
+    private lateinit var webView: WebView
+    private lateinit var repository: GuardianRepository
+    private var isLoading by mutableStateOf(false)
+    private var canGoBack by mutableStateOf(false)
+    private var canGoForward by mutableStateOf(false)
+    private var currentUrl by mutableStateOf("https://www.google.com")
+    private var searchQuery by mutableStateOf("")
+    private var showHistory by mutableStateOf(false)
+    private var browsingHistory = mutableStateListOf<String>()
+
+    companion object {
+        fun createIntent(context: Context): Intent {
+            return Intent(context, SafeBrowserActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        repository = GuardianRepository(this, GuardianDatabase.getDatabase(this))
+
+        intent.getStringExtra("redirected_from")?.let { sourceApp ->
+            Log.d("SafeBrowser", "Redirigido desde: $sourceApp")
+        }
+
+        setContent {
+            GuardianShieldTheme {
+                SafeBrowserScreen(
+                    isLoading = isLoading,
+                    canGoBack = canGoBack,
+                    canGoForward = canGoForward,
+                    currentUrl = currentUrl,
+                    onUrlChanged = { url -> loadUrlSafely(url) },
+                    onSearchQueryChanged = { query -> searchQuery = query },
+                    onSearchSubmit = { query ->
+                        if (query.isNotBlank()) {
+                            val searchUrl = "https://www.google.com/search?q=${Uri.encode(query)}"
+                            loadUrlSafely(searchUrl)
+                            searchQuery = ""
+                        }
+                    },
+                    onBack = { if (canGoBack) webView.goBack() else finish() },
+                    onForward = { if (canGoForward) webView.goForward() },
+                    onRefresh = { webView.reload() },
+                    onHome = { loadUrlSafely("https://www.google.com") },
+                    onToggleHistory = { showHistory = !showHistory },
+                    historyItems = browsingHistory.toList(),
+                    onHistoryItemClick = { url -> loadUrlSafely(url) }
+                )
+            }
+        }
+
+        setupWebView()
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun setupWebView() {
+        webView = WebView(this).apply {
+            settings.apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                setSupportZoom(true)
+                builtInZoomControls = true
+                displayZoomControls = false
+                loadWithOverviewMode = true
+                useWideViewPort = true
+            }
+
+            webViewClient = object : WebViewClient() {
+                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                    val url = request?.url?.toString() ?: return false
+                    val domain = try {
+                        URL(url).host
+                    } catch (e: Exception) {
+                        return true
+                    }
+
+                    lifecycleScope.launch {
+                        val isBlocked = isDomainBlocked(domain)
+                        if (isBlocked) {
+                            showBlockedPage(url, "Sitio restringido por control parental")
+                            repository.addBlockedSite(
+                                domain = domain,
+                                category = "user_attempt",
+                                threatLevel = 1
+                            )
+                        } else {
+                            view?.loadUrl(url)
+                            addToHistory(url)
+                        }
+                    }
+
+                    return true
+                }
+
+                override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                    super.onPageStarted(view, url, favicon)
+                    url?.let {
+                        currentUrl = it
+                        isLoading = true
+                    }
+                }
+
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    isLoading = false
+                    canGoBack = view?.canGoBack() == true
+                    canGoForward = view?.canGoForward() == true
+
+                    view?.evaluateJavascript("""
+                        (function() {
+                            const selectors = [
+                                '.cookie-banner', '#cookie-notice', '.gdpr-banner',
+                                '[class*="cookie"]', '[id*="cookie"]',
+                                '.consent-banner', '#consent-banner'
+                            ];
+                            selectors.forEach(sel => {
+                                try {
+                                    document.querySelectorAll(sel).forEach(el => {
+                                        el.style.display = 'none';
+                                    });
+                                } catch (e) {}
+                            });
+                        })();
+                    """.trimIndent(), null)
+                }
+
+                override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                    super.onReceivedError(view, request, error)
+                    showBlockedPage(request?.url.toString(), "Error al cargar la página")
+                }
+            }
+
+            webChromeClient = object : WebChromeClient() {
+                override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                    super.onProgressChanged(view, newProgress)
+                    isLoading = newProgress < 100
+                }
+            }
+
+            loadUrl(currentUrl)
+        }
+    }
+
+    private fun loadUrlSafely(url: String) {
+        lifecycleScope.launch {
+            val finalUrl = if (!url.startsWith("http")) "https://$url" else url
+            val domain = try {
+                URL(finalUrl).host
+            } catch (e: Exception) {
+                return@launch
+            }
+
+            if (isDomainBlocked(domain)) {
+                showBlockedPage(finalUrl, "Sitio bloqueado")
+                repository.addBlockedSite(
+                    domain = domain,
+                    category = "blocked",
+                    threatLevel = 2
+                )
+            } else {
+                withContext(Dispatchers.Main) {
+                    webView.loadUrl(finalUrl)
+                    addToHistory(finalUrl)
+                }
+            }
+        }
+    }
+
+    private fun showBlockedPage(url: String, reason: String) {
+        val blockedHtml = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body { font-family: sans-serif; text-align: center; padding: 50px; background: #f5f5f5; }
+                    .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                    h1 { color: #d32f2f; }
+                    p { color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🛡️ Sitio Bloqueado</h1>
+                    <p><strong>$reason</strong></p>
+                    <p>URL: $url</p>
+                    <p>Este sitio ha sido bloqueado por el filtro de contenido.</p>
+                </div>
+            </body>
+            </html>
+        """.trimIndent()
+
+        runOnUiThread {
+            webView.loadDataWithBaseURL(null, blockedHtml, "text/html", "UTF-8", null)
+        }
+    }
+
+    private suspend fun isDomainBlocked(domain: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val profile = repository.getActiveProfile()
+            
+            // Categorías sensibles
+            val adultKeywords = listOf("porn", "xxx", "adult", "sex", "nude", "camgirl")
+            val gamblingKeywords = listOf("casino", "poker", "betting", "gamble", "lottery")
+            val socialKeywords = listOf("facebook", "instagram", "tiktok", "snapchat", "twitter")
+            
+            // Verificar categorías según perfil
+            if (adultKeywords.any { domain.contains(it, ignoreCase = true) }) {
+                return@withContext true
+            }
+            
+            if (gamblingKeywords.any { domain.contains(it, ignoreCase = true) }) {
+                return@withContext true
+            }
+            
+            // Verificar lista de bloqueados custom
+            val customFilters = repository.getAllCustomFilters()
+            if (customFilters.any { filter -> 
+                filter.isEnabled && domain.contains(filter.pattern.ifEmpty { filter.domain }, ignoreCase = true) 
+            }) {
+                return@withContext true
+            }
+            
+            false
+        } catch (e: Exception) {
+            Log.e("SafeBrowser", "Error checking domain: ${e.message}")
+            false
+        }
+    }
+
+    private fun addToHistory(url: String) {
+        if (url !in browsingHistory && !url.startsWith("data:")) {
+            browsingHistory.add(0, url)
+            if (browsingHistory.size > 50) {
+                browsingHistory.removeAt(browsingHistory.lastIndex)
+            }
+        }
+    }
+}
+
+@Composable
+fun SafeBrowserScreen(
+    isLoading: Boolean,
+    canGoBack: Boolean,
+    canGoForward: Boolean,
+    currentUrl: String,
+    onUrlChanged: (String) -> Unit,
+    onSearchQueryChanged: (String) -> Unit,
+    onSearchSubmit: (String) -> Unit,
+    onBack: () -> Unit,
+    onForward: () -> Unit,
+    onRefresh: () -> Unit,
+    onHome: () -> Unit,
+    onToggleHistory: () -> Unit,
+    historyItems: List<String>,
+    onHistoryItemClick: (String) -> Unit
+) {
+    var searchText by remember { mutableStateOf("") }
+    var showHistory by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val webViewState = remember { mutableStateOf<WebView?>(null) }
+
+    Scaffold(
+        topBar = {
+            BrowserTopBar(
+                currentUrl = currentUrl,
+                isLoading = isLoading,
+                searchText = searchText,
+                onSearchTextChange = { searchText = it },
+                onSearchSubmit = {
+                    onSearchSubmit(searchText)
+                    searchText = ""
+                },
+                onBack = onBack,
+                canGoBack = canGoBack
+            )
+        },
+        bottomBar = {
+            BrowserBottomBar(
+                canGoBack = canGoBack,
+                canGoForward = canGoForward,
+                onBack = onBack,
+                onForward = onForward,
+                onRefresh = onRefresh,
+                onHome = onHome,
+                onHistory = { showHistory = !showHistory }
+            )
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            // ✅ WebView renderizado con AndroidView
+            AndroidView(
+                factory = { ctx ->
+                    WebView(ctx).apply {
+                        settings.javaScriptEnabled = true
+                        settings.domStorageEnabled = true
+                        settings.setSupportZoom(true)
+                        settings.builtInZoomControls = true
+                        settings.displayZoomControls = false
+                        webViewState.value = this
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+                update = { webView ->
+                    // Actualizar URL si cambia (opcional)
+                }
+            )
+
+            // Historia de navegación
+            AnimatedVisibility(
+                visible = showHistory,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { showHistory = false },
+                    color = Color.Black.copy(alpha = 0.7f)
+                ) {
+                    HistoryPanel(
+                        historyItems = historyItems,
+                        onItemClick = { url ->
+                            onHistoryItemClick(url)
+                            showHistory = false
+                        },
+                        onClose = { showHistory = false }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BrowserTopBar(
+    currentUrl: String,
+    isLoading: Boolean,
+    searchText: String,
+    onSearchTextChange: (String) -> Unit,
+    onSearchSubmit: () -> Unit,
+    onBack: () -> Unit,
+    canGoBack: Boolean
+) {
+    TopAppBar(
+        title = {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (canGoBack) {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Rounded.ArrowBack, "Atrás")
+                    }
+                }
+                
+                OutlinedTextField(
+                    value = searchText,
+                    onValueChange = onSearchTextChange,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp),
+                    placeholder = { Text("Buscar o escribir URL", fontSize = 14.sp) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSearch = { onSearchSubmit() }
+                    ),
+                    leadingIcon = {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(Icons.Rounded.Search, "Buscar")
+                        }
+                    }
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    )
+}
+
+@Composable
+fun BrowserBottomBar(
+    canGoBack: Boolean,
+    canGoForward: Boolean,
+    onBack: () -> Unit,
+    onForward: () -> Unit,
+    onRefresh: () -> Unit,
+    onHome: () -> Unit,
+    onHistory: () -> Unit
+) {
+    BottomAppBar(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            BrowserActionButton(
+                icon = Icons.Rounded.ArrowBack,
+                contentDescription = "Atrás",
+                enabled = canGoBack,
+                onClick = onBack
+            )
+            BrowserActionButton(
+                icon = Icons.Rounded.ArrowForward,
+                contentDescription = "Adelante",
+                enabled = canGoForward,
+                onClick = onForward
+            )
+            BrowserActionButton(
+                icon = Icons.Rounded.Refresh,
+                contentDescription = "Recargar",
+                onClick = onRefresh
+            )
+            BrowserActionButton(
+                icon = Icons.Rounded.Home,
+                contentDescription = "Inicio",
+                onClick = onHome
+            )
+            BrowserActionButton(
+                icon = Icons.Rounded.History,
+                contentDescription = "Historial",
+                onClick = onHistory
+            )
+        }
+    }
+}
+
+@Composable
+fun BrowserActionButton(
+    icon: ImageVector,
+    contentDescription: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    IconButton(
+        onClick = onClick,
+        enabled = enabled
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = if (enabled) {
+                MaterialTheme.colorScheme.onSurface
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+            }
+        )
+    }
+}
+
+@Composable
+fun HistoryPanel(
+    historyItems: List<String>,
+    onItemClick: (String) -> Unit,
+    onClose: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Historial de Navegación",
+                    style = MaterialTheme.typography.titleLarge
+                )
+                IconButton(onClick = onClose) {
+                    Icon(Icons.Rounded.Close, "Cerrar")
+                }
+            }
+            
+            Divider()
+            
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                items(historyItems) { url ->
+                    HistoryItem(
+                        url = url,
+                        onClick = { onItemClick(url) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HistoryItem(url: String, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Language,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = url,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}

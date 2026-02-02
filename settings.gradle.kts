@@ -1,4 +1,3 @@
-// settings.gradle.kts
 pluginManagement {
     repositories {
         google()
@@ -6,13 +5,14 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
     }
 }
-rootProject.name = "GuardianOS Shield"
+
+rootProject.name = "guardianos-shield"
 include(":app")

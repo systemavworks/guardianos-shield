@@ -1,73 +1,35 @@
-# GuardianOS Shield - ProGuard Rules
+# GuardianOS Shield - ProGuard rules optimizadas para bajo tamaño
 
-# Mantener clases de servicios VPN
--keep class com.guardianos.shield.service.** { *; }
-
-# Room Database
--keep class * extends androidx.room.RoomDatabase
--keep @androidx.room.Entity class *
--dontwarn androidx.room.paging.**
-
-# Retrofit
--keepattributes Signature
--keepattributes *Annotation*
--keep class retrofit2.** { *; }
--keepclasseswithmembers class * {
-    @retrofit2.http.* <methods>;
-}
-
-# OkHttp
--dontwarn okhttp3.**
--dontwarn okio.**
--keep class okhttp3.** { *; }
--keep interface okhttp3.** { *; }
-
-# Gson
--keepattributes Signature
--keepattributes *Annotation*
--dontwarn sun.misc.**
--keep class com.google.gson.** { *; }
--keep class * implements com.google.gson.TypeAdapterFactory
--keep class * implements com.google.gson.JsonSerializer
--keep class * implements com.google.gson.JsonDeserializer
-
-# Mantener modelos de datos
+# Mantener clases Room (KSP genera código diferente a kapt)
 -keep class com.guardianos.shield.data.** { *; }
+-keep class * implements androidx.room.RoomDatabase { *; }
+-keep class androidx.room.** { *; }
 
-# Coroutines
--keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
--keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
--keepclassmembernames class kotlinx.** {
-    volatile <fields>;
+# Mantener Compose
+-keep class androidx.compose.runtime.** { *; }
+-keep class kotlin.coroutines.** { *; }
+
+# WebView necesario para SafeBrowser
+-keepclassmembers class * extends android.webkit.WebViewClient {
+    public *;
+}
+-keepclassmembers class * extends android.webkit.WebChromeClient {
+    public *;
 }
 
-# Compose
--keep class androidx.compose.** { *; }
--dontwarn androidx.compose.**
-
-# Mantener información de línea para stack traces
--keepattributes SourceFile,LineNumberTable
--renamesourcefileattribute SourceFile
-
-# Remover logs en release
+# Reducir agresivamente todo lo demás
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
     public static *** i(...);
 }
 
-# Mantener métodos nativos
--keepclasseswithmembernames class * {
-    native <methods>;
-}
+# Eliminar metadata innecesaria
+-dontwarn kotlin.reflect.jvm.internal.**
+-dontwarn javax.annotation.**
 
-# Mantener clases de Parcelable
--keep class * implements android.os.Parcelable {
-    public static final android.os.Parcelable$Creator *;
-}
-
-# Mantener enums
--keepclassmembers enum * {
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
-}
+# Optimizaciones específicas para bajo tamaño
+-optimizationpasses 5
+-allowaccessmodification
+-repackageclasses ''
+-flattenpackagehierarchy ''

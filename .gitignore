@@ -12,7 +12,7 @@ local.properties
 *.ipr
 *.iws
 
-# Logs y perfiles
+# Logs
 *.log
 *.hprof
 

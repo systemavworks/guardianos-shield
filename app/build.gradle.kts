@@ -1,9 +1,8 @@
 // app/build.gradle.kts
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
-    id("com.google.devtools.ksp") version "1.9.20-1.0.14"
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -12,31 +11,42 @@ android {
 
     defaultConfig {
         applicationId = "com.guardianos.shield"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = 24  // Android 7.0 (Nougat) - mínimo realista para apps de seguridad modernas
+        targetSdk = 34 // Android 14
         versionCode = 1
         versionName = "1.0.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Optimización RAM para tu Aspire E5-571G
         vectorDrawables {
             useSupportLibrary = true
         }
 
-        // 🔑 TU API KEY DE GOOGLE SAFE BROWSING
-        buildConfigField("String", "SAFE_BROWSING_API_KEY", "\"YOUR_API_KEY_HERE\"")
+        // Reducir tamaño del APK
+        resConfigs("en", "es") // Solo inglés/español
+        setProperty("archivesBaseName", "guardianos-shield-v$versionName")
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            isDebuggable = true
+            isMinifyEnabled = false
+            isShrinkResources = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
         release {
+            isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-        }
-        debug {
-            isDebuggable = true
+            signingConfig = signingConfigs.getByName("debug") // Para testing inicial
         }
     }
 
@@ -47,6 +57,11 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+        // ✅ Flags seguros para tu hardware limitado (SIN -Xuse-k2 ni -Xmax-memory)
+        freeCompilerArgs = listOf(
+            "-Xbackend-threads=2", // Limitar hilos del compilador (tu CPU dual-core)
+            "-opt-in=kotlin.RequiresOptIn"
+        )
     }
 
     buildFeatures {
@@ -55,68 +70,85 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
+        kotlinCompilerExtensionVersion = "1.5.11" // Compatible con Kotlin 1.9.23
     }
 
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/INDEX.LIST"
+            excludes += "/META-INF/DEPENDENCIES"
+            // Reducir tamaño eliminando recursos innecesarios
+            excludes += "/META-INF/*.kotlin_module"
+            excludes += "/META-INF/*.version"
         }
+    }
+
+    // Optimización crítica para tu hardware limitado
+    androidResources {
+        noCompress("dat", "bin", "txt") // Evitar compresión innecesaria
     }
 }
 
 dependencies {
-    // Core Android
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.activity:activity-compose:1.8.2")
+    // Core AndroidX
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.work.runtime)
+    implementation(libs.androidx.compose.material.icons.extended)
+    
+    // Lifecycle + ViewModel con Compose
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.service)
 
-    // Compose BOM
-    implementation(platform("androidx.compose:compose-bom:2024.01.00"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-extended")
+    // Compose BOM (Bill of Materials) - gestión automática de versiones
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.junit4)
 
-    // Navigation
-    implementation("androidx.navigation:navigation-compose:2.7.6")
+    // Navigation Compose
+    implementation(libs.androidx.navigation.compose)
 
-    // Room Database
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion") // 👈 KSP para Room
+    // Room Database (con KSP - NO kapt)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler) // ✅ KSP en lugar de kapt
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.core)
 
-    // Networking
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    // DataStore (preferencias modernas)
+    implementation(libs.androidx.datastore.preferences)
 
-    // Gson
-    implementation("com.google.code.gson:gson:2.10.1")
-
-    // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-
-    // DataStore (para preferencias)
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    // Networking (para futuras actualizaciones de blocklists)
+    implementation(libs.square.retrofit)
+    implementation(libs.square.retrofit.gson)
+    implementation(libs.square.okhttp)
+    implementation(libs.square.okhttp.logging)
+    implementation(libs.google.gson)
 
     // Testing
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.01.00"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+}
 
-    // Debug
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+// ✅ Tarea optimizada para tu hardware (SIN flags inválidos)
+tasks.register<Exec>("assembleDebugOptimized") {
+    description = "Compilar debug optimizado para hardware limitado"
+    commandLine = listOf(
+        "./gradlew",
+        ":app:assembleDebug",
+        "--no-daemon",
+        "--max-workers=2", // Limitar workers para tu CPU
+        "--console=plain"
+    )
 }
