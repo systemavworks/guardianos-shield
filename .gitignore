@@ -2,6 +2,7 @@
 .gradle/
 build/
 app/build/
+*/build/
 
 # Local configuration
 local.properties
@@ -11,20 +12,55 @@ local.properties
 *.iml
 *.ipr
 *.iws
+.vscode/
+.kotlin/
 
 # Logs
 *.log
 *.hprof
 
-# APKs
+# APKs y archivos binarios
 *.apk
+*.ap_
+*.aab
+*.dex
+*.class
 
-# Keystore
+# Keystore y certificados
 *.jks
 *.keystore
+*.p12
+*.key
+*.pem
+
+# API Keys y secretos (CRÍTICO)
+**/apikeys.properties
+**/secrets.properties
+google-services.json
+firebase.json
+
+# Backups
+*-backup-*/
+*.BAK
+*.bak
+*.backup
+
+# Archivos temporales
+*.tmp
+*.temp
+*.swp
+*~
 
 # macOS
 .DS_Store
+.AppleDouble
+.LSOverride
 
 # Linux
 *~
+.directory
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
