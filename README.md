@@ -4,8 +4,9 @@
 Sin rastreo • Sin servidores externos • Privacidad total
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Android-green.svg)
+![Platform](https://img.shields.io/badge/platform-Android%2012%2B-green.svg)
 ![Kotlin](https://img.shields.io/badge/kotlin-1.9+-purple.svg)
+![API](https://img.shields.io/badge/API-31%2B%20(Android%2012)-orange.svg)
 
 ---
 
@@ -18,6 +19,10 @@ Sin rastreo • Sin servidores externos • Privacidad total
 - 📊 **Monitoreo de apps** con redirección automática al navegador seguro
 - 🔔 **Notificaciones en tiempo real** de intentos de acceso bloqueados
 - 🔐 **100% privado**: Sin almacenamiento en la nube, todo local, sin analytics
+- ✅ **Compatible Android 12-15+**: Optimizado para todas las versiones modernas
+
+**Requisitos mínimos**: Android 12 (API 31) o superior  
+**Optimizado para**: Android 12, 13, 14 y 15+
 
 Desarrollado en **Sevilla, España** por **Victor Shift Lara**  
 🌐 Web oficial: [https://guardianos.es](https://guardianos.es)  

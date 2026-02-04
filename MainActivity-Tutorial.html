@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MainActivity.kt - Tutorial Completo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        h2 {
+            color: #667eea;
+            margin: 30px 0 15px 0;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #764ba2;
+            margin: 20px 0 10px 0;
+            font-size: 1.4em;
+        }
+
+        h4 {
+            color: #555;
+            margin: 15px 0 8px 0;
+            font-size: 1.1em;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .emoji-title {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .highlight-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .highlight-box strong {
+            color: #667eea;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .code-block .keyword {
+            color: #569cd6;
+        }
+
+        .code-block .string {
+            color: #ce9178;
+        }
+
+        .code-block .comment {
+            color: #6a9955;
+        }
+
+        .code-block .function {
+            color: #dcdcaa;
+        }
+
+        .code-block .type {
+            color: #4ec9b0;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .info-card h4 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .flow-diagram {
+            background: #f0f4ff;
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+
+        .flow-step {
+            padding: 8px 0;
+            border-left: 3px solid #667eea;
+            padding-left: 15px;
+            margin-left: 10px;
+        }
+
+        .concept-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .concept-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #764ba2;
+        }
+
+        .concept-item strong {
+            color: #764ba2;
+        }
+
+        .conclusion {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+
+        .conclusion h3 {
+            color: white;
+            margin-top: 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            header p {
+                font-size: 1em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            h3 {
+                font-size: 1.2em;
+            }
+
+            .code-block {
+                font-size: 0.8em;
+                padding: 15px;
+            }
+
+            .concept-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .toc {
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .toc h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .toc li {
+            padding: 8px 0;
+        }
+
+        .toc a {
+            color: #667eea;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .toc a:hover {
+            color: #764ba2;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 MainActivity.kt</h1>
+            <p>Tutorial Completo de Arquitectura Android con Kotlin & Jetpack Compose</p>
+        </header>
+
+        <div class="content">
+            <div class="toc">
+                <h3>📖 Tabla de Contenidos</h3>
+                <ul>
+                    <li><a href="#vision">🎯 Visión General</a></li>
+                    <li><a href="#arquitectura">🏗️ Arquitectura por Capas</a></li>
+                    <li><a href="#ciclo-vida">🔄 Ciclo de Vida</a></li>
+                    <li><a href="#permisos">🔐 Gestión de Permisos</a></li>
+                    <li><a href="#compose">🎨 Compose UI</a></li>
+                    <li><a href="#componentes">🧩 Componentes Reutilizables</a></li>
+                    <li><a href="#patrones">🔄 Patrones Avanzados</a></li>
+                    <li><a href="#flujo-datos">📊 Flujo de Datos Completo</a></li>
+                    <li><a href="#conceptos">🎯 Conceptos Clave</a></li>
+                    <li><a href="#conclusion">✅ Conclusión</a></li>
+                </ul>
+            </div>
+
+            <section id="vision">
+                <h2><span class="emoji-title">🎯</span>Visión General: ¿Qué es esta clase?</h2>
+                <p><code>MainActivity</code> es la <strong>Activity principal</strong> de una app Android de control parental. Es una <code>ComponentActivity</code> (no la clásica <code>Activity</code>), lo que significa que usa <strong>Jetpack Compose</strong> para su UI en lugar de XML.</p>
+                
+                <div class="highlight-box">
+                    <p><strong>📱 Funcionalidad principal:</strong> Controla el acceso a internet mediante VPN DNS filtering y monitorea las apps que usa el menor, con restricciones de horario configurable.</p>
+                </div>
+            </section>
+
+            <section id="arquitectura">
+                <h2><span class="emoji-title">🏗️</span>Arquitectura por Capas</h2>
+
+                <h3>Capa 1️⃣: Gestión de Estado (State Management)</h3>
+                <div class="code-block">
+<span class="comment">// Estados mutables con Compose</span>
+<span class="keyword">private var</span> protectionMode <span class="keyword">by</span> <span class="function">mutableStateOf</span>(ProtectionMode.Recommended)
+<span class="keyword">private var</span> isServiceRunning <span class="keyword">by</span> <span class="function">mutableStateOf</span>(<span class="keyword">false</span>)
+<span class="keyword">private var</span> blockedCount <span class="keyword">by</span> <span class="function">mutableStateOf</span>(0)
+<span class="keyword">private val</span> recentBlocked = <span class="function">mutableStateListOf</span>&lt;<span class="type">BlockedSiteEntity</span>&gt;()
+<span class="keyword">internal var</span> currentProfile <span class="keyword">by</span> <span class="function">mutableStateOf</span>&lt;<span class="type">UserProfileEntity</span>?&gt;(<span class="keyword">null</span>)
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: mutableStateOf()</h4>
+                    <p><code>mutableStateOf()</code> es la forma Compose de crear <strong>estado reactivo</strong>. Cuando estos valores cambian, los composables que los leen se <strong>recomponen automáticamente</strong>. Es similar a <code>LiveData</code> pero más moderno y eficiente.</p>
+                    <ul>
+                        <li><code>by mutableStateOf()</code> → Delegación de propiedades (getter/setter automático)</li>
+                        <li><code>mutableStateListOf()</code> → Lista observable (como <code>ObservableList</code>)</li>
+                    </ul>
+                </div>
+
+                <h3>Capa 2️⃣: Servicios y Dependencias</h3>
+                <div class="code-block">
+<span class="keyword">internal lateinit var</span> repository: <span class="type">GuardianRepository</span>
+<span class="keyword">private lateinit var</span> usageMonitor: <span class="type">UsageStatsMonitor</span>
+<span class="keyword">private lateinit var</span> vpnStateReceiver: <span class="type">BroadcastReceiver</span>
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: lateinit</h4>
+                    <p><code>lateinit</code> significa "lo inicializaré más tarde, pero antes de usarlo". Se usa cuando no podemos inicializar en el constructor (necesitamos <code>Context</code>).</p>
+                    <ul>
+                        <li><strong>GuardianRepository</strong>: Patrón Repository → abstrae acceso a Room DB</li>
+                        <li><strong>UsageStatsMonitor</strong>: Servicio custom que monitorea apps en foreground</li>
+                        <li><strong>BroadcastReceiver</strong>: Escucha eventos del VPN service (iniciado/detenido/error)</li>
+                    </ul>
+                </div>
+
+                <h3>Capa 3️⃣: Launchers de Permisos (Android Moderno)</h3>
+                <div class="code-block">
+<span class="keyword">private val</span> vpnPermissionLauncher = <span class="function">registerForActivityResult</span>(
+    ActivityResultContracts.<span class="function">StartActivityForResult</span>()
+) { result ->
+    <span class="keyword">if</span> (result.resultCode == RESULT_OK) {
+        <span class="function">startVpnService</span>()
+    }
+}
+
+<span class="keyword">private val</span> notificationPermissionLauncher = <span class="function">registerForActivityResult</span>(
+    ActivityResultContracts.<span class="function">RequestPermission</span>()
+) { granted ->
+    <span class="keyword">if</span> (granted) {
+        Toast.<span class="function">makeText</span>(<span class="keyword">this</span>, <span class="string">"Notificaciones activadas"</span>, Toast.LENGTH_SHORT).<span class="function">show</span>()
+    }
+}
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: Activity Result API</h4>
+                    <p>En Android moderno (API 30+) <strong>NO usamos <code>startActivityForResult()</code> deprecado</strong>. Ahora usamos <strong>Activity Result API</strong>:</p>
+                    <ol>
+                        <li><code>registerForActivityResult()</code> registra un "launcher" con un contrato</li>
+                        <li>El lambda recibe el resultado cuando vuelve el usuario</li>
+                        <li>Es más seguro y testeable que el método antiguo</li>
+                    </ol>
+                </div>
+            </section>
+
+            <section id="ciclo-vida">
+                <h2><span class="emoji-title">🔄</span>Ciclo de Vida: Flujo de Ejecución</h2>
+
+                <h3>onCreate() - Punto de Entrada</h3>
+                <div class="code-block">
+<span class="keyword">override fun</span> <span class="function">onCreate</span>(savedInstanceState: Bundle?) {
+    <span class="keyword">super</span>.<span class="function">onCreate</span>(savedInstanceState)
+    
+    <span class="function">initializeApp</span>()           <span class="comment">// 1️⃣ Inicializar dependencias</span>
+    <span class="function">setupVpnReceiver</span>()        <span class="comment">// 2️⃣ Registrar listeners</span>
+    <span class="function">loadInitialData</span>()         <span class="comment">// 3️⃣ Cargar datos async</span>
+    <span class="function">requestNotificationPermission</span>()  <span class="comment">// 4️⃣ Pedir permisos</span>
+    
+    <span class="function">setContent</span> { <span class="comment">/* Compose UI */</span> }  <span class="comment">// 5️⃣ Renderizar UI</span>
+}
+                </div>
+
+                <div class="highlight-box">
+                    <p><strong>🎓 Orden importa:</strong> Inicializamos servicios → registramos listeners → cargamos datos → UI.</p>
+                </div>
+
+                <h3>initializeApp() - Inicialización Crítica</h3>
+                <div class="code-block">
+<span class="keyword">private fun</span> <span class="function">initializeApp</span>() {
+    <span class="comment">// 1️⃣ Crear repositorio (acceso a DB)</span>
+    repository = <span class="function">GuardianRepository</span>(<span class="keyword">this</span>, GuardianDatabase.<span class="function">getDatabase</span>(<span class="keyword">this</span>))
+    
+    <span class="comment">// 2️⃣ Crear monitor de apps (necesita repository)</span>
+    usageMonitor = <span class="function">UsageStatsMonitor</span>(<span class="keyword">this</span>, repository)
+    
+    <span class="comment">// 3️⃣ Verificar permiso UsageStats</span>
+    hasUsageStatsPermission = usageMonitor.<span class="function">hasPermission</span>()
+    
+    <span class="function">logDeviceInfo</span>()  <span class="comment">// Debugging</span>
+    
+    <span class="comment">// 4️⃣ ✅ AUTO-START: Si tiene permiso, iniciar monitoreo automáticamente</span>
+    <span class="keyword">if</span> (hasUsageStatsPermission) {
+        Log.<span class="function">d</span>(<span class="string">"MainActivity"</span>, <span class="string">"✅ Permiso detectado - Iniciando auto..."</span>)
+        AppMonitorService.<span class="function">start</span>(<span class="keyword">this</span>)  <span class="comment">// Foreground service</span>
+        isMonitoringActive = <span class="keyword">true</span>
+    }
+}
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: Dependency Injection Manual</h4>
+                    <p>Esta función demuestra inyección de dependencias manual. El orden es crucial:</p>
+                    <ol>
+                        <li>DB primero</li>
+                        <li>Repository que usa DB</li>
+                        <li>UsageMonitor que usa Repository</li>
+                        <li>Auto-start del servicio (nueva mejora)</li>
+                    </ol>
+                </div>
+
+                <h3>setupVpnReceiver() - Patrón Observer Local</h3>
+                <div class="code-block">
+<span class="keyword">private fun</span> <span class="function">setupVpnReceiver</span>() {
+    vpnStateReceiver = <span class="keyword">object</span> : <span class="type">BroadcastReceiver</span>() {
+        <span class="keyword">override fun</span> <span class="function">onReceive</span>(context: Context, intent: Intent) {
+            <span class="keyword">when</span> (intent.action) {
+                DnsFilterService.ACTION_VPN_STARTED -> {
+                    isServiceRunning = <span class="keyword">true</span>
+                    <span class="function">loadStatistics</span>()
+                }
+                DnsFilterService.ACTION_VPN_STOPPED -> {
+                    isServiceRunning = <span class="keyword">false</span>
+                }
+                DnsFilterService.ACTION_VPN_ERROR -> {
+                    isServiceRunning = <span class="keyword">false</span>
+                    <span class="comment">// Mensajes de error específicos por versión Android</span>
+                }
+            }
+        }
+    }
+    
+    <span class="keyword">val</span> filter = IntentFilter().<span class="function">apply</span> {
+        <span class="function">addAction</span>(DnsFilterService.ACTION_VPN_STARTED)
+        <span class="function">addAction</span>(DnsFilterService.ACTION_VPN_STOPPED)
+        <span class="function">addAction</span>(DnsFilterService.ACTION_VPN_ERROR)
+    }
+    
+    <span class="comment">// Android 13+ requiere flag RECEIVER_NOT_EXPORTED</span>
+    <span class="keyword">if</span> (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        <span class="function">registerReceiver</span>(vpnStateReceiver, filter, RECEIVER_NOT_EXPORTED)
+    } <span class="keyword">else</span> {
+        <span class="function">registerReceiver</span>(vpnStateReceiver, filter)
+    }
+}
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: BroadcastReceiver</h4>
+                    <p><strong>BroadcastReceiver</strong> es comunicación inter-componentes (Service → Activity):</p>
+                    <ul>
+                        <li>Service envía broadcast cuando cambia estado</li>
+                        <li>Activity escucha y actualiza UI</li>
+                        <li><code>RECEIVER_NOT_EXPORTED</code> (Android 13+) → seguridad: solo componentes internos pueden enviar</li>
+                    </ul>
+                </div>
+
+                <h3>loadInitialData() - Coroutines y Room</h3>
+                <div class="code-block">
+<span class="keyword">private fun</span> <span class="function">loadInitialData</span>() {
+    Log.<span class="function">d</span>(<span class="string">"MainActivity"</span>, <span class="string">"🚀 loadInitialData() INICIADO"</span>)
+    
+    lifecycleScope.<span class="function">launch</span> {  <span class="comment">// Coroutine atada al lifecycle</span>
+        Log.<span class="function">d</span>(<span class="string">"MainActivity"</span>, <span class="string">"📡 Coroutine iniciada..."</span>)
+        <span class="keyword">try</span> {
+            <span class="comment">// 1️⃣ Consulta suspendida (no bloquea UI)</span>
+            currentProfile = repository.<span class="function">getActiveProfile</span>()
+            
+            <span class="comment">// 2️⃣ Crear perfil por defecto si no existe</span>
+            currentProfile?.<span class="function">let</span> { profile ->
+                Log.<span class="function">i</span>(<span class="string">"MainActivity"</span>, <span class="string">"📋 PERFIL ACTIVO: ${profile.name}"</span>)
+            } ?: <span class="function">run</span> {
+                Log.<span class="function">w</span>(<span class="string">"MainActivity"</span>, <span class="string">"⚠️ No hay perfil - Creando..."</span>)
+                repository.<span class="function">createProfile</span>(
+                    name = <span class="string">"Perfil Principal"</span>,
+                    age = <span class="keyword">null</span>,
+                    restrictionLevel = <span class="string">"MEDIUM"</span>,
+                    parentalPin = <span class="keyword">null</span>
+                )
+                currentProfile = repository.<span class="function">getActiveProfile</span>()
+            }
+            
+            <span class="comment">// 3️⃣ Cargar estadísticas y filtros</span>
+            <span class="function">loadStatistics</span>()
+            <span class="function">loadCustomFilters</span>()
+        } <span class="keyword">catch</span> (e: Exception) {
+            Log.<span class="function">e</span>(<span class="string">"MainActivity"</span>, <span class="string">"❌ ERROR: ${e.message}"</span>, e)
+        }
+    }
+}
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: Coroutines</h4>
+                    <ul>
+                        <li><strong><code>lifecycleScope</code></strong>: Coroutine scope atado al lifecycle (se cancela en <code>onDestroy</code>)</li>
+                        <li><strong><code>launch</code></strong>: Inicia coroutine (no retorna valor, equivalente a <code>Thread.start()</code>)</li>
+                        <li><strong>Suspend functions</strong>: <code>repository.getActiveProfile()</code> es <code>suspend fun</code> → puede pausarse sin bloquear thread</li>
+                        <li><strong>Try-catch obligatorio</strong>: Evitar crashes por errores de DB</li>
+                    </ul>
+                </div>
+
+                <h3>loadStatistics() - Reactive Streams con Flow</h3>
+                <div class="code-block">
+<span class="keyword">private fun</span> <span class="function">loadStatistics</span>() {
+    lifecycleScope.<span class="function">launch</span> {
+        repository.recentBlocked.<span class="function">collect</span> { sites ->  <span class="comment">// Flow observer</span>
+            recentBlocked.<span class="function">clear</span>()
+            recentBlocked.<span class="function">addAll</span>(sites.<span class="function">take</span>(20))
+            blockedCount = sites.size
+            Log.<span class="function">d</span>(<span class="string">"MainActivity"</span>, <span class="string">"📊 Estadísticas: ${sites.size} registros"</span>)
+        }
+    }
+}
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: Flow</h4>
+                    <p><strong>Flow</strong> es Kotlin's reactive streams (como RxJava):</p>
+                    <ul>
+                        <li><code>repository.recentBlocked</code> → <code>Flow&lt;List&lt;BlockedSiteEntity&gt;&gt;</code></li>
+                        <li><code>.collect { }</code> → Observa cambios (como <code>.observe()</code> de LiveData)</li>
+                        <li>Cada vez que Room actualiza la DB → Flow emite nuevos datos → UI se actualiza automáticamente</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="permisos">
+                <h2><span class="emoji-title">🔐</span>Gestión de Permisos y Seguridad</h2>
+
+                <h3>Patrón: Verificar PIN antes de acciones sensibles</h3>
+                <div class="code-block">
+<span class="keyword">private fun</span> <span class="function">handleModeChange</span>(newMode: ProtectionMode) {
+    <span class="comment">// Si VPN activo Y hay PIN configurado → pedir verificación</span>
+    <span class="keyword">if</span> (isServiceRunning && !currentProfile?.parentalPin.<span class="function">isNullOrEmpty</span>()) {
+        pendingModeChange = newMode  <span class="comment">// Guardar acción pendiente</span>
+        showPinForModeChange = <span class="keyword">true</span>  <span class="comment">// Mostrar diálogo PIN</span>
+        <span class="keyword">return</span>
+    }
+    
+    <span class="function">applyModeChange</span>(newMode)  <span class="comment">// Sin PIN → aplicar directamente</span>
+}
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: Patrón de acción pendiente</h4>
+                    <p>Patrón de <strong>acción pendiente + verificación</strong>:</p>
+                    <ol>
+                        <li>Guardar acción en variable temporal (<code>pendingModeChange</code>)</li>
+                        <li>Mostrar diálogo de PIN (<code>showPinForModeChange = true</code>)</li>
+                        <li>En <code>setContent()</code>, renderizar <code>PinLockScreen</code> si flag activo</li>
+                        <li>Al verificar PIN → ejecutar acción pendiente + limpiar estado</li>
+                    </ol>
+                </div>
+
+                <h3>Gestión VPN - Services en Android</h3>
+                <div class="code-block">
+<span class="keyword">private fun</span> <span class="function">startVpnService</span>() {
+    <span class="keyword">val</span> intent = Intent(<span class="keyword">this</span>, DnsFilterService::<span class="keyword">class</span>.java)
+    
+    <span class="comment">// Android 8+ requiere startForegroundService()</span>
+    <span class="keyword">if</span> (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        <span class="function">startForegroundService</span>(intent)
+    } <span class="keyword">else</span> {
+        <span class="function">startService</span>(intent)
+    }
+    
+    isServiceRunning = <span class="keyword">true</span>
+}
+
+<span class="keyword">private fun</span> <span class="function">stopVpnService</span>() {
+    <span class="function">stopService</span>(Intent(<span class="keyword">this</span>, DnsFilterService::<span class="keyword">class</span>.java))
+    isServiceRunning = <span class="keyword">false</span>
+}
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: Foreground Services</h4>
+                    <p><strong>Foreground Services</strong> (Android 8+):</p>
+                    <ul>
+                        <li><code>startForegroundService()</code> → Service debe llamar <code>startForeground()</code> en 5 segundos</li>
+                        <li>Muestra notificación persistente (no puede ser cancelada por usuario)</li>
+                        <li>Necesario para servicios que corren en background (VPN, música, GPS)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="compose">
+                <h2><span class="emoji-title">🎨</span>Compose UI: Declarative vs Imperative</h2>
+
+                <h3>setContent { } - Punto de entrada Compose</h3>
+                <div class="code-block">
+<span class="function">setContent</span> {
+    <span class="function">GuardianShieldTheme</span> {  <span class="comment">// Material3 theme wrapper</span>
+        <span class="keyword">var</span> showSplash <span class="keyword">by</span> <span class="function">remember</span> { <span class="function">mutableStateOf</span>(<span class="keyword">true</span>) }
+        
+        <span class="function">LaunchedEffect</span>(Unit) {  <span class="comment">// Side-effect que corre una vez</span>
+            <span class="function">delay</span>(2000)
+            showSplash = <span class="keyword">false</span>
+        }
+        
+        <span class="keyword">if</span> (showSplash) {
+            <span class="function">WelcomeSplashScreen</span>()
+        } <span class="keyword">else</span> {
+            <span class="function">GuardianShieldApp</span>(
+                protectionMode = protectionMode,
+                onModeChange = { <span class="function">handleModeChange</span>(it) },
+                isServiceRunning = isServiceRunning,
+                onToggleService = { <span class="function">toggleProtection</span>() },
+                <span class="comment">// ... más parámetros</span>
+            )
+        }
+    }
+}
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: Compose Fundamentals</h4>
+                    <ul>
+                        <li><strong><code>remember { }</code></strong>: Guarda estado entre recomposiciones (como <code>private val</code> en Activity)</li>
+                        <li><strong><code>LaunchedEffect(Unit)</code></strong>: Side-effect que corre cuando el composable entra en composición</li>
+                        <li><strong>Pasar callbacks</strong>: <code>onModeChange = { handleModeChange(it) }</code> → pasar lambda que llama función de Activity</li>
+                    </ul>
+                </div>
+
+                <h3>GuardianShieldApp() - Navigation Component</h3>
+                <div class="code-block">
+<span class="keyword">@Composable</span>
+<span class="keyword">fun</span> <span class="function">GuardianShieldApp</span>(...) {
+    <span class="keyword">val</span> navController = <span class="function">rememberNavController</span>()  <span class="comment">// Navegación</span>
+    
+    <span class="function">NavHost</span>(navController = navController, startDestination = <span class="string">"home"</span>) {
+        <span class="function">composable</span>(<span class="string">"home"</span>) { <span class="function">HomeScreen</span>(...) }
+        <span class="function">composable</span>(<span class="string">"parental"</span>) { 
+            <span class="function">ParentalControlScreen</span>(
+                currentProfile = currentProfile ?: <span class="function">UserProfileEntity</span>(),
+                onProfileUpdate = { profile -> 
+                    <span class="comment">// ❗ Cast context para acceder a MainActivity</span>
+                    (navController.context <span class="keyword">as</span> MainActivity).lifecycleScope.<span class="function">launch</span> {
+                        (navController.context <span class="keyword">as</span> MainActivity).repository.<span class="function">updateProfile</span>(profile)
+                    }
+                },
+                onBack = { navController.<span class="function">popBackStack</span>() }
+            )
+        }
+        <span class="function">composable</span>(<span class="string">"filters"</span>) { <span class="function">CustomFiltersScreen</span>(...) }
+        <span class="function">composable</span>(<span class="string">"statistics"</span>) { <span class="function">StatisticsScreen</span>(...) }
+        <span class="function">composable</span>(<span class="string">"settings"</span>) { <span class="function">SettingsScreen</span>(...) }
+    }
+}
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: Navigation Compose</h4>
+                    <ul>
+                        <li><code>NavHost</code> → Container de pantallas (como <code>FragmentContainerView</code>)</li>
+                        <li><code>composable("route")</code> → Define pantallas</li>
+                        <li><code>navController.navigate("route")</code> → Navegar (equivalente a <code>FragmentTransaction</code>)</li>
+                        <li><strong>Trick avanzado</strong>: <code>navController.context as MainActivity</code> → acceder a Activity desde Composable</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="componentes">
+                <h2><span class="emoji-title">🧩</span>Componentes Reutilizables</h2>
+
+                <h3>StatusCard - Composable con Estado Condicional</h3>
+                <div class="code-block">
+<span class="keyword">@Composable</span>
+<span class="keyword">fun</span> <span class="function">StatusCard</span>(
+    isActive: Boolean,
+    onToggle: () -> Unit,
+    mode: ProtectionMode
+) {
+    <span class="function">Card</span>(
+        colors = CardDefaults.<span class="function">cardColors</span>(
+            containerColor = <span class="keyword">if</span> (isActive) 
+                Color(0xFF4CAF50).<span class="function">copy</span>(alpha = 0.1f)  <span class="comment">// Verde si activo</span>
+            <span class="keyword">else</span> 
+                Color(0xFFEF5350).<span class="function">copy</span>(alpha = 0.1f)  <span class="comment">// Rojo si inactivo</span>
+        )
+    ) {
+        <span class="function">Row</span>(...) {
+            <span class="function">Box</span>(
+                modifier = Modifier
+                    .<span class="function">size</span>(48.dp)
+                    .<span class="function">background</span>(
+                        <span class="keyword">if</span> (isActive) Color(0xFF4CAF50) <span class="keyword">else</span> Color(0xFFEF5350),
+                        CircleShape
+                    )
+            ) {
+                <span class="function">Icon</span>(
+                    <span class="keyword">if</span> (isActive) Icons.Rounded.Shield <span class="keyword">else</span> Icons.Rounded.ShieldMoon,
+                    tint = Color.White
+                )
+            }
+            
+            <span class="function">Text</span>(<span class="keyword">if</span> (isActive) <span class="string">"Protección Activa"</span> <span class="keyword">else</span> <span class="string">"Protección Inactiva"</span>)
+            
+            <span class="keyword">if</span> (mode == ProtectionMode.Advanced) {
+                <span class="function">Switch</span>(checked = isActive, onCheckedChange = { <span class="function">onToggle</span>() })
+            }
+        }
+    }
+}
+                </div>
+
+                <div class="info-card">
+                    <h4>🎓 Lección clave: Composables Puros</h4>
+                    <ul>
+                        <li>Solo dependen de sus parámetros (como pure functions)</li>
+                        <li>Recomposición eficiente: solo se redibuja si parámetros cambian</li>
+                        <li><code>if/else</code> inline para contenido condicional</li>
+                        <li>Color codes hexadecimales (<code>0xFF4CAF50</code>) + <code>.copy(alpha=0.1f)</code> para transparencia</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="patrones">
+                <h2><span class="emoji-title">🔄</span>Patrones Avanzados</h2>
+
+                <h3>1. Delegación de Propiedades con <code>by</code></h3>
+                <div class="code-block">
+<span class="keyword">private var</span> isServiceRunning <span class="keyword">by</span> <span class="function">mutableStateOf</span>(<span class="keyword">false</span>)
+
+<span class="comment">// Equivalente a:</span>
+<span class="keyword">private var</span> _isServiceRunning = <span class="function">mutableStateOf</span>(<span class="keyword">false</span>)
+<span class="keyword">private var</span> isServiceRunning: Boolean
+    <span class="keyword">get</span>() = _isServiceRunning.value
+    <span class="keyword">set</span>(value) { _isServiceRunning.value = value }
+                </div>
+
+                <h3>2. Scope Functions (<code>let</code>, <code>run</code>, <code>apply</code>)</h3>
+                <div class="code-block">
+currentProfile?.<span class="function">let</span> { profile ->
+    Log.<span class="function">i</span>(<span class="string">"MainActivity"</span>, <span class="string">"Perfil: ${profile.name}"</span>)
+} ?: <span class="function">run</span> {
+    Log.<span class="function">w</span>(<span class="string">"MainActivity"</span>, <span class="string">"No hay perfil"</span>)
+}
+                </div>
+
+                <div class="highlight-box">
+                    <p><strong>Explicación:</strong></p>
+                    <ul>
+                        <li><code>?.let</code> → ejecuta lambda SI no es null</li>
+                        <li><code>?:</code> → Elvis operator (si null, ejecuta lado derecho)</li>
+                        <li><code>run</code> → ejecuta lambda y retorna resultado</li>
+                    </ul>
+                </div>
+
+                <h3>3. When Expression (Pattern Matching)</h3>
+                <div class="code-block">
+<span class="keyword">when</span> (newMode) {
+    ProtectionMode.Recommended -> { <span class="comment">/* ... */</span> }
+    ProtectionMode.Advanced -> { <span class="comment">/* ... */</span> }
+    ProtectionMode.CustomStats -> { <span class="comment">/* ... */</span> }
+}
+                </div>
+
+                <div class="highlight-box">
+                    <p><strong>vs Switch Java:</strong></p>
+                    <ul>
+                        <li>No necesita <code>break</code></li>
+                        <li>Es expresión (puede retornar valor)</li>
+                        <li>Exhaustivo (compiler verifica todos los casos)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="flujo-datos">
+                <h2><span class="emoji-title">📊</span>Flujo de Datos Completo: Ejemplo Real</h2>
+
+                <div class="info-card">
+                    <h4>Escenario: Usuario intenta abrir Chrome fuera de horario permitido</h4>
+                </div>
+
+                <div class="flow-diagram">
+                    <div class="flow-step">1. UsageStatsMonitor detecta Chrome en foreground (cada 2s)</div>
+                    <div class="flow-step">2. UsageStatsMonitor.checkApp("com.android.chrome")</div>
+                    <div class="flow-step">3. → LocalBlocklist.isBlocked("chrome") → false (navegador, no bloquear)</div>
+                    <div class="flow-step">4. → UserProfileEntity.isWithinAllowedTime() → false (18:09, fuera de 08:00-18:00)</div>
+                    <div class="flow-step">5. → UsageStatsMonitor.redirectBrowser()</div>
+                    <div class="flow-step">6. → startActivity(SafeBrowserActivity.createIntent())</div>
+                    <div class="flow-step">7. → MainActivity recibe broadcast (APP_DETECTED)</div>
+                    <div class="flow-step">8. → BroadcastReceiver actualiza isMonitoringActive</div>
+                    <div class="flow-step">9. → Compose recompone UI (porque mutableState cambió)</div>
+                    <div class="flow-step">10. → Usuario ve pantalla de bloqueo con mensaje de horario</div>
+                </div>
+            </section>
+
+            <section id="conceptos">
+                <h2><span class="emoji-title">🎯</span>Conceptos Clave Kotlin que Aparecen</h2>
+
+                <div class="concept-list">
+                    <div class="concept-item">
+                        <strong>1. Data Classes</strong>
+                        <p><code>BlockedSiteEntity</code>, <code>UserProfileEntity</code> (generan <code>equals()</code>, <code>copy()</code>, etc.)</p>
+                    </div>
+                    <div class="concept-item">
+                        <strong>2. Extension Functions</strong>
+                        <p><code>UserProfileEntity.isWithinAllowedTime()</code></p>
+                    </div>
+                    <div class="concept-item">
+                        <strong>3. Nullable Types</strong>
+                        <p><code>UserProfileEntity?</code>, safe call <code>?.</code>, elvis <code>?:</code></p>
+                    </div>
+                    <div class="concept-item">
+                        <strong>4. Lambda Parameters</strong>
+                        <p><code>onModeChange: (ProtectionMode) -> Unit</code></p>
+                    </div>
+                    <div class="concept-item">
+                        <strong>5. Sealed Classes</strong>
+                        <p>(implícito en <code>ProtectionMode enum</code>)</p>
+                    </div>
+                    <div class="concept-item">
+                        <strong>6. Coroutines</strong>
+                        <p><code>suspend fun</code>, <code>lifecycleScope.launch</code>, <code>Flow.collect</code></p>
+                    </div>
+                    <div class="concept-item">
+                        <strong>7. Delegation</strong>
+                        <p><code>by mutableStateOf()</code>, <code>by lazy</code></p>
+                    </div>
+                    <div class="concept-item">
+                        <strong>8. Smart Casts</strong>
+                        <p><code>if (profile != null) profile.name</code> (no necesita cast manual)</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="conclusion">
+                <div class="conclusion">
+                    <h3>✅ Conclusión Didáctica</h3>
+                    <p>Esta <code>MainActivity</code> es un <strong>ejemplo moderno de arquitectura Android</strong>:</p>
+                    
+                    <ul>
+                        <li>✅ <strong>Jetpack Compose</strong> para UI declarativa</li>
+                        <li>✅ <strong>Coroutines + Flow</strong> para async/reactive</li>
+                        <li>✅ <strong>Room Database</strong> con Repository pattern</li>
+                        <li>✅ <strong>Foreground Services</strong> para tareas persistentes</li>
+                        <li>✅ <strong>Activity Result API</strong> para permisos</li>
+                        <li>✅ <strong>BroadcastReceiver</strong> para comunicación</li>
+                        <li>✅ <strong>Navigation Compose</strong> para múltiples pantallas</li>
+                        <li>✅ <strong>State Management</strong> con Compose State</li>
+                    </ul>
+
+                    <h4>Patrón general:</h4>
+                    <ol>
+                        <li>Activity maneja <strong>lógica de negocio</strong> y <strong>coordinación</strong></li>
+                        <li>Composables manejan <strong>presentación</strong> (sin lógica)</li>
+                        <li>Repository maneja <strong>datos</strong> (DB, network)</li>
+                        <li>Services manejan <strong>background tasks</strong></li>
+                    </ol>
+
+                    <p>Es un diseño <strong>desacoplado, testeable y escalable</strong>. 🎓✨</p>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>📚 Tutorial generado para GuardianOS Shield - Proyecto de Control Parental Android</p>
+            <p>🔧 Tecnologías: Kotlin, Jetpack Compose, Room, Coroutines, Material3</p>
+            <p>📅 Febrero 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

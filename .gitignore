@@ -1,8 +1,10 @@
 # Gradle
 .gradle/
-build/
-app/build/
-*/build/
+**/build/
+*.bin
+*.lock
+cache.properties
+file-system.probe
 
 # Local configuration
 local.properties

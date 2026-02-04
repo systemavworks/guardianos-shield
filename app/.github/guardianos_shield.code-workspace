@@ -1,0 +1,35 @@
+{
+	"folders": [
+		{
+			"path": "../src/main/kotlin/com/guardianos/shield/service"
+		},
+		{
+			"path": "../src/main/kotlin/com/guardianos/shield/data"
+		},
+		{
+			"path": "../src/main/kotlin/com/guardianos/shield/ui"
+		},
+		{
+			"path": "../src/main/kotlin/com/guardianos/shield"
+		},
+		{
+			"path": "../src/main/assets"
+		},
+		{
+			"path": "../src/main/kotlin"
+		},
+		{
+			"path": "../src/main/res"
+		},
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../gradle"
+		},
+		{
+			"path": "../../../Desarrollo/guardianos-android"
+		}
+	],
+	"settings": {}
+}

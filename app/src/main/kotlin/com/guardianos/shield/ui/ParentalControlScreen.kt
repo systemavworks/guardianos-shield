@@ -85,23 +85,39 @@ fun ParentalControlScreen(
             }
 
             item {
-                Row(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    )
                 ) {
-                    Text(
-                        text = "Horario de uso permitido",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Switch(
-                        checked = profile.scheduleEnabled,
-                        onCheckedChange = { enabled ->
-                            profile = profile.copy(scheduleEnabled = enabled)
-                            onProfileUpdate(profile)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "⏰ Restringir horario de uso",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = if (profile.scheduleEnabled) "Horarios activos" else "Permitir uso todo el día",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
-                    )
+                        Switch(
+                            checked = profile.scheduleEnabled,
+                            onCheckedChange = { enabled ->
+                                profile = profile.copy(scheduleEnabled = enabled)
+                                onProfileUpdate(profile)
+                            }
+                        )
+                    }
                 }
             }
 

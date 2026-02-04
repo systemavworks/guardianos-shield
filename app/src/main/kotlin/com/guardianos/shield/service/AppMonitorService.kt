@@ -6,23 +6,32 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.guardianos.shield.MainActivity
 import com.guardianos.shield.R
+import com.guardianos.shield.data.GuardianDatabase
+import com.guardianos.shield.data.GuardianRepository
 
 class AppMonitorService : Service() {
 
     private lateinit var usageMonitor: UsageStatsMonitor
+    private lateinit var repository: GuardianRepository
 
     override fun onCreate() {
         super.onCreate()
-        usageMonitor = UsageStatsMonitor(this)
+        Log.d("AppMonitorService", "🚀 onCreate() - Inicializando servicio de monitoreo")
+        repository = GuardianRepository(this, GuardianDatabase.getDatabase(this))
+        usageMonitor = UsageStatsMonitor(this, repository)
+        Log.d("AppMonitorService", "✅ UsageStatsMonitor creado con repository")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("AppMonitorService", "📡 onStartCommand() - Iniciando monitoreo foreground...")
         // ✅ Notificación persistente para evitar que OPPO/Motorola maten el servicio
         startForeground(NOTIFICATION_ID, createForegroundNotification())
         usageMonitor.startMonitoring()
+        Log.i("AppMonitorService", "✅ Monitoreo de apps ACTIVO")
         return START_STICKY
     }
 

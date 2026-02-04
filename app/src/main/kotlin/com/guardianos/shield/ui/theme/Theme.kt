@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.sp
 
 // Paleta ciberseguridad: fondo negro profundo + acento técnico azul
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF4FC3F7),      // Azul técnico suave (acento)
-    onPrimary = Color(0xFF000000),    // Negro sobre acento → alto contraste
+    primary = Color(0xFF1976D2),      // Azul oscuro Material (más legible)
+    onPrimary = Color(0xFFFFFFFF),    // Blanco sobre azul oscuro → mejor contraste
     primaryContainer = Color(0xFF001F2B),
     onPrimaryContainer = Color(0xFFA6E8FF),
 

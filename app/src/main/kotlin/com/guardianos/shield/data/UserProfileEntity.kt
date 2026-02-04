@@ -77,19 +77,31 @@ data class UserProfileEntity(
      * @return true si scheduleEnabled=false o si la hora actual está en el rango
      */
     fun isWithinAllowedTime(): Boolean {
-        if (!scheduleEnabled) return true
+        if (!scheduleEnabled) {
+            android.util.Log.d("UserProfile", "⏰ Horario DESACTIVADO (scheduleEnabled=false) - Permitiendo acceso")
+            return true
+        }
 
         val now = java.util.Calendar.getInstance()
         val currentMinutes = now.get(java.util.Calendar.HOUR_OF_DAY) * 60 +
                             now.get(java.util.Calendar.MINUTE)
+        
+        val currentTime = String.format("%02d:%02d", 
+            now.get(java.util.Calendar.HOUR_OF_DAY), 
+            now.get(java.util.Calendar.MINUTE))
+        val startTime = String.format("%02d:%02d", startTimeMinutes / 60, startTimeMinutes % 60)
+        val endTime = String.format("%02d:%02d", endTimeMinutes / 60, endTimeMinutes % 60)
 
-        return if (startTimeMinutes <= endTimeMinutes) {
+        val result = if (startTimeMinutes <= endTimeMinutes) {
             // Horario normal (ej: 8:00 a 21:00)
             currentMinutes in startTimeMinutes..endTimeMinutes
         } else {
             // Horario cruzado medianoche (ej: 22:00 a 08:00)
             currentMinutes >= startTimeMinutes || currentMinutes <= endTimeMinutes
         }
+        
+        android.util.Log.d("UserProfile", "⏰ Verificando horario: actual=$currentTime, rango=$startTime-$endTime, dentro=$result")
+        return result
     }
 
     /**

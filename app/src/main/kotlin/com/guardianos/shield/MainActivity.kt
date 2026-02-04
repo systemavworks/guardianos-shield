@@ -21,6 +21,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 
 // AndroidX
@@ -193,6 +194,38 @@ class MainActivity : ComponentActivity() {
         repository = GuardianRepository(this, GuardianDatabase.getDatabase(this))
         usageMonitor = UsageStatsMonitor(this, repository)
         hasUsageStatsPermission = usageMonitor.hasPermission()
+        
+        // Log información del dispositivo para debugging
+        logDeviceInfo()
+        
+        // ✅ INICIAR MONITOREO AUTOMÁTICAMENTE si tiene permisos
+        if (hasUsageStatsPermission) {
+            Log.d("MainActivity", "✅ Permiso UsageStats detectado - Iniciando monitoreo automático...")
+            AppMonitorService.start(this)
+            isMonitoringActive = true
+        } else {
+            Log.w("MainActivity", "⚠️ Permiso UsageStats NO concedido - Monitoreo desactivado")
+        }
+    }
+    
+    private fun logDeviceInfo() {
+        val androidVersion = when (Build.VERSION.SDK_INT) {
+            31 -> "Android 12 (API 31)"
+            32 -> "Android 12L (API 32)"
+            33 -> "Android 13 (API 33)"
+            34 -> "Android 14 (API 34)"
+            35 -> "Android 15 (API 35)"
+            else -> "Android ${Build.VERSION.SDK_INT}"
+        }
+        
+        Log.i("MainActivity", "╔════════════════════════════════════════════════╗")
+        Log.i("MainActivity", "║  GuardianOS Shield - Información del Sistema  ║")
+        Log.i("MainActivity", "╠════════════════════════════════════════════════╣")
+        Log.i("MainActivity", "║  Versión Android: $androidVersion")
+        Log.i("MainActivity", "║  Fabricante: ${Build.MANUFACTURER}")
+        Log.i("MainActivity", "║  Modelo: ${Build.MODEL}")
+        Log.i("MainActivity", "║  Marca: ${Build.BRAND}")
+        Log.i("MainActivity", "╚════════════════════════════════════════════════╝")
     }
 
     private fun setupVpnReceiver() {
@@ -207,7 +240,17 @@ class MainActivity : ComponentActivity() {
                         isServiceRunning = false
                     }
                     DnsFilterService.ACTION_VPN_ERROR -> {
-                        Toast.makeText(context, "Error en servicio VPN", Toast.LENGTH_SHORT).show()
+                        isServiceRunning = false
+                        val errorMsg = when {
+                            Build.VERSION.SDK_INT >= 35 -> 
+                                "Error VPN en Android 15+. Revoca y vuelve a conceder permiso VPN en Ajustes"
+                            Build.VERSION.SDK_INT >= 33 -> 
+                                "Error VPN en Android 13+. Verifica permisos de notificaciones y VPN"
+                            else -> 
+                                "Error en servicio VPN. Verifica que no haya otra VPN activa"
+                        }
+                        Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+                        Log.e("MainActivity", "VPN ERROR - Android ${Build.VERSION.SDK_INT} (API ${Build.VERSION.SDK_INT})")
                     }
                 }
             }
@@ -227,10 +270,49 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun loadInitialData() {
+        Log.d("MainActivity", "🚀 loadInitialData() INICIADO")
         lifecycleScope.launch {
-            currentProfile = repository.getActiveProfile()
-            loadStatistics()
-            loadCustomFilters()
+            Log.d("MainActivity", "📡 Coroutine iniciada - consultando perfil...")
+            try {
+                currentProfile = repository.getActiveProfile()
+                Log.d("MainActivity", "✅ getActiveProfile() completado - Resultado: ${currentProfile?.name ?: "null"}")
+                
+                // 🔍 DEBUG: Mostrar estado del perfil y horarios
+                currentProfile?.let { profile ->
+                    Log.i("MainActivity", "═══════════════════════════════════════")
+                    Log.i("MainActivity", "📋 PERFIL ACTIVO: ${profile.name}")
+                    Log.i("MainActivity", "🔒 PIN configurado: ${!profile.parentalPin.isNullOrEmpty()}")
+                    Log.i("MainActivity", "⏰ Horario habilitado: ${profile.scheduleEnabled}")
+                    if (profile.scheduleEnabled) {
+                        val startHour = profile.startTimeMinutes / 60
+                        val startMin = profile.startTimeMinutes % 60
+                        val endHour = profile.endTimeMinutes / 60
+                        val endMin = profile.endTimeMinutes % 60
+                        Log.i("MainActivity", "⏰ Desde: ${String.format("%02d:%02d", startHour, startMin)}")
+                        Log.i("MainActivity", "⏰ Hasta: ${String.format("%02d:%02d", endHour, endMin)}")
+                        Log.i("MainActivity", "⏰ Ahora dentro del horario: ${profile.isWithinAllowedTime()}")
+                    } else {
+                        Log.w("MainActivity", "⚠️ HORARIO DESACTIVADO - Actívalo en Control Parental")
+                    }
+                    Log.i("MainActivity", "═══════════════════════════════════════")
+                } ?: run {
+                    Log.w("MainActivity", "⚠️ No hay perfil activo - Creando perfil por defecto...")
+                    // Crear perfil por defecto si no existe
+                    repository.createProfile(
+                        name = "Perfil Principal",
+                        age = null,
+                        restrictionLevel = "MEDIUM",
+                        parentalPin = null
+                    )
+                    currentProfile = repository.getActiveProfile()
+                    Log.i("MainActivity", "✅ Perfil por defecto creado: ${currentProfile?.name ?: "Desconocido"}")
+                }
+                
+                loadStatistics()
+                loadCustomFilters()
+            } catch (e: Exception) {
+                Log.e("MainActivity", "❌ ERROR en loadInitialData(): ${e.message}", e)
+            }
         }
     }
     
@@ -250,11 +332,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun loadStatistics() {
+        // Observar cambios en tiempo real con Flow
         lifecycleScope.launch {
-            val sites = repository.getRecentBlockedSites(10)
-            recentBlocked.clear()
-            recentBlocked.addAll(sites)
-            blockedCount = sites.size
+            repository.recentBlocked.collect { sites ->
+                recentBlocked.clear()
+                recentBlocked.addAll(sites.take(20)) // Mostrar últimos 20
+                blockedCount = sites.size
+                Log.d("MainActivity", "📊 Estadísticas actualizadas: ${sites.size} registros")
+            }
         }
     }
 
@@ -392,6 +477,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestNotificationPermission() {
+        // Android 13+ requiere permiso explícito de notificaciones
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this,
@@ -400,6 +486,9 @@ class MainActivity : ComponentActivity() {
             ) {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
+        } else {
+            // Android 12 y anteriores: notificaciones habilitadas por defecto
+            Log.d("MainActivity", "Android ${Build.VERSION.SDK_INT}: Notificaciones por defecto")
         }
     }
 

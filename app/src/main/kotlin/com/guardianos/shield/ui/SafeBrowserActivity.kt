@@ -236,11 +236,32 @@ class SafeBrowserActivity : ComponentActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
         webView.apply {
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.setSupportZoom(true)
-            settings.builtInZoomControls = true
-            settings.displayZoomControls = false
+            // Configuración compatible Android 12-15+
+            settings.apply {
+                javaScriptEnabled = true
+                domStorageEnabled = true
+                setSupportZoom(true)
+                builtInZoomControls = true
+                displayZoomControls = false
+                
+                // Android 12+: Configuraciones adicionales de seguridad
+                if (Build.VERSION.SDK_INT >= 31) {
+                    // Deshabilitar autofill para evitar leaks de datos
+                    try {
+                        @Suppress("DEPRECATION")
+                        savePassword = false
+                        @Suppress("DEPRECATION")
+                        saveFormData = false
+                    } catch (e: Exception) {
+                        Log.w("SafeBrowser", "No se pudo configurar autofill: ${e.message}")
+                    }
+                }
+                
+                // Android 13+: Mejor manejo de medios
+                if (Build.VERSION.SDK_INT >= 33) {
+                    mediaPlaybackRequiresUserGesture = true
+                }
+            }
 
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(
@@ -253,11 +274,18 @@ class SafeBrowserActivity : ComponentActivity() {
                     lifecycleScope.launch {
                         // VERIFICAR HORARIO PERMITIDO
                         val currentProfile = repository.getActiveProfile()
-                        if (currentProfile != null && !currentProfile.isWithinAllowedTime()) {
-                            showBlockedPage(url, "Fuera del horario permitido")
-                            Log.i("SafeBrowser", "⏰ BLOQUEADO POR HORARIO: $domain")
-                            showBlockNotification("Horario no permitido")
-                            return@launch
+                        Log.d("SafeBrowser", "🔍 Perfil actual: ${currentProfile?.name} | scheduleEnabled=${currentProfile?.scheduleEnabled} | isActive=${currentProfile?.isActive}")
+                        if (currentProfile != null) {
+                            val withinTime = currentProfile.isWithinAllowedTime()
+                            Log.d("SafeBrowser", "⏰ Horario permitido: $withinTime | start=${currentProfile.startTimeMinutes/60}:${currentProfile.startTimeMinutes%60} | end=${currentProfile.endTimeMinutes/60}:${currentProfile.endTimeMinutes%60}")
+                            if (!withinTime) {
+                                showBlockedPage(url, "Fuera del horario permitido")
+                                Log.i("SafeBrowser", "⏰ BLOQUEADO POR HORARIO: $domain")
+                                showBlockNotification("Horario no permitido")
+                                return@launch
+                            }
+                        } else {
+                            Log.w("SafeBrowser", "⚠️ No hay perfil activo - permitiendo navegación")
                         }
                         
                         val isBlocked = isDomainBlocked(domain)
@@ -307,11 +335,18 @@ class SafeBrowserActivity : ComponentActivity() {
             
             // VERIFICAR HORARIO PERMITIDO
             val currentProfile = repository.getActiveProfile()
-            if (currentProfile != null && !currentProfile.isWithinAllowedTime()) {
-                showBlockedPage(finalUrl, "Fuera del horario permitido")
-                Log.i("SafeBrowser", "⏰ BLOQUEADO POR HORARIO: $domain")
-                showBlockNotification("Horario no permitido")
-                return@launch
+            Log.d("SafeBrowser", "🔍 loadUrlSafely - Perfil: ${currentProfile?.name} | scheduleEnabled=${currentProfile?.scheduleEnabled}")
+            if (currentProfile != null) {
+                val withinTime = currentProfile.isWithinAllowedTime()
+                Log.d("SafeBrowser", "⏰ loadUrlSafely - Horario: $withinTime | start=${currentProfile.startTimeMinutes/60}:${currentProfile.startTimeMinutes%60} | end=${currentProfile.endTimeMinutes/60}:${currentProfile.endTimeMinutes%60}")
+                if (!withinTime) {
+                    showBlockedPage(finalUrl, "Fuera del horario permitido")
+                    Log.i("SafeBrowser", "⏰ BLOQUEADO POR HORARIO: $domain")
+                    showBlockNotification("Horario no permitido")
+                    return@launch
+                }
+            } else {
+                Log.w("SafeBrowser", "⚠️ loadUrlSafely - No hay perfil activo")
             }
 
             if (isDomainBlocked(domain)) {

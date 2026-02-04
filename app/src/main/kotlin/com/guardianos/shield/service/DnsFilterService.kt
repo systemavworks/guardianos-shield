@@ -69,7 +69,7 @@ class DnsFilterService : VpnService() {
 
         val notification = createNotification()
         
-        // Iniciar como servicio foreground
+        // Iniciar como servicio foreground (configuración original que funciona)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
                 NOTIFICATION_ID,
@@ -84,7 +84,7 @@ class DnsFilterService : VpnService() {
         if (setupVpn()) {
             isRunning = true
             sendBroadcast(Intent(ACTION_VPN_STARTED))
-            Log.d("GuardianVPN", "✅ Filtro DNS Activo (Cloudflare Family)")
+            Log.d("GuardianVPN", "✅ Filtro DNS Activo (CleanBrowsing Adult Filter)")
         } else {
             sendBroadcast(Intent(ACTION_VPN_ERROR))
             stopSelf()
@@ -109,6 +109,16 @@ class DnsFilterService : VpnService() {
             } catch (e: Exception) {
                 Log.w("GuardianVPN", "Advertencia: ${e.message}")
             }
+            
+            // ✅ Android 15+: Configuración opcional non-blocking (no afecta versiones anteriores)
+            if (Build.VERSION.SDK_INT >= 35) {
+                try {
+                    builder.setBlocking(false)
+                    Log.d("GuardianVPN", "✅ Android 15: Modo non-blocking configurado")
+                } catch (e: Exception) {
+                    // Ignorar si falla, no es crítico
+                }
+            }
 
             // NO agregamos addRoute("0.0.0.0", 0) para que el tráfico normal fluya libremente
             
@@ -131,6 +141,7 @@ class DnsFilterService : VpnService() {
             }
         } catch (e: Exception) {
             Log.e("GuardianVPN", "❌ Error configurando VPN: ${e.message}")
+            e.printStackTrace()
             false
         }
     }

@@ -108,9 +108,14 @@ fun StatisticsScreen(
 
             item {
                 Text(
-                    "Sitios más bloqueados",
+                    "Apps y sitios bloqueados",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
+                )
+                Text(
+                    "Incluye apps de redes sociales y navegación web",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
