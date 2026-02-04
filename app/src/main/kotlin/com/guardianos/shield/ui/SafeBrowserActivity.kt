@@ -1,10 +1,13 @@
 package com.guardianos.shield.ui
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.webkit.*
@@ -29,10 +32,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.lifecycleScope
+import com.guardianos.shield.R
 import com.guardianos.shield.data.GuardianDatabase
 import com.guardianos.shield.data.GuardianRepository
-import com.guardianos.shield.ui.theme.GuardianShieldTheme  // ✅ AÑADIDO
+import com.guardianos.shield.ui.theme.GuardianShieldTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -51,6 +56,9 @@ class SafeBrowserActivity : ComponentActivity() {
     private var browsingHistory = mutableStateListOf<String>()
 
     companion object {
+        private const val CHANNEL_ID = "GuardianShield_Blocked"
+        private const val NOTIFICATION_ID_BASE = 2000
+        
         fun createIntent(context: Context): Intent {
             return Intent(context, SafeBrowserActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -243,6 +251,15 @@ class SafeBrowserActivity : ComponentActivity() {
                     val domain = extractDomain(url)
 
                     lifecycleScope.launch {
+                        // VERIFICAR HORARIO PERMITIDO
+                        val currentProfile = repository.getActiveProfile()
+                        if (currentProfile != null && !currentProfile.isWithinAllowedTime()) {
+                            showBlockedPage(url, "Fuera del horario permitido")
+                            Log.i("SafeBrowser", "⏰ BLOQUEADO POR HORARIO: $domain")
+                            showBlockNotification("Horario no permitido")
+                            return@launch
+                        }
+                        
                         val isBlocked = isDomainBlocked(domain)
                         if (isBlocked) {
                             showBlockedPage(url, "Sitio restringido por control parental")
@@ -251,6 +268,8 @@ class SafeBrowserActivity : ComponentActivity() {
                                 category = "user_attempt",
                                 threatLevel = 1
                             )
+                            // 🔔 NOTIFICACIÓN DE BLOQUEO
+                            showBlockNotification(domain)
                         } else {
                             withContext(Dispatchers.Main) {
                                 view?.loadUrl(url)
@@ -283,6 +302,15 @@ class SafeBrowserActivity : ComponentActivity() {
             val domain = extractDomain(finalUrl)
 
             if (domain.isEmpty()) {
+                return@launch
+            }
+            
+            // VERIFICAR HORARIO PERMITIDO
+            val currentProfile = repository.getActiveProfile()
+            if (currentProfile != null && !currentProfile.isWithinAllowedTime()) {
+                showBlockedPage(finalUrl, "Fuera del horario permitido")
+                Log.i("SafeBrowser", "⏰ BLOQUEADO POR HORARIO: $domain")
+                showBlockNotification("Horario no permitido")
                 return@launch
             }
 
@@ -320,6 +348,7 @@ class SafeBrowserActivity : ComponentActivity() {
     }
 
     private fun showBlockedPage(url: String, reason: String) {
+        val icon = if (reason.contains("horario", ignoreCase = true)) "⏰" else "🛡️"
         val html = """
             <!DOCTYPE html>
             <html>
@@ -368,7 +397,7 @@ class SafeBrowserActivity : ComponentActivity() {
             </head>
             <body>
                 <div class="container">
-                    <div class="shield-icon">🛡️</div>
+                    <div class="shield-icon">$icon</div>
                     <h1>Sitio Bloqueado</h1>
                     <p>$reason</p>
                     <div class="url">$url</div>
@@ -388,6 +417,24 @@ class SafeBrowserActivity : ComponentActivity() {
             val adultKeywords = listOf("porn", "xxx", "adult", "sex", "nude", "camgirl", "xvideos", "pornhub")
             val gamblingKeywords = listOf("casino", "poker", "betting", "gamble", "lottery", "bet365")
             
+            // BLOQUEO DE REDES SOCIALES (FORZADO)
+            val socialMediaDomains = setOf(
+                "facebook.com", "www.facebook.com", "m.facebook.com", "fb.com", "fb.me",
+                "instagram.com", "www.instagram.com", "m.instagram.com",
+                "tiktok.com", "www.tiktok.com", "m.tiktok.com",
+                "twitter.com", "www.twitter.com", "m.twitter.com", "x.com",
+                "discord.com", "www.discord.com", "discordapp.com",
+                "snapchat.com", "www.snapchat.com",
+                "reddit.com", "www.reddit.com",
+                "whatsapp.com", "web.whatsapp.com",
+                "telegram.org", "web.telegram.org"
+            )
+            
+            if (socialMediaDomains.any { domain.equals(it, ignoreCase = true) || domain.endsWith(".$it") }) {
+                Log.i("SafeBrowser", "🚫 RED SOCIAL BLOQUEADA: $domain")
+                return@withContext true
+            }
+            
             if (adultKeywords.any { domain.contains(it, ignoreCase = true) }) {
                 return@withContext true
             }
@@ -396,11 +443,16 @@ class SafeBrowserActivity : ComponentActivity() {
                 return@withContext true
             }
             
-            // ✅ Usar el método correcto
+            // Verificar filtros personalizados (BLACKLIST = isActive)
             val customFilters = repository.getAllCustomFilters()
             if (customFilters.any { filter -> 
-                filter.isEnabled && domain.contains(filter.pattern.ifEmpty { filter.domain }, ignoreCase = true) 
+                filter.isActive && (
+                    domain.equals(filter.domain, ignoreCase = true) ||
+                    domain.endsWith(".${filter.domain}") ||
+                    domain.contains(filter.pattern.ifEmpty { filter.domain }, ignoreCase = true)
+                )
             }) {
+                Log.i("SafeBrowser", "🚫 DOMINIO BLOQUEADO (filtro personalizado): $domain")
                 return@withContext true
             }
             
@@ -418,6 +470,48 @@ class SafeBrowserActivity : ComponentActivity() {
         } else {
             @Suppress("DEPRECATION")
             super.onBackPressed()
+        }
+    }
+    
+    // 🔔 SISTEMA DE NOTIFICACIONES
+    private fun showBlockNotification(domain: String) {
+        createNotificationChannel()
+        
+        val category = when {
+            domain.contains("facebook") || domain.contains("instagram") || 
+            domain.contains("tiktok") || domain.contains("twitter") || 
+            domain.contains("discord") -> "Red Social"
+            domain.contains("porn") || domain.contains("xxx") || 
+            domain.contains("adult") || domain.contains("sex") -> "Contenido Adulto"
+            domain.contains("casino") || domain.contains("bet") -> "Apuestas"
+            else -> "Sitio Restringido"
+        }
+        
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_shield)
+            .setContentTitle("🚫 Sitio bloqueado")
+            .setContentText("$category: $domain")
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText("Se ha bloqueado el acceso a:\n$domain\n\nCategoría: $category"))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+        
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.notify(NOTIFICATION_ID_BASE + domain.hashCode(), notification)
+    }
+    
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Sitios Bloqueados",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notificaciones cuando se bloquea un sitio web"
+            }
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
         }
     }
 }

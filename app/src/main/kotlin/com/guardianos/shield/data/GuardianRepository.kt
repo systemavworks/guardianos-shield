@@ -187,12 +187,13 @@ class GuardianRepository(
 
     suspend fun addToBlacklist(domain: String) {
         val clean = domain.lowercase().trim()
+        // isActive = true (bloqueado); isEnabled = false (no forzar whitelist)
         filterDao.insert(
             CustomFilterEntity(
                 domain = clean,
                 pattern = clean,
                 isActive = true,
-                isEnabled = true,
+                isEnabled = false,
                 addedAt = System.currentTimeMillis()
             )
         )
@@ -200,11 +201,12 @@ class GuardianRepository(
 
     suspend fun addToWhitelist(domain: String) {
         val clean = domain.lowercase().trim()
+        // isEnabled = true (permitido); isActive = false (no bloquear)
         filterDao.insert(
             CustomFilterEntity(
                 domain = clean,
                 pattern = clean,
-                isActive = true,
+                isActive = false,
                 isEnabled = true,
                 addedAt = System.currentTimeMillis()
             )
@@ -220,6 +222,59 @@ class GuardianRepository(
 
     suspend fun isInBlacklist(domain: String): Boolean =
         filterDao.isInBlacklist(domain.lowercase().trim())
+
+    // ==================== APPS SENSIBLES (persistentes) ====================
+    val sensitiveAppsFlow: Flow<List<SensitiveAppEntity>> = database.sensitiveAppDao().getAll()
+
+    suspend fun addSensitiveApp(packageName: String, label: String = "") {
+        database.sensitiveAppDao().insert(SensitiveAppEntity(packageName = packageName, label = label))
+    }
+    suspend fun removeSensitiveApp(packageName: String) {
+        database.sensitiveAppDao().deleteByPackage(packageName)
+    }
+    suspend fun isAppSensitivePersisted(packageName: String): Boolean {
+        return database.sensitiveAppDao().isSensitive(packageName)
+    }
+
+    // ==================== FILTRADO PARENTAL DINÁMICO ====================
+    private var sensitiveCategories: Map<String, Boolean> = mapOf(
+        "Sexo" to true,
+        "Violencia" to true,
+        "Apuestas" to true,
+        "Redes sociales" to true
+    )
+    private var sensitiveDomains: List<String> = emptyList()
+    private var sensitiveApps: List<String> = emptyList()
+
+    fun updateSensitiveCategories(categories: Map<String, Boolean>) {
+        sensitiveCategories = categories
+    }
+    fun updateSensitiveDomains(domains: List<String>) {
+        sensitiveDomains = domains
+    }
+    fun updateSensitiveApps(apps: List<String>) {
+        sensitiveApps = apps
+    }
+
+    fun isDomainSensitive(domain: String): Boolean {
+        val d = domain.lowercase()
+        if (sensitiveDomains.any { d.contains(it.lowercase()) }) return true
+        if (sensitiveCategories["Sexo"] == true && (d.contains("porn") || d.contains("sex") || d.contains("xxx"))) return true
+        if (sensitiveCategories["Violencia"] == true && (d.contains("violence") || d.contains("gore"))) return true
+        if (sensitiveCategories["Apuestas"] == true && (d.contains("casino") || d.contains("gambling") || d.contains("bet"))) return true
+        if (sensitiveCategories["Redes sociales"] == true && (d.contains("facebook") || d.contains("instagram") || d.contains("tiktok") || d.contains("twitter") || d.contains("snapchat"))) return true
+        return false
+    }
+
+    fun isAppSensitive(packageName: String): Boolean {
+        val p = packageName.lowercase()
+        if (sensitiveApps.any { p.contains(it.lowercase()) }) return true
+        if (sensitiveCategories["Redes sociales"] == true && (p.contains("facebook") || p.contains("instagram") || p.contains("tiktok") || p.contains("twitter") || p.contains("snapchat") || p.contains("discord") || p.contains("telegram"))) return true
+        if (sensitiveCategories["Apuestas"] == true && (p.contains("bet") || p.contains("casino") || p.contains("gambling"))) return true
+        if (sensitiveCategories["Violencia"] == true && (p.contains("violence") || p.contains("gore"))) return true
+        if (sensitiveCategories["Sexo"] == true && (p.contains("sex") || p.contains("xxx") || p.contains("porn"))) return true
+        return false
+    }
 
     // ==================== LIMPIEZA DE DATOS ====================
 

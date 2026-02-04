@@ -14,7 +14,9 @@ data class ShieldSettings(
     val autoBlockMalware: Boolean = true,
     val blockAdultContent: Boolean = true,
     val blockSocialMedia: Boolean = false,
-    val dataRetentionDays: Int = 30
+    val dataRetentionDays: Int = 30,
+    // Safe-mode: si true, no iniciar LightweightMonitorService automáticamente (útil para debugging/compatibilidad OEM)
+    val disableLightweightMonitoring: Boolean = false
 )
 
 object SettingsKeys {
@@ -23,6 +25,8 @@ object SettingsKeys {
     val BLOCK_ADULT = booleanPreferencesKey("block_adult")
     val BLOCK_SOCIAL = booleanPreferencesKey("block_social")
     val RETENTION_DAYS = intPreferencesKey("retention_days")
+    // Safe-mode key
+    val DISABLE_LIGHTWEIGHT_MONITORING = booleanPreferencesKey("disable_lightweight_monitoring")
 }
 
 class SettingsRepository(private val context: Context) {
@@ -35,7 +39,8 @@ class SettingsRepository(private val context: Context) {
                 autoBlockMalware = prefs[SettingsKeys.AUTO_BLOCK_MALWARE] ?: true,
                 blockAdultContent = prefs[SettingsKeys.BLOCK_ADULT] ?: true,
                 blockSocialMedia = prefs[SettingsKeys.BLOCK_SOCIAL] ?: false,
-                dataRetentionDays = prefs[SettingsKeys.RETENTION_DAYS] ?: 30
+                dataRetentionDays = prefs[SettingsKeys.RETENTION_DAYS] ?: 30,
+                disableLightweightMonitoring = prefs[SettingsKeys.DISABLE_LIGHTWEIGHT_MONITORING] ?: false
             )
         }
 
@@ -57,5 +62,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun updateRetentionDays(days: Int) {
         dataStore.edit { prefs -> prefs[SettingsKeys.RETENTION_DAYS] = days }
+    }
+
+    suspend fun updateDisableLightweightMonitoring(disable: Boolean) {
+        dataStore.edit { prefs -> prefs[SettingsKeys.DISABLE_LIGHTWEIGHT_MONITORING] = disable }
     }
 }

@@ -1,6 +1,8 @@
 package com.guardianos.shield.service
 
 import android.app.AppOpsManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,6 +10,8 @@ import android.os.Build
 import android.os.Process
 import android.provider.Settings
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import com.guardianos.shield.R
 import com.guardianos.shield.data.GuardianRepository
 import com.guardianos.shield.ui.SafeBrowserActivity
 import kotlinx.coroutines.*
@@ -31,6 +35,11 @@ class UsageStatsMonitor(
         "com.brave.browser", "com.microsoft.emmx", "com.sec.android.app.sbrowser",
         "com.android.browser", "com.duckduckgo.mobile.android"
     )
+    
+    companion object {
+        private const val CHANNEL_ID = "GuardianShield_AppBlocked"
+        private const val NOTIFICATION_ID_BASE = 3000
+    }
 
     fun startMonitoring() {
         if (isMonitoring || !hasPermission()) return
@@ -99,18 +108,23 @@ class UsageStatsMonitor(
         
         lastBlockedApp = packageName
         lastBlockedTime = System.currentTimeMillis()
+        
+        val appLabel = getAppLabel(packageName)
 
         repository?.let {
             scope.launch(Dispatchers.IO) {
                 try {
                     // Guardar log del intento bloqueado
                     // Si tu repository tiene este método, descoméntalo:
-                    // it.logBlockedAppAccess(packageName, getAppLabel(packageName), System.currentTimeMillis())
+                    // it.logBlockedAppAccess(packageName, appLabel, System.currentTimeMillis())
                 } catch (e: Exception) {
                     Log.e("UsageStatsMonitor", "Error logging blocked app", e)
                 }
             }
         }
+        
+        // 🔔 NOTIFICACIÓN DE APP BLOQUEADA
+        showAppBlockedNotification(appLabel)
 
         if (packageName != "com.guardianos.shield") {
             val intent = Intent(context, SafeBrowserActivity::class.java).apply {
@@ -143,6 +157,38 @@ class UsageStatsMonitor(
         } else {
             @Suppress("DEPRECATION")
             powerManager.isScreenOn
+        }
+    }
+    
+    // 🔔 SISTEMA DE NOTIFICACIONES
+    private fun showAppBlockedNotification(appName: String) {
+        createNotificationChannel()
+        
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_shield)
+            .setContentTitle("🚫 App bloqueada")
+            .setContentText("Navegador externo bloqueado: $appName")
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText("Se ha bloqueado el acceso al navegador externo:\\n$appName\\n\\nRedirigido al Navegador Seguro"))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+        
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(NOTIFICATION_ID_BASE + appName.hashCode(), notification)
+    }
+    
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Apps Bloqueadas",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notificaciones cuando se bloquea una app"
+            }
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
         }
     }
 }

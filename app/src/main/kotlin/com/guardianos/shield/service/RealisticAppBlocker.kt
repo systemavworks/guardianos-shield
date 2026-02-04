@@ -55,6 +55,8 @@ class RealisticAppBlocker : Service() {
         "com.discord"
     )
     
+    // El filtrado parental se gestiona solo desde GuardianRepository (persistente)
+    
     companion object {
         private const val TAG = "RealisticAppBlocker"
         private const val NOTIFICATION_ID = 100
@@ -118,17 +120,26 @@ class RealisticAppBlocker : Service() {
 
     private fun checkForegroundApp() {
         val foregroundApp = getForegroundApp()
-        
         if (foregroundApp != null) {
+            val profile = runBlocking { repository.getActiveProfile() }
+            val now = Calendar.getInstance()
+            val currentMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+            val start = profile?.startTimeMinutes ?: 0
+            val end = profile?.endTimeMinutes ?: 1439
+            val horarioPermitido = profile?.scheduleEnabled != true || (currentMinutes in start..end)
             when {
                 foregroundApp in browserApps -> {
                     handleBrowserApp(foregroundApp)
                 }
-                foregroundApp in blockedApps -> {
-                    handleBlockedApp(foregroundApp)
+                repository.isAppSensitive(foregroundApp) || foregroundApp in blockedApps -> {
+                    if (!horarioPermitido) {
+                        handleBlockedApp(foregroundApp)
+                    }
                 }
                 foregroundApp in socialMediaApps -> {
-                    handleSocialMediaApp(foregroundApp)
+                    if (!horarioPermitido) {
+                        handleSocialMediaApp(foregroundApp)
+                    }
                 }
             }
         }

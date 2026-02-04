@@ -46,18 +46,15 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- Servicio VPN (modo avanzado) -->
+        <!-- Servicio VPN para filtrado DNS -->
         <service
             android:name=".service.DnsFilterService"
             android:permission="android.permission.BIND_VPN_SERVICE"
-            android:foregroundServiceType="specialUse"
+            android:foregroundServiceType="connectedDevice"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
-            <meta-data
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="dns_filtering_protection" />
         </service>
 
         <!-- 🔴 SERVICIO CRÍTICO: Monitoreo estable con UsageStats -->
@@ -69,8 +66,8 @@
         <!-- Servicio ligero de monitoreo (modo recomendado) -->
         <service
             android:name=".service.LightweightMonitorService"
-            android:foregroundServiceType="dataSync"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="specialUse" />
 
         <!-- ⚠️ RealisticAppBlocker NO es un Service - es una clase utilitaria -->
         <!-- ⚠️ ScheduleManager NO es un Service - es una clase de lógica -->

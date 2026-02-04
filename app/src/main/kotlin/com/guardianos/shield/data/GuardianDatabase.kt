@@ -12,9 +12,10 @@ import androidx.room.RoomDatabase
         StatisticEntity::class,
         UserProfileEntity::class,
         CustomFilterEntity::class,
-        DnsLogEntity::class
+        DnsLogEntity::class,
+        SensitiveAppEntity::class // ← NUEVO
     ],
-    version = 3,
+    version = 4, // ← Incrementa versión para migración
     exportSchema = false
 )
 abstract class GuardianDatabase : RoomDatabase() {
@@ -23,6 +24,7 @@ abstract class GuardianDatabase : RoomDatabase() {
     abstract fun profileDao(): UserProfileDao
     abstract fun customFilterDao(): CustomFilterDao
     abstract fun dnsLogDao(): DnsLogDao
+    abstract fun sensitiveAppDao(): SensitiveAppDao // ← NUEVO
 
     companion object {
         @Volatile

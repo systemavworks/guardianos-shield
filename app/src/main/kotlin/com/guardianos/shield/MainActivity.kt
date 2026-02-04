@@ -86,6 +86,9 @@ class MainActivity : ComponentActivity() {
     private var showDnsDialog by mutableStateOf(false)
     private val customFiltersBlacklist = mutableStateListOf<CustomFilterEntity>()
     private val customFiltersWhitelist = mutableStateListOf<CustomFilterEntity>()
+    private var showPinForVpnToggle by mutableStateOf(false)
+    private var pendingModeChange: ProtectionMode? by mutableStateOf(null)
+    private var showPinForModeChange by mutableStateOf(false)
     
     // Servicios
     internal lateinit var repository: GuardianRepository
@@ -150,6 +153,36 @@ class MainActivity : ComponentActivity() {
                         onRequestUsagePermission = { requestUsageStatsPermission() },
                         onToggleMonitoring = { toggleMonitoring() }
                     )
+                    
+                    // Diálogo de PIN para desactivar VPN
+                    if (showPinForVpnToggle) {
+                        PinLockScreen(
+                            requiredPin = currentProfile?.parentalPin,
+                            onPinVerified = {
+                                showPinForVpnToggle = false
+                                stopVpnService()
+                            },
+                            onBack = {
+                                showPinForVpnToggle = false
+                            }
+                        )
+                    }
+                    
+                    // Diálogo de PIN para cambiar modo de protección
+                    if (showPinForModeChange) {
+                        PinLockScreen(
+                            requiredPin = currentProfile?.parentalPin,
+                            onPinVerified = {
+                                showPinForModeChange = false
+                                pendingModeChange?.let { applyModeChange(it) }
+                                pendingModeChange = null
+                            },
+                            onBack = {
+                                showPinForModeChange = false
+                                pendingModeChange = null
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -227,6 +260,17 @@ class MainActivity : ComponentActivity() {
 
     // ============= GESTIÓN DE MODOS =============
     private fun handleModeChange(newMode: ProtectionMode) {
+        // Si VPN está activo y hay PIN configurado, pedir verificación antes de cambiar modo
+        if (isServiceRunning && !currentProfile?.parentalPin.isNullOrEmpty()) {
+            pendingModeChange = newMode
+            showPinForModeChange = true
+            return
+        }
+
+        applyModeChange(newMode)
+    }
+
+    private fun applyModeChange(newMode: ProtectionMode) {
         protectionMode = newMode
         
         when (newMode) {
@@ -271,7 +315,12 @@ class MainActivity : ComponentActivity() {
     // ============= GESTIÓN VPN =============
     private fun toggleProtection() {
         if (isServiceRunning) {
-            stopVpnService()
+            // Si VPN está activo y hay PIN configurado, pedir verificación antes de desactivar
+            if (!currentProfile?.parentalPin.isNullOrEmpty()) {
+                showPinForVpnToggle = true
+            } else {
+                stopVpnService()
+            }
         } else {
             requestVpnPermission()
         }
@@ -421,12 +470,14 @@ fun GuardianShieldApp(
         }
         composable("filters") { 
             val mainActivity = navController.context as MainActivity
-            LaunchedEffect(Unit) {
-        // Cargar datos iniciales
-            }
+            
+            // Cargar listas de filtros personalizados desde el Repository
+            val blacklist by mainActivity.repository.blacklist.collectAsState(initial = emptyList())
+            val whitelist by mainActivity.repository.whitelist.collectAsState(initial = emptyList())
+            
             CustomFiltersScreen(
-                blacklist = emptyList(),  // ✅ Placeholder seguro (reemplazar luego con datos reales)
-                whitelist = emptyList(),  // ✅ Placeholder seguro
+                blacklist = blacklist,
+                whitelist = whitelist,
                 onAddToBlacklist = { domain ->
                     mainActivity.lifecycleScope.launch {
                         mainActivity.repository.addToBlacklist(domain)

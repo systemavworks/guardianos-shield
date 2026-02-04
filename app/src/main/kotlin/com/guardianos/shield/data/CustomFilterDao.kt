@@ -12,12 +12,12 @@ interface CustomFilterDao {
     @Query("DELETE FROM custom_filters WHERE LOWER(domain) = LOWER(:domain)")
     suspend fun deleteByDomain(domain: String)
     
-    // Blacklist = filtros activos (isActive = true)
-    @Query("SELECT * FROM custom_filters WHERE isActive = 1")
+    // Blacklist = filtros activos (isActive = true) Y NO permitidos (isEnabled = 0)
+    @Query("SELECT * FROM custom_filters WHERE isActive = 1 AND isEnabled = 0")
     fun getBlacklist(): Flow<List<CustomFilterEntity>>
     
-    // Whitelist = filtros habilitados (isEnabled = true)
-    @Query("SELECT * FROM custom_filters WHERE isEnabled = 1")
+    // Whitelist = filtros habilitados (isEnabled = true) Y NO bloqueados (isActive = 0)
+    @Query("SELECT * FROM custom_filters WHERE isEnabled = 1 AND isActive = 0")
     fun getWhitelist(): Flow<List<CustomFilterEntity>>
     
     // ✅ NUEVO: Obtener todos los filtros (usado en SafeBrowserActivity)

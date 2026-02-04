@@ -2,6 +2,7 @@
 package com.guardianos.shield.service
 
 import android.app.*
+import android.content.pm.ServiceInfo
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -20,7 +21,7 @@ class LightweightMonitorService : LifecycleService() {
 
     private val TAG = "LightweightMonitor"
     private var isMonitoring = false
-    private lateinit var packageReceiver: BroadcastReceiver
+    private var packageReceiver: BroadcastReceiver? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -30,7 +31,28 @@ class LightweightMonitorService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (isMonitoring) return START_STICKY
 
-        startForeground(NOTIFICATION_ID, createNotification())
+        // startForeground puede fallar en Android 34 si el manifiesto declara un tipo FGS restringido
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    createNotification(),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, createNotification())
+            }
+        } catch (e: SecurityException) {
+            Log.w(TAG, "No se pudo iniciar startForeground en LightweightMonitorService (permiso faltante)", e)
+            // Si no podemos poner el servicio en foreground, no tiene sentido seguir
+            stopSelf()
+            return START_NOT_STICKY
+        } catch (e: Exception) {
+            Log.e(TAG, "Error iniciando foreground en LightweightMonitorService", e)
+            stopSelf()
+            return START_NOT_STICKY
+        }
+
         isMonitoring = true
 
         // Monitoreo ligero: solo detectar apps nuevas (sin verificar DNS)
@@ -57,10 +79,14 @@ class LightweightMonitorService : LifecycleService() {
             addDataScheme("package")
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(packageReceiver, filter, RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(packageReceiver, filter)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(packageReceiver, filter, RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(packageReceiver, filter)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudo registrar packageReceiver", e)
         }
 
         return START_STICKY
@@ -121,7 +147,11 @@ class LightweightMonitorService : LifecycleService() {
 
     override fun onDestroy() {
         isMonitoring = false
-        unregisterReceiver(packageReceiver)
+        try {
+            packageReceiver?.let { unregisterReceiver(it) }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error unregistrando receiver en onDestroy", e)
+        }
         super.onDestroy()
     }
 
