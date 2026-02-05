@@ -27,7 +27,15 @@ class UsageStatsMonitor(
     private var isMonitoring = false
     private var lastBlockedApp: String? = null
     private var lastBlockedTime: Long = 0
+    private var lastDetectedApp: String? = null
+    private var lastNotificationTime: Long = 0
     private val mutex = Mutex()
+    
+    companion object {
+        private const val CHANNEL_ID = "GuardianShield_AppBlocked"
+        private const val NOTIFICATION_ID_BASE = 3000
+        private const val MIN_NOTIFICATION_INTERVAL = 300000L  // 5 minutos entre notificaciones
+    }
 
     private val browserPackages = setOf(
         "com.android.chrome", "com.chrome.beta", "com.chrome.dev", "com.chrome.canary",
@@ -62,11 +70,6 @@ class UsageStatsMonitor(
         "com.amazon.avod.thirdpartyclient", // Prime Video
         "tv.twitch.android.app"            // Twitch
     )
-    
-    companion object {
-        private const val CHANNEL_ID = "GuardianShield_AppBlocked"
-        private const val NOTIFICATION_ID_BASE = 3000
-    }
 
     fun startMonitoring() {
         if (isMonitoring || !hasPermission()) return
@@ -124,6 +127,10 @@ class UsageStatsMonitor(
                 foregroundApp.startsWith("com.android.") || 
                 foregroundApp == context.packageName) return@withLock
 
+            // Evitar procesar la misma app repetidamente
+            if (foregroundApp == lastDetectedApp) return@withLock
+            lastDetectedApp = foregroundApp
+
             if (foregroundApp in browserPackages) {
                 handleBrowserAttempt(foregroundApp)
             } else if (foregroundApp in socialMediaPackages) {
@@ -133,10 +140,13 @@ class UsageStatsMonitor(
     }
 
     private fun handleSocialMediaAttempt(packageName: String) {
-        if (lastBlockedApp == packageName && System.currentTimeMillis() - lastBlockedTime < 30000) return
+        val currentTime = System.currentTimeMillis()
+        
+        // Solo procesar si ha pasado suficiente tiempo desde la última notificación
+        if (lastBlockedApp == packageName && currentTime - lastBlockedTime < MIN_NOTIFICATION_INTERVAL) return
         
         lastBlockedApp = packageName
-        lastBlockedTime = System.currentTimeMillis()
+        lastBlockedTime = currentTime
         
         val appLabel = getAppLabel(packageName)
 

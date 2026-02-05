@@ -93,6 +93,7 @@ class MainActivity : ComponentActivity() {
     
     // Servicios
     internal lateinit var repository: GuardianRepository
+    private lateinit var settingsRepository: SettingsRepository
     private lateinit var usageMonitor: UsageStatsMonitor
     private lateinit var vpnStateReceiver: BroadcastReceiver
     
@@ -192,11 +193,25 @@ class MainActivity : ComponentActivity() {
     // ============= INICIALIZACIÓN =============
     private fun initializeApp() {
         repository = GuardianRepository(this, GuardianDatabase.getDatabase(this))
+        settingsRepository = SettingsRepository(this)
         usageMonitor = UsageStatsMonitor(this, repository)
         hasUsageStatsPermission = usageMonitor.hasPermission()
         
         // Log información del dispositivo para debugging
         logDeviceInfo()
+        
+        // Restaurar estado guardado
+        lifecycleScope.launch {
+            settingsRepository.settings.collect { settings ->
+                protectionMode = when(settings.protectionMode) {
+                    "Advanced" -> ProtectionMode.Advanced
+                    "CustomStats" -> ProtectionMode.CustomStats
+                    else -> ProtectionMode.Recommended
+                }
+                isServiceRunning = settings.isVpnActive
+                isMonitoringActive = settings.isMonitoringActive
+            }
+        }
         
         // ✅ INICIAR MONITOREO AUTOMÁTICAMENTE si tiene permisos
         if (hasUsageStatsPermission) {
@@ -358,6 +373,11 @@ class MainActivity : ComponentActivity() {
     private fun applyModeChange(newMode: ProtectionMode) {
         protectionMode = newMode
         
+        // Guardar modo en DataStore
+        lifecycleScope.launch {
+            settingsRepository.updateProtectionMode(newMode.name)
+        }
+        
         when (newMode) {
             ProtectionMode.Recommended -> {
                 lifecycleScope.launch {
@@ -428,11 +448,21 @@ class MainActivity : ComponentActivity() {
             startService(intent)
         }
         isServiceRunning = true
+        
+        // Guardar estado en DataStore
+        lifecycleScope.launch {
+            settingsRepository.updateVpnActive(true)
+        }
     }
 
     private fun stopVpnService() {
         stopService(Intent(this, DnsFilterService::class.java))
         isServiceRunning = false
+        
+        // Guardar estado en DataStore
+        lifecycleScope.launch {
+            settingsRepository.updateVpnActive(false)
+        }
     }
 
     // ============= GESTIÓN USAGE STATS =============
@@ -452,12 +482,24 @@ class MainActivity : ComponentActivity() {
     private fun startMonitoring() {
         AppMonitorService.start(this)
         isMonitoringActive = true
+        
+        // Guardar estado en DataStore
+        lifecycleScope.launch {
+            settingsRepository.updateMonitoringActive(true)
+        }
+        
         Toast.makeText(this, "Monitoreo de apps activado", Toast.LENGTH_SHORT).show()
     }
 
     private fun stopMonitoring() {
         AppMonitorService.stop(this)
         isMonitoringActive = false
+        
+        // Guardar estado en DataStore
+        lifecycleScope.launch {
+            settingsRepository.updateMonitoringActive(false)
+        }
+        
         Toast.makeText(this, "Monitoreo desactivado", Toast.LENGTH_SHORT).show()
     }
 
@@ -595,8 +637,9 @@ fun GuardianShieldApp(
         }
         composable("settings") { 
             SettingsScreen(
-                navController = navController,        // ✅ Pasar explícitamente
-                onBack = { navController.popBackStack() }
+                navController = navController,
+                onBack = { navController.popBackStack() },
+                currentPin = currentProfile?.parentalPin
             ) 
         }
     }

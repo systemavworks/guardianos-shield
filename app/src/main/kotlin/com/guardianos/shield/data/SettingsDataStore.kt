@@ -16,7 +16,11 @@ data class ShieldSettings(
     val blockSocialMedia: Boolean = false,
     val dataRetentionDays: Int = 30,
     // Safe-mode: si true, no iniciar LightweightMonitorService automáticamente (útil para debugging/compatibilidad OEM)
-    val disableLightweightMonitoring: Boolean = false
+    val disableLightweightMonitoring: Boolean = false,
+    // Persistencia de estado VPN y modo
+    val isVpnActive: Boolean = false,
+    val isMonitoringActive: Boolean = false,
+    val protectionMode: String = "Recommended"  // "Recommended", "Advanced", "CustomStats"
 )
 
 object SettingsKeys {
@@ -27,6 +31,10 @@ object SettingsKeys {
     val RETENTION_DAYS = intPreferencesKey("retention_days")
     // Safe-mode key
     val DISABLE_LIGHTWEIGHT_MONITORING = booleanPreferencesKey("disable_lightweight_monitoring")
+    // Persistencia de estado
+    val VPN_ACTIVE = booleanPreferencesKey("vpn_active")
+    val MONITORING_ACTIVE = booleanPreferencesKey("monitoring_active")
+    val PROTECTION_MODE = stringPreferencesKey("protection_mode")
 }
 
 class SettingsRepository(private val context: Context) {
@@ -40,7 +48,10 @@ class SettingsRepository(private val context: Context) {
                 blockAdultContent = prefs[SettingsKeys.BLOCK_ADULT] ?: true,
                 blockSocialMedia = prefs[SettingsKeys.BLOCK_SOCIAL] ?: false,
                 dataRetentionDays = prefs[SettingsKeys.RETENTION_DAYS] ?: 30,
-                disableLightweightMonitoring = prefs[SettingsKeys.DISABLE_LIGHTWEIGHT_MONITORING] ?: false
+                disableLightweightMonitoring = prefs[SettingsKeys.DISABLE_LIGHTWEIGHT_MONITORING] ?: false,
+                isVpnActive = prefs[SettingsKeys.VPN_ACTIVE] ?: false,
+                isMonitoringActive = prefs[SettingsKeys.MONITORING_ACTIVE] ?: false,
+                protectionMode = prefs[SettingsKeys.PROTECTION_MODE] ?: "Recommended"
             )
         }
 
@@ -66,5 +77,17 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun updateDisableLightweightMonitoring(disable: Boolean) {
         dataStore.edit { prefs -> prefs[SettingsKeys.DISABLE_LIGHTWEIGHT_MONITORING] = disable }
+    }
+
+    suspend fun updateVpnActive(active: Boolean) {
+        dataStore.edit { prefs -> prefs[SettingsKeys.VPN_ACTIVE] = active }
+    }
+
+    suspend fun updateMonitoringActive(active: Boolean) {
+        dataStore.edit { prefs -> prefs[SettingsKeys.MONITORING_ACTIVE] = active }
+    }
+
+    suspend fun updateProtectionMode(mode: String) {
+        dataStore.edit { prefs -> prefs[SettingsKeys.PROTECTION_MODE] = mode }
     }
 }

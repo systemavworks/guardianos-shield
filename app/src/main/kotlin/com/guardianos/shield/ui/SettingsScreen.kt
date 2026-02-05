@@ -38,7 +38,8 @@ import java.util.*
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    currentPin: String? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -46,6 +47,8 @@ fun SettingsScreen(
     val settingsRepo = remember { SettingsRepository(context) }
     var showClearDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var showPinDialog by remember { mutableStateOf(false) }
+    var pendingAction: (() -> Unit)? by remember { mutableStateOf(null) }
 
     var currentSettings by remember { mutableStateOf(ShieldSettings()) }
 
@@ -159,7 +162,15 @@ fun SettingsScreen(
                     icon = Icons.Default.Delete,
                     title = "Limpiar historial",
                     description = "Eliminar todos los registros",
-                    onClick = { showClearDialog = true },
+                    onClick = {
+                        // Si hay PIN configurado, pedirlo antes de borrar
+                        if (!currentPin.isNullOrEmpty()) {
+                            pendingAction = { showClearDialog = true }
+                            showPinDialog = true
+                        } else {
+                            showClearDialog = true
+                        }
+                    },
                     destructive = true
                 )
             }
@@ -191,6 +202,22 @@ fun SettingsScreen(
             }
             item { Spacer(modifier = Modifier.height(24.dp)) }
         }
+    }
+
+    // Diálogo de PIN antes de acciones críticas
+    if (showPinDialog) {
+        PinLockScreen(
+            requiredPin = currentPin,
+            onPinVerified = {
+                showPinDialog = false
+                pendingAction?.invoke()
+                pendingAction = null
+            },
+            onBack = {
+                showPinDialog = false
+                pendingAction = null
+            }
+        )
     }
 
     if (showClearDialog) {
