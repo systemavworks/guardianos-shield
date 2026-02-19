@@ -24,7 +24,7 @@ Sin rastreo • Sin servidores externos • Privacidad total
 **Requisitos mínimos**: Android 12 (API 31) o superior  
 **Optimizado para**: Android 12, 13, 14 y 15+
 
-Desarrollado en **Sevilla, España** por **Victor Shift Lara**  
+Desarrollado en **Andalucía, España** por **Victor Shift Lara**  
 🌐 Web oficial: [https://guardianos.es](https://guardianos.es)  
 📧 Contacto: info@guardianos.es
 
@@ -429,7 +429,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk && adb shell am start -
 
 ## 📄 Licencia
 
-MIT License - Copyright (c) 2026 Victor Shift Lara - Sevilla, España
+MIT License - Copyright (c) 2026 Victor Shift Lara - Andalucía, España
 
 Ver el archivo [LICENSE](https://github.com/systemavworks/guardianos-shield/blob/main/LICENSE) para más detalles.
 
@@ -438,7 +438,7 @@ Ver el archivo [LICENSE](https://github.com/systemavworks/guardianos-shield/blob
 ## 👨‍💻 Autor
 
 **Victor Shift Lara**  
-📍 Sevilla, España  
+📍 Andalucía, España  
 🌐 Web: [https://guardianos.es](https://guardianos.es)  
 📧 Email: [info@guardianos.es](mailto:info@guardianos.es)  
 💼 GitHub: [@systemavworks](https://github.com/systemavworks)
@@ -452,7 +452,7 @@ Ver el archivo [LICENSE](https://github.com/systemavworks/guardianos-shield/blob
 - **Google Jetpack** por las librerías modernas (Compose, Room, Navigation)
 - **Material Design 3** por el sistema de diseño
 - **Cloudflare** por los servidores DNS alternativos
-- **Comunidad de Sevilla** por el apoyo, feedback y testing
+
 
 ---
 
@@ -482,5 +482,5 @@ Ver el archivo [LICENSE](https://github.com/systemavworks/guardianos-shield/blob
 
 ---
 
-**Hecho con ❤️ en Sevilla, España 🇪🇸**  
+**Hecho con ❤️ en Andalucía**  
 *Protegiendo a nuestros pequeños en el mundo digital*
