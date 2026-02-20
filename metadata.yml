@@ -1,0 +1,34 @@
+
+# Ejemplo de metadatos F-Droid para Guardianos Shield
+Categories:
+  - Security
+  - Internet
+License: Apache-2.0
+WebSite: https://github.com/guardianos/guardianos-shield
+SourceCode: https://github.com/guardianos/guardianos-shield
+IssueTracker: https://github.com/guardianos/guardianos-shield/issues
+Changelog: https://github.com/guardianos/guardianos-shield/blob/main/release-notes.md
+
+AutoUpdateMode: None
+UpdateCheckMode: None
+
+Description: |
+  Guardianos Shield es una app de control parental y filtrado DNS para Android. Bloquea contenido adulto, redes sociales y apps sensibles, con monitorización de uso y navegador seguro integrado. Sin anuncios, sin rastreadores, sin dependencias privativas.
+
+Builds:
+  - versionName: 1.1.0
+    versionCode: 2
+    commit: main
+    subdir: app
+    gradle:
+      - assembleRelease
+    output: app/build/outputs/apk/release/guardianos-shield-v1.1.0-release.apk
+    srclibs: []
+    prebuild: []
+    postbuild: []
+    scanignore: []
+    rm:
+      - "**/*.so"
+
+MaintainerName: Victor
+MaintainerEmail: contacto@guardianos.es

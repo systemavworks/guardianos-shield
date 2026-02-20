@@ -1,5 +1,9 @@
-// app/src/main/java/com/guardianos/shield/MainActivity.kt
+
 package com.guardianos.shield
+
+import com.guardianos.shield.billing.BillingManager
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 // ============= IMPORTS CORREGIDOS Y OPTIMIZADOS =============
 // Icons
@@ -10,6 +14,7 @@ import androidx.compose.material.icons.rounded.*
 
 // Android
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -57,9 +62,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 
 // App
+import com.guardianos.shield.BuildConfig
 import com.guardianos.shield.data.*
+import com.guardianos.shield.security.SecurityHelper
 import com.guardianos.shield.service.*
 import com.guardianos.shield.ui.*
 import com.guardianos.shield.ui.theme.GuardianShieldTheme
@@ -78,6 +88,17 @@ enum class ProtectionMode {
 // ============= ACTIVITY PRINCIPAL =============
 class MainActivity : ComponentActivity() {
 
+    // Billing
+    internal lateinit var billingManager: BillingManager
+    private var isPremium by mutableStateOf(false)
+    private var isPremiumLoaded by mutableStateOf(false)  // evita flash de pantalla premium
+    private var showPremiumScreen by mutableStateOf(false)
+
+    // Trial gratuito de 48 horas
+    private var isFreeTrialActive by mutableStateOf(true)
+    private var freeTrialRemainingHours by mutableStateOf(48f)
+    private var showFreeTrialExpiredDialog by mutableStateOf(false)
+
     // Estados
     private var protectionMode by mutableStateOf(ProtectionMode.Recommended)
     private var isServiceRunning by mutableStateOf(false)
@@ -93,7 +114,7 @@ class MainActivity : ComponentActivity() {
     
     // Servicios
     internal lateinit var repository: GuardianRepository
-    private lateinit var settingsRepository: SettingsRepository
+    internal lateinit var settingsRepository: SettingsRepository
     private lateinit var usageMonitor: UsageStatsMonitor
     private lateinit var vpnStateReceiver: BroadcastReceiver
     
@@ -102,6 +123,7 @@ class MainActivity : ComponentActivity() {
     private var hasUsageStatsPermission by mutableStateOf(false)
 
     // Launchers de permisos
+    @SuppressLint("InvalidFragmentVersionForActivityResult")
     private val vpnPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -112,6 +134,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    @SuppressLint("InvalidFragmentVersionForActivityResult")
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -124,23 +147,54 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        billingManager = BillingManager(this)
+
         initializeApp()
         setupVpnReceiver()
         loadInitialData()
         requestNotificationPermission()
+
+        // Inicializar y monitorear trial de 48 horas
+        lifecycleScope.launch {
+            settingsRepository.setFreeTrialStartTimeIfNotSet()
+            updateFreeTrialStatus()
+        }
+        lifecycleScope.launch {
+            while (true) {
+                delay(60_000L) // verificar cada minuto
+                if (!isPremium) updateFreeTrialStatus()
+            }
+        }
+
+        // Iniciar billing DESPUÉS de initializeApp() para que settingsRepository esté listo
+        billingManager.startConnection {
+            lifecycleScope.launch {
+                billingManager.isPremium.collect { premium ->
+                    isPremium = premium
+                    if (premium) settingsRepository.setPremium(true)
+                }
+            }
+        }
+
+        // Sincronizar premium con DataStore (settingsRepository ya inicializado)
+        lifecycleScope.launch {
+            settingsRepository.isPremium.collect { premium ->
+                isPremium = premium
+                isPremiumLoaded = true  // primer valor recibido → ya podemos mostrar la UI correcta
+            }
+        }
         
         setContent {
             GuardianShieldTheme {
                 var showSplash by remember { mutableStateOf(true) }
-                
                 LaunchedEffect(Unit) {
                     delay(2000)
                     showSplash = false
                 }
-                
-                if (showSplash) {
+                if (showSplash || !isPremiumLoaded) {
                     WelcomeSplashScreen()
                 } else {
+                    // ── Modelo freemium: todos los usuarios acceden a la app ──
                     GuardianShieldApp(
                         protectionMode = protectionMode,
                         onModeChange = { handleModeChange(it) },
@@ -153,13 +207,47 @@ class MainActivity : ComponentActivity() {
                         isMonitoringActive = isMonitoringActive,
                         hasUsageStatsPermission = hasUsageStatsPermission,
                         onRequestUsagePermission = { requestUsageStatsPermission() },
-                        onToggleMonitoring = { toggleMonitoring() }
+                        onToggleMonitoring = { toggleMonitoring() },
+                        onShowPremium = {
+                            ConversionTracker.trackPurchaseScreenOpened("main_button")
+                            showPremiumScreen = true
+                        },
+                        isPremium = isPremium,
+                        isFreeTrialActive = isFreeTrialActive,
+                        freeTrialRemainingHours = freeTrialRemainingHours
                     )
-                    
-                    // Diálogo de PIN para desactivar VPN
+                    // Pantalla de upgrade como overlay (no paywall)
+                    if (showPremiumScreen) {
+                        PremiumPurchaseScreen(
+                            billingManager = billingManager,
+                            isPremium = isPremium,
+                            onPurchaseSuccess = {
+                                isPremium = true
+                                showPremiumScreen = false
+                                showFreeTrialExpiredDialog = false
+                                ConversionTracker.trackPurchaseSuccess()
+                                lifecycleScope.launch { settingsRepository.setPremium(true) }
+                            },
+                            activity = this@MainActivity,
+                            onDismiss = { showPremiumScreen = false }
+                        )
+                    }
+                    // Diálogo de trial expirado — bloquea la app (sin dismiss libre)
+                    if (showFreeTrialExpiredDialog && !isPremium) {
+                        FreeTrialExpiredDialog(
+                            onUpgrade = {
+                                ConversionTracker.trackTrialExpiredUpgradeClicked()
+                                ConversionTracker.trackPurchaseScreenOpened("trial_expired_dialog")
+                                showFreeTrialExpiredDialog = false
+                                showPremiumScreen = true
+                            },
+                            onDismiss = { finish() } // "Salir de la app"
+                        )
+                    }
                     if (showPinForVpnToggle) {
                         PinLockScreen(
                             requiredPin = currentProfile?.parentalPin,
+                            profileId = currentProfile?.id,
                             onPinVerified = {
                                 showPinForVpnToggle = false
                                 stopVpnService()
@@ -169,11 +257,10 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
-                    
-                    // Diálogo de PIN para cambiar modo de protección
                     if (showPinForModeChange) {
                         PinLockScreen(
                             requiredPin = currentProfile?.parentalPin,
+                            profileId = currentProfile?.id,
                             onPinVerified = {
                                 showPinForModeChange = false
                                 pendingModeChange?.let { applyModeChange(it) }
@@ -294,22 +381,22 @@ class MainActivity : ComponentActivity() {
                 
                 // 🔍 DEBUG: Mostrar estado del perfil y horarios
                 currentProfile?.let { profile ->
-                    Log.i("MainActivity", "═══════════════════════════════════════")
-                    Log.i("MainActivity", "📋 PERFIL ACTIVO: ${profile.name}")
-                    Log.i("MainActivity", "🔒 PIN configurado: ${!profile.parentalPin.isNullOrEmpty()}")
-                    Log.i("MainActivity", "⏰ Horario habilitado: ${profile.scheduleEnabled}")
-                    if (profile.scheduleEnabled) {
+                    if (BuildConfig.DEBUG) {
+                        Log.d("MainActivity", "═══════════════════════════════════════")
+                        Log.d("MainActivity", "📋 PERFIL ACTIVO: ${profile.name}")
+                        Log.d("MainActivity", "🔒 PIN configurado: ${SecurityHelper.hasPin(this@MainActivity, profile.id)}")
+                        Log.d("MainActivity", "⏰ Horario habilitado: ${profile.scheduleEnabled}")
+                    }
+                    if (profile.scheduleEnabled && BuildConfig.DEBUG) {
                         val startHour = profile.startTimeMinutes / 60
                         val startMin = profile.startTimeMinutes % 60
                         val endHour = profile.endTimeMinutes / 60
                         val endMin = profile.endTimeMinutes % 60
-                        Log.i("MainActivity", "⏰ Desde: ${String.format("%02d:%02d", startHour, startMin)}")
-                        Log.i("MainActivity", "⏰ Hasta: ${String.format("%02d:%02d", endHour, endMin)}")
-                        Log.i("MainActivity", "⏰ Ahora dentro del horario: ${profile.isWithinAllowedTime()}")
-                    } else {
-                        Log.w("MainActivity", "⚠️ HORARIO DESACTIVADO - Actívalo en Control Parental")
+                        Log.d("MainActivity", "⏰ Desde: ${String.format("%02d:%02d", startHour, startMin)}")
+                        Log.d("MainActivity", "⏰ Hasta: ${String.format("%02d:%02d", endHour, endMin)}")
+                        Log.d("MainActivity", "⏰ Ahora dentro del horario: ${profile.isWithinAllowedTime()}")
+                        Log.d("MainActivity", "═══════════════════════════════════════")
                     }
-                    Log.i("MainActivity", "═══════════════════════════════════════")
                 } ?: run {
                     Log.w("MainActivity", "⚠️ No hay perfil activo - Creando perfil por defecto...")
                     // Crear perfil por defecto si no existe
@@ -465,6 +552,22 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** Refresca el estado del trial y gestiona la expiración (detiene VPN si corresponde). */
+    private suspend fun updateFreeTrialStatus() {
+        if (isPremium) return
+        isFreeTrialActive = settingsRepository.isFreeTrialActive()
+        freeTrialRemainingHours = settingsRepository.getFreeTrialRemainingHours()
+        if (!isFreeTrialActive) {
+            // Detener VPN desde la UI si sigue activa
+            if (isServiceRunning) stopVpnService()
+            // Mostrar diálogo bloqueante solo si la pantalla Premium no está abierta
+            if (!showPremiumScreen) {
+                ConversionTracker.trackTrialExpired()
+                showFreeTrialExpiredDialog = true
+            }
+        }
+    }
+
     // ============= GESTIÓN USAGE STATS =============
     private fun toggleMonitoring() {
         if (!hasUsageStatsPermission) {
@@ -488,7 +591,15 @@ class MainActivity : ComponentActivity() {
             settingsRepository.updateMonitoringActive(true)
         }
         
-        Toast.makeText(this, "Monitoreo de apps activado", Toast.LENGTH_SHORT).show()
+        if (!isPremium) {
+            Toast.makeText(
+                this,
+                "⏰ Monitoreo activo — Modo FREE: datos de las últimas 48h.\nActualiza a Premium para historial de 30 días.",
+                Toast.LENGTH_LONG
+            ).show()
+        } else {
+            Toast.makeText(this, "Monitoreo de apps activado", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun stopMonitoring() {
@@ -515,7 +626,7 @@ class MainActivity : ComponentActivity() {
 
     // ============= OTRAS FUNCIONES =============
     private fun openSafeBrowser() {
-        startActivity(Intent(this, SafeBrowserActivity::class.java))
+        startActivity(SafeBrowserActivity.createIntent(this, isPremium))
     }
 
     private fun requestNotificationPermission() {
@@ -538,10 +649,18 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         hasUsageStatsPermission = usageMonitor.hasPermission()
         loadStatistics()
+        // Reconectar Billing si se desconectó en background y re-verificar compras existentes
+        billingManager.startConnection()
+        // Re-verificar estado del trial por si la app estuvo en background un largo periodo
+        if (!isPremium) {
+            lifecycleScope.launch { updateFreeTrialStatus() }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        billingManager.endConnection()
+        ConversionTracker.printSessionSummary()
         try {
             unregisterReceiver(vpnStateReceiver)
         } catch (e: Exception) {
@@ -565,7 +684,11 @@ fun GuardianShieldApp(
     isMonitoringActive: Boolean,
     hasUsageStatsPermission: Boolean,
     onRequestUsagePermission: () -> Unit,
-    onToggleMonitoring: () -> Unit
+    onToggleMonitoring: () -> Unit,
+    onShowPremium: () -> Unit,
+    isPremium: Boolean = false,
+    isFreeTrialActive: Boolean = true,
+    freeTrialRemainingHours: Float = 48f
 ) {
     val navController = rememberNavController()
 
@@ -584,7 +707,11 @@ fun GuardianShieldApp(
                 hasUsageStatsPermission = hasUsageStatsPermission,
                 onRequestUsagePermission = onRequestUsagePermission,
                 onToggleMonitoring = onToggleMonitoring,
-                onNavigate = { route -> navController.navigate(route) }
+                onNavigate = { route -> navController.navigate(route) },
+                onShowPremium = onShowPremium,
+                isPremium = isPremium,
+                isFreeTrialActive = isFreeTrialActive,
+                freeTrialRemainingHours = freeTrialRemainingHours
             )
         }
         composable("parental") { 
@@ -596,7 +723,9 @@ fun GuardianShieldApp(
                         (navController.context as MainActivity).currentProfile = profile
                     }
                 },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                isPremium = isPremium,
+                onShowPremium = onShowPremium
             ) 
         }
         composable("filters") { 
@@ -624,7 +753,9 @@ fun GuardianShieldApp(
                         mainActivity.repository.removeFilter(domain)
                     }
                 },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                isPremium = isPremium,
+                onShowPremium = onShowPremium
             ) 
         }
         composable("statistics") { 
@@ -632,14 +763,39 @@ fun GuardianShieldApp(
                 todayBlocked = blockedCount,          // ✅ Usar contador existente
                 weeklyStats = emptyList(),            // ✅ Placeholder seguro
                 recentBlocked = recentBlocked,        // ✅ Ya lo tienes
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                isPremium = isPremium,
+                onShowPremium = onShowPremium
             ) 
+        }
+        composable("pacto") {
+            PactScreen(
+                isPremium = isPremium,
+                isFreeTrialActive = isFreeTrialActive,
+                onShowPremium = onShowPremium,
+                onBack = { navController.popBackStack() }
+            )
         }
         composable("settings") { 
             SettingsScreen(
                 navController = navController,
                 onBack = { navController.popBackStack() },
-                currentPin = currentProfile?.parentalPin
+                currentPin = currentProfile?.parentalPin,
+                profileId = currentProfile?.id,
+                isPremium = isPremium,
+                isFreeTrialActive = isFreeTrialActive,
+                onShowPremium = onShowPremium,
+                onRestorePurchases = {
+                    (navController.context as MainActivity).let { activity ->
+                        activity.billingManager.restorePurchases()
+                        // Sincronizar el estado con DataStore si la restauración lo activa
+                        activity.lifecycleScope.launch {
+                            activity.billingManager.isPremium.collect { premium ->
+                                if (premium) activity.settingsRepository.setPremium(true)
+                            }
+                        }
+                    }
+                }
             ) 
         }
     }
@@ -660,16 +816,32 @@ fun HomeScreen(
     hasUsageStatsPermission: Boolean,
     onRequestUsagePermission: () -> Unit,
     onToggleMonitoring: () -> Unit,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit,
+    onShowPremium: () -> Unit,
+    isPremium: Boolean = false,
+    isFreeTrialActive: Boolean = true,
+    freeTrialRemainingHours: Float = 48f
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
-                    Text(
-                        "GuardianOS Shield",
-                        fontWeight = FontWeight.Bold
-                    ) 
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.guardianos_shield_logo),
+                            contentDescription = "Logo Guardianos Shield",
+                            modifier = Modifier.size(36.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            "GuardianOS Shield",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
                 },
                 actions = {
                     IconButton(onClick = { onNavigate("settings") }) {
@@ -689,9 +861,44 @@ fun HomeScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Banner de estado free — trial activo (cuenta atrás) o plan básico
+            if (!isPremium) {
+                item {
+                    if (isFreeTrialActive) {
+                        FreeTrialBanner(
+                            remainingHours = freeTrialRemainingHours,
+                            onUpgrade = onShowPremium
+                        )
+                    } else {
+                        FreePlanBanner(onUpgrade = onShowPremium)
+                    }
+                }
+            }
+
             // Perfil activo
             item {
                 ProfileIndicator(currentProfile)
+            }
+
+            // Widget de racha diaria (gamificación)
+            item {
+                StreakWidget(
+                    perfil = currentProfile,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            // TrustFlow Engine — indicador de nivel de confianza actual
+            currentProfile?.let { perfil ->
+                item {
+                    TrustLevelBadge(
+                        rachaActual = perfil.rachaActual,
+                        isPremium = isPremium,
+                        isFreeTrialActive = isFreeTrialActive,
+                        onShowPremium = onShowPremium,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
 
             // Selector de modo
@@ -718,7 +925,8 @@ fun HomeScreen(
                         isActive = isMonitoringActive,
                         hasPermission = hasUsageStatsPermission,
                         onRequestPermission = onRequestUsagePermission,
-                        onToggle = onToggleMonitoring
+                        onToggle = onToggleMonitoring,
+                        isPremium = isPremium
                     )
                 }
             }
@@ -727,7 +935,8 @@ fun HomeScreen(
             item {
                 QuickStatsCard(
                     count = blockedCount,
-                    onClick = { onNavigate("statistics") }
+                    onClick = { onNavigate("statistics") },
+                    isPremium = isPremium
                 )
             }
 
@@ -761,6 +970,41 @@ fun HomeScreen(
                         color = Color(0xFF2196F3),
                         onClick = { onNavigate("filters") }
                     )
+                    FeatureButton(
+                        modifier = Modifier.weight(1f),
+                        title = "Pacto",
+                        subtitle = "Digital 🤝",
+                        icon = Icons.Rounded.Handshake,
+                        color = Color(0xFF00ACC1),
+                        onClick = { onNavigate("pacto") }
+                    )
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (!isPremium) {
+                        FeatureButton(
+                            modifier = Modifier.weight(1f),
+                            title = "Premium",
+                            subtitle = "14,99 € único",
+                            icon = Icons.Rounded.Star,
+                            color = Color(0xFFFFC107),
+                            onClick = { onShowPremium() }
+                        )
+                    } else {
+                        FeatureButton(
+                            modifier = Modifier.weight(1f),
+                            title = "Premium",
+                            subtitle = "Activo ✓",
+                            icon = Icons.Rounded.Star,
+                            color = Color(0xFF4CAF50),
+                            onClick = { }
+                        )
+                    }
                 }
             }
 
@@ -811,8 +1055,7 @@ fun ProtectionModeSelector(
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 "Modo de Protección",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.height(12.dp))
 
@@ -977,7 +1220,8 @@ fun MonitoringCard(
     isActive: Boolean,
     hasPermission: Boolean,
     onRequestPermission: () -> Unit,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    isPremium: Boolean = false
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1009,6 +1253,13 @@ fun MonitoringCard(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (!isPremium) {
+                            Text(
+                                "⏰ FREE — datos últimas 48h · 14 días con Premium",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color(0xFFFF9800)
+                            )
+                        }
                     }
                 }
                 
@@ -1034,7 +1285,7 @@ fun MonitoringCard(
 }
 
 @Composable
-fun QuickStatsCard(count: Int, onClick: () -> Unit) {
+fun QuickStatsCard(count: Int, onClick: () -> Unit, isPremium: Boolean = false) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1061,6 +1312,13 @@ fun QuickStatsCard(count: Int, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                if (!isPremium) {
+                    Text(
+                        "⏰ FREE — datos últimas 48h",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFFFF9800)
+                    )
+                }
             }
             
             Text(
@@ -1217,3 +1475,167 @@ fun WelcomeSplashScreen() {
         }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TrustFlow Engine — Indicador de nivel de confianza en el dashboard
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Badge visual que muestra el nivel de confianza actual del perfil.
+ * 🔴 Locked (0-6 d)  |  🟡 Caution (7-29 d)  |  🟢 Trusted (30+ d)
+ * En modo FREE sin trial activo muestra una preview bloqueada con opción de upgrade.
+ */
+@Composable
+fun TrustLevelBadge(
+    rachaActual: Int,
+    isPremium: Boolean,
+    isFreeTrialActive: Boolean,
+    onShowPremium: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    // Gate billing: FREE sin trial ve solo un teaser con candado
+    if (!com.guardianos.shield.billing.FreeTierLimits.canUseTrustFlow(isPremium, isFreeTrialActive)) {
+        Card(
+            modifier = modifier,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+            ),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onShowPremium() }
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "🔒", fontSize = 26.sp)
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "TrustFlow Engine",
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                    Text(
+                        text = "Con ${rachaActual} días de racha podrías estar en " +
+                            if (rachaActual >= 30) "Zona de Confianza 🟢"
+                            else if (rachaActual >= 7) "Modo Precaución 🟡"
+                            else "camino al Explorador 🟡",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f)
+                        )
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "PREMIUM — Toca para desbloquear",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+        return
+    }
+    val nivel = com.guardianos.shield.data.getTrustLevel(rachaActual)
+
+    val (colorFondo, colorTexto, icono, titulo, descripcion) = when (nivel) {
+        com.guardianos.shield.data.TrustLevel.TRUSTED -> TrustLevelStyle(
+            fondo       = Color(0xFF1B5E20).copy(alpha = 0.20f),
+            texto       = Color(0xFF66BB6A),
+            icono       = "🟢",
+            titulo      = "Zona de Confianza",
+            descripcion = "Llevas $rachaActual días de racha. Acceso flexible registrado."
+        )
+        com.guardianos.shield.data.TrustLevel.CAUTION -> TrustLevelStyle(
+            fondo       = Color(0xFFF57F17).copy(alpha = 0.18f),
+            texto       = Color(0xFFFFC107),
+            icono       = "🟡",
+            titulo      = "Modo Precaución",
+            descripcion = "Llevas $rachaActual días. 7 más para ganar acceso flexible."
+        )
+        com.guardianos.shield.data.TrustLevel.LOCKED -> TrustLevelStyle(
+            fondo       = Color(0xFFB71C1C).copy(alpha = 0.15f),
+            texto       = Color(0xFFEF5350),
+            icono       = "🔴",
+            titulo      = "Modo Restringido",
+            descripcion = "Mantén ${7 - rachaActual} días más sin infracciones para subir de nivel."
+        )
+    }
+
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = colorFondo),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = icono, fontSize = 28.sp)
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = titulo,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = colorTexto
+                    )
+                )
+                Text(
+                    text = descripcion,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+        }
+        // Barra de progreso hacia el siguiente nivel
+        if (nivel != com.guardianos.shield.data.TrustLevel.TRUSTED) {
+            val progreso = if (nivel == com.guardianos.shield.data.TrustLevel.CAUTION)
+                (rachaActual - 7) / 23f   // 7-29 días → hacia 30
+            else
+                rachaActual / 7f           // 0-6 días → hacia 7
+            LinearProgressIndicator(
+                progress = progreso.coerceIn(0f, 1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 10.dp),
+                color = colorTexto,
+                trackColor = colorTexto.copy(alpha = 0.15f)
+            )
+            Text(
+                text = if (nivel == com.guardianos.shield.data.TrustLevel.CAUTION)
+                    "${30 - rachaActual} días para Zona de Confianza 🟢"
+                else
+                    "${7 - rachaActual} días para Modo Precaución 🟡",
+                style = MaterialTheme.typography.labelSmall,
+                color = colorTexto.copy(alpha = 0.70f),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 12.dp)
+            )
+        }
+    }
+}
+
+private data class TrustLevelStyle(
+    val fondo: Color,
+    val texto: Color,
+    val icono: String,
+    val titulo: String,
+    val descripcion: String
+)

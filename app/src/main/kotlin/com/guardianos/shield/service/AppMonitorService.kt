@@ -60,7 +60,7 @@ class AppMonitorService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("🛡️ GuardianOS Shield")
             .setContentText("Monitoreando uso de apps")
-            .setSmallIcon(R.drawable.guardianos_shield_logo) // Usa tu logo existente
+            .setSmallIcon(R.drawable.guardianos_shield_logo) // Logo del proyecto
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)

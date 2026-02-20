@@ -6,5 +6,4 @@
     
     <!-- ✅ Solo respaldar recursos no sensibles (si los hubiera) -->
     <exclude domain="file" path="temp/"/>
-    <exclude domain="cache" path="."/>
 </full-backup-content>

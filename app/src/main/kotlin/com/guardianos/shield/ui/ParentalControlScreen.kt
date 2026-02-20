@@ -26,8 +26,20 @@ fun ParentalControlScreen(
     currentProfile: UserProfileEntity?,
     onProfileUpdate: (UserProfileEntity) -> Unit,
     onBack: () -> Unit,
-    navController: NavController? = null
+    navController: NavController? = null,
+    isPremium: Boolean = false,
+    onShowPremium: () -> Unit = {}
 ) {
+    // Plan FREE: pantalla completamente bloqueada
+    if (!isPremium) {
+        FreePremiumGateScreen(
+            feature = PremiumFeature.MULTIPLES_PERFILES,
+            onUpgrade = onShowPremium,
+            onBack = onBack
+        )
+        return
+    }
+
     var profile by remember { 
         mutableStateOf(currentProfile ?: UserProfileEntity(
             id = 0,
@@ -44,6 +56,25 @@ fun ParentalControlScreen(
     
     var startTime by remember { mutableStateOf(profile.startTimeMinutes) }
     var endTime by remember { mutableStateOf(profile.endTimeMinutes) }
+
+    // ── Dialogs premium gate ───────────────────────────────────────────────
+    var showScheduleGate by remember { mutableStateOf(false) }
+    var showPinGate by remember { mutableStateOf(false) }
+
+    if (showScheduleGate) {
+        PremiumGateDialog(
+            feature = PremiumFeature.HORARIOS_AVANZADOS,
+            onUpgrade = { showScheduleGate = false; onShowPremium() },
+            onDismiss = { showScheduleGate = false }
+        )
+    }
+    if (showPinGate) {
+        PremiumGateDialog(
+            feature = PremiumFeature.PIN_PARENTAL,
+            onUpgrade = { showPinGate = false; onShowPremium() },
+            onDismiss = { showPinGate = false }
+        )
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     Scaffold(
@@ -74,7 +105,11 @@ fun ParentalControlScreen(
             }
 
             item {
-                ProfileForm(profile) { updatedProfile ->
+                ProfileForm(
+                    profile = profile,
+                    isPremium = isPremium,
+                    onShowPremiumGate = { showPinGate = true }
+                ) { updatedProfile ->
                     profile = updatedProfile
                     onProfileUpdate(updatedProfile)
                 }
@@ -99,11 +134,17 @@ fun ParentalControlScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "⏰ Restringir horario de uso",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "⏰ Restringir horario de uso",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                if (!isPremium) {
+                                    Spacer(Modifier.width(8.dp))
+                                    PremiumLockBadge()
+                                }
+                            }
                             Text(
                                 text = if (profile.scheduleEnabled) "Horarios activos" else "Permitir uso todo el día",
                                 style = MaterialTheme.typography.bodySmall,
@@ -113,8 +154,12 @@ fun ParentalControlScreen(
                         Switch(
                             checked = profile.scheduleEnabled,
                             onCheckedChange = { enabled ->
-                                profile = profile.copy(scheduleEnabled = enabled)
-                                onProfileUpdate(profile)
+                                if (!isPremium && enabled) {
+                                    showScheduleGate = true
+                                } else {
+                                    profile = profile.copy(scheduleEnabled = enabled)
+                                    onProfileUpdate(profile)
+                                }
                             }
                         )
                     }
@@ -217,6 +262,8 @@ fun ParentalControlScreen(
 @Composable
 private fun ProfileForm(
     profile: UserProfileEntity,
+    isPremium: Boolean = false,
+    onShowPremiumGate: () -> Unit = {},
     onProfileUpdate: (UserProfileEntity) -> Unit
 ) {
     var name by remember { mutableStateOf(profile.name) }
@@ -256,19 +303,45 @@ private fun ProfileForm(
             
             Spacer(Modifier.height(12.dp))
             
-            OutlinedTextField(
-                value = pin,
-                onValueChange = {
-                    if (it.all { char -> char.isDigit() } && it.length <= 4) {
-                        pin = it
-                        onProfileUpdate(profile.copy(parentalPin = it))
-                    }
-                },
-                label = { Text("PIN parental (4 dígitos)") },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
-            )
+            // Campo PIN — gateado en plan gratuito
+            Box {
+                OutlinedTextField(
+                    value = pin,
+                    onValueChange = {
+                        if (isPremium) {
+                            if (it.all { char -> char.isDigit() } && it.length <= 4) {
+                                pin = it
+                                onProfileUpdate(profile.copy(parentalPin = it))
+                            }
+                        }
+                    },
+                    label = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("PIN parental (4 dígitos)")
+                            if (!isPremium) {
+                                Spacer(Modifier.width(6.dp))
+                                PremiumLockBadge()
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = isPremium,
+                    colors = if (!isPremium) OutlinedTextFieldDefaults.colors(
+                        disabledBorderColor = androidx.compose.ui.graphics.Color(0xFFFFC107).copy(alpha = 0.5f),
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    ) else OutlinedTextFieldDefaults.colors()
+                )
+                // Área invisible para capturar tap y mostrar gate
+                if (!isPremium) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clickable { onShowPremiumGate() }
+                    )
+                }
+            }
         }
     }
 }

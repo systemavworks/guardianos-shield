@@ -1,8 +1,16 @@
 // app/build.gradle.kts
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+}
+
+// Leer credenciales de firma desde local.properties (nunca en git)
+val localProperties = Properties().apply {
+    val localFile = rootProject.file("local.properties")
+    if (localFile.exists()) localFile.inputStream().use { load(it) }
 }
 
 android {
@@ -13,8 +21,8 @@ android {
         applicationId = "com.guardianos.shield"
         minSdk = 24  // Android 7.0 (Nougat) - mínimo realista para apps de seguridad modernas
         targetSdk = 34 // Android 14
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
 
         // Optimización RAM para tu Aspire E5-571G
         vectorDrawables {
@@ -26,6 +34,21 @@ android {
         setProperty("archivesBaseName", "guardianos-shield-v$versionName")
     }
 
+    signingConfigs {
+        create("release") {
+            val keystoreFile = localProperties["KEYSTORE_FILE"] as? String
+            val keystorePassword = localProperties["KEYSTORE_PASSWORD"] as? String
+            val keyAlias = localProperties["KEY_ALIAS"] as? String
+            val keyPassword = localProperties["KEY_PASSWORD"] as? String
+            if (keystoreFile != null && keystorePassword != null &&
+                keyAlias != null && keyPassword != null) {
+                storeFile     = file(keystoreFile)
+                storePassword = keystorePassword
+                this.keyAlias      = keyAlias
+                this.keyPassword   = keyPassword
+            }
+        }
+    }
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -40,13 +63,13 @@ android {
         }
         release {
             isDebuggable = false
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = true // Activado para Play Store y F-Droid
+            isShrinkResources = true // Activado para Play Store y F-Droid
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug") // Para testing inicial
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -138,7 +161,12 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    
+    // Security - EncryptedSharedPreferences
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    // Google Play Billing Library para compras in-app
+    implementation("com.android.billingclient:billing-ktx:6.1.0")
 }
 
 // ✅ Tarea optimizada para tu hardware (SIN flags inválidos)
@@ -152,3 +180,4 @@ tasks.register<Exec>("assembleDebugOptimized") {
         "--console=plain"
     )
 }
+

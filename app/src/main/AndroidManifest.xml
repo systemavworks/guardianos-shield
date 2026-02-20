@@ -27,8 +27,9 @@
         tools:ignore="QueryAllPackagesPermission" />
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.GuardianShield"
@@ -54,6 +55,15 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- 🚫 Pantalla de bloqueo de apps (lanzada por el Accessibility Service) -->
+        <activity
+            android:name=".ui.AppBlockedActivity"
+            android:exported="false"
+            android:theme="@style/Theme.GuardianShield"
+            android:showOnLockScreen="true"
+            android:excludeFromRecents="true"
+            android:configChanges="orientation|screenSize" />
+
         <!-- Servicio VPN para filtrado DNS -->
         <service
             android:name=".service.DnsFilterService"
@@ -76,6 +86,32 @@
             android:name=".service.LightweightMonitorService"
             android:exported="false"
             android:foregroundServiceType="specialUse" />
+
+        <!-- ♿ Servicio de accesibilidad — bloqueo real de apps instaladas sin root -->
+        <service
+            android:name=".service.AppBlockerAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+        <!-- 🔐 Device Admin — anti-tampering (evita desinstalación sin PIN parental) -->
+        <receiver
+            android:name=".security.GuardianDeviceAdminReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_policies" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
 
         <!-- ⚠️ RealisticAppBlocker NO es un Service - es una clase utilitaria -->
         <!-- ⚠️ ScheduleManager NO es un Service - es una clase de lógica -->

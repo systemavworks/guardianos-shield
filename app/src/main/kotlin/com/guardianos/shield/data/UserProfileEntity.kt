@@ -1,7 +1,38 @@
 package com.guardianos.shield.data
 
 import androidx.room.Entity
+import androidx.room.Ignore
 import androidx.room.PrimaryKey
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TrustFlow Engine — Nivel de confianza dinámico basado en la racha diaria
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Nivel de confianza que determina el comportamiento del AppBlocker:
+ *   LOCKED   (0–6 días)   → Bloqueo duro. Solo se puede pedir permiso.
+ *   CAUTION  (7–29 días)  → Friction Mode: cuenta atrás de 15 s. con advertencia.
+ *   TRUSTED  (30+ días)   → Zona de confianza: acceso libre (60 min/día), uso registrado.
+ *
+ * Los campos [nombreMostrar], [etiqueta] y [emoji] se usan directamente en la UI
+ * sin necesidad de when/mapping en los composables.
+ */
+enum class TrustLevel(
+    val nombreMostrar: String, // Texto largo para tarjetas e informes
+    val etiqueta: String,      // Nombre de gamificación visble al menor
+    val emoji: String
+) {
+    LOCKED ("Bloqueo Total",        "Cadete",      "🔴"),
+    CAUTION("Modo Precaución",      "Explorador",  "🟡"),
+    TRUSTED("Zona de Confianza",    "Guardián",    "🟢")
+}
+
+/** Calcula el TrustLevel según la racha actual del perfil. */
+fun getTrustLevel(streak: Int): TrustLevel = when {
+    streak >= 30 -> TrustLevel.TRUSTED
+    streak >= 7  -> TrustLevel.CAUTION
+    else         -> TrustLevel.LOCKED
+}
 
 /**
  * Entidad Room que representa un perfil de usuario (normalmente un menor)
@@ -22,7 +53,10 @@ data class UserProfileEntity(
     // Este campo se muestra en el dashboard
     val ageGroup: String = "8-12",
 
-    // PIN numérico o alfanumérico que debe introducir el padre para modificar el perfil
+    // ⚠️ DEPRECADO: PIN ahora se almacena en EncryptedSharedPreferences por seguridad
+    // Usar SecurityHelper.savePin() / verifyPin() para gestionar PINs
+    // Este campo se mantiene solo para migración de datos legacy
+    @Deprecated("Usar SecurityHelper en su lugar")
     val parentalPin: String? = null,
 
     // Nivel de restricción global del perfil
@@ -70,8 +104,36 @@ data class UserProfileEntity(
     val isActive: Boolean = true,
 
     // Timestamp de creación (para ordenación y auditoría)
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+
+    // ──────────────────────────────────────────────
+    //          GAMIFICACIÓN — RACHA DIARIA
+    // ──────────────────────────────────────────────
+
+    // Días consecutivos sin intentar acceder a contenido bloqueado
+    val rachaActual: Int = 0,
+
+    // Racha más larga conseguida (récord personal)
+    val rachaMaxima: Int = 0,
+
+    // Fecha del último día "limpio" (YYYY-MM-DD). Vacío si nunca se ha registrado.
+    val ultimoDiaLimpio: String = "",
+
+    // ──────────────────────────────────────────────
+    //     TRUSTFLOW ENGINE — MINUTOS DE AUTONOMÍA
+    // ──────────────────────────────────────────────
+
+    // Minutos disponibles hoy para el modo TRUSTED (se resetea cada día a 60).
+    // Cuando llega a 0, el modo TRUSTED se comporta como LOCKED hasta mañana.
+    val minutosAutonomiaDiarios: Int = 60
 ) {
+    /**
+     * Propiedad calculada (no persistida por Room) — nivel de confianza actual.
+     * Usar en UI y en AppBlockerAccessibilityService para decidir el modo de bloqueo.
+     */
+    @get:Ignore
+    val trustLevel: TrustLevel get() = getTrustLevel(rachaActual)
+
     /**
      * Método de conveniencia: devuelve si el horario actual está dentro del permitido
      * @return true si scheduleEnabled=false o si la hora actual está en el rango

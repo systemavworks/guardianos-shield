@@ -23,10 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.gson.Gson
+import com.guardianos.shield.BuildConfig
 import com.guardianos.shield.data.GuardianDatabase
 import com.guardianos.shield.data.GuardianRepository
 import com.guardianos.shield.data.SettingsRepository
 import com.guardianos.shield.data.ShieldSettings
+import com.guardianos.shield.billing.FreeTierLimits
+import com.guardianos.shield.security.DeviceAdminHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,7 +42,12 @@ import java.util.*
 fun SettingsScreen(
     navController: NavController,
     onBack: () -> Unit,
-    currentPin: String? = null
+    currentPin: String? = null,
+    profileId: Int? = null,
+    onRestorePurchases: (() -> Unit)? = null,
+    isPremium: Boolean = false,
+    isFreeTrialActive: Boolean = false,
+    onShowPremium: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -48,7 +56,28 @@ fun SettingsScreen(
     var showClearDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     var showPinDialog by remember { mutableStateOf(false) }
+    var showRestoreSnackbar by remember { mutableStateOf(false) }
     var pendingAction: (() -> Unit)? by remember { mutableStateOf(null) }
+
+    // Estados para gates de nuevas funciones premium
+    var showGateDialog by remember { mutableStateOf(false) }
+    var gateFeature by remember { mutableStateOf<PremiumFeature?>(null) }
+    var accessibilityActivo by remember {
+        mutableStateOf(
+            (android.provider.Settings.Secure.getString(
+                context.contentResolver,
+                android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            ) ?: "").contains("AppBlockerAccessibilityService", ignoreCase = true)
+        )
+    }
+    var deviceAdminActivo by remember { mutableStateOf(DeviceAdminHelper.estaActivo(context)) }
+
+    if (showRestoreSnackbar) {
+        LaunchedEffect(Unit) {
+            kotlinx.coroutines.delay(2500)
+            showRestoreSnackbar = false
+        }
+    }
 
     var currentSettings by remember { mutableStateOf(ShieldSettings()) }
 
@@ -64,7 +93,7 @@ fun SettingsScreen(
                 title = { Text("Configuración", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.Filled.ArrowBack, "Volver")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -72,6 +101,17 @@ fun SettingsScreen(
                     titleContentColor = MaterialTheme.colorScheme.onSurface
                 )
             )
+        },
+        snackbarHost = {
+            if (showRestoreSnackbar) {
+                Snackbar(
+                    modifier = Modifier.padding(16.dp),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ) {
+                    Text("Compras consultadas — si tienes una compra activa se restaurará automáticamente")
+                }
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -96,11 +136,43 @@ fun SettingsScreen(
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)); SectionHeader("Protección") }
+            // Badge 48h FREE para las 3 opciones de protección
+            if (!isPremium) {
+                item {
+                    androidx.compose.material3.Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = androidx.compose.material3.CardDefaults.cardColors(
+                            containerColor = androidx.compose.ui.graphics.Color(0xFFFFF3E0)
+                        ),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp)
+                    ) {
+                        androidx.compose.foundation.layout.Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Timer,
+                                contentDescription = null,
+                                tint = androidx.compose.ui.graphics.Color(0xFFE65100),
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "Plan FREE — datos de protección registrados las últimas ${FreeTierLimits.MAX_HISTORY_HOURS}h. Actualiza a Premium para acceso completo.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = androidx.compose.ui.graphics.Color(0xFFE65100)
+                            )
+                        }
+                    }
+                }
+            }
             item {
                 SettingsSwitchItem(
                     icon = Icons.Default.Shield,
                     title = "Bloqueo automático de malware",
-                    description = "Usar Google Safe Browsing API",
+                    description = if (isPremium) "Usar Google Safe Browsing API" else "Activo — datos últimas 48h (FREE)",
                     checked = currentSettings.autoBlockMalware,
                     onCheckedChange = { enabled ->
                         currentSettings = currentSettings.copy(autoBlockMalware = enabled)
@@ -112,7 +184,7 @@ fun SettingsScreen(
                 SettingsSwitchItem(
                     icon = Icons.Default.Block,
                     title = "Bloquear contenido adulto",
-                    description = "Filtrado de sitios +18",
+                    description = if (isPremium) "Filtrado de sitios +18" else "Activo — datos últimas 48h (FREE)",
                     checked = currentSettings.blockAdultContent,
                     onCheckedChange = { enabled ->
                         currentSettings = currentSettings.copy(blockAdultContent = enabled)
@@ -124,7 +196,7 @@ fun SettingsScreen(
                 SettingsSwitchItem(
                     icon = Icons.Default.People,
                     title = "Bloquear redes sociales",
-                    description = "Facebook, Instagram, TikTok, etc.",
+                    description = if (isPremium) "Facebook, Instagram, TikTok, etc." else "Activo — datos últimas 48h (FREE)",
                     checked = currentSettings.blockSocialMedia,
                     onCheckedChange = { enabled ->
                         currentSettings = currentSettings.copy(blockSocialMedia = enabled)
@@ -189,7 +261,7 @@ fun SettingsScreen(
                     icon = Icons.Default.PrivacyTip,
                     title = "Política de privacidad",
                     description = "Cómo protegemos tus datos",
-                    onClick = { openUrl(context, "https://guardianos.es/politica-privacidad") }
+                    onClick = { openUrl(context, "https://guardianos.es/shield") }
                 )
             }
             item {
@@ -200,6 +272,177 @@ fun SettingsScreen(
                     onClick = { openUrl(context, "https://github.com/systemavworks/guardianos-shield") }
                 )
             }
+
+            // ── Sección Seguridad Avanzada (nuevas funciones PREMIUM) ──────────
+            item { Spacer(modifier = Modifier.height(16.dp)); SectionHeader("Seguridad Avanzada") }
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.Default.AppBlocking,
+                    title = "Bloqueo real de apps 🔒",
+                    description = if (FreeTierLimits.canAccessPremiumFeature(isPremium, isFreeTrialActive))
+                        if (accessibilityActivo) "Servicio de accesibilidad activo"
+                        else "Toca para activar en Ajustes del sistema"
+                    else
+                        "PREMIUM — bloquea apps sensibles en tiempo real",
+                    checked = accessibilityActivo,
+                    onCheckedChange = { activar ->
+                        if (!FreeTierLimits.canAccessPremiumFeature(isPremium, isFreeTrialActive)) {
+                            gateFeature = PremiumFeature.BLOQUEO_APPS_REAL
+                            showGateDialog = true
+                        } else {
+                            context.startActivity(
+                                android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            )
+                            // Estado se actualizará al volver - update optimista visual
+                            accessibilityActivo = activar
+                        }
+                    }
+                )
+            }
+            item {
+                SettingsSwitchItem(
+                    icon = Icons.Default.AdminPanelSettings,
+                    title = "Anti-desinstalación 🛡️",
+                    description = if (FreeTierLimits.canAccessPremiumFeature(isPremium, isFreeTrialActive))
+                        if (deviceAdminActivo) "Administrador de dispositivo activo"
+                        else "Activa para impedir que el menor desinstale la app"
+                    else
+                        "PREMIUM — impide la desinstalación no autorizada",
+                    checked = deviceAdminActivo,
+                    onCheckedChange = { activar ->
+                        if (!FreeTierLimits.canAccessPremiumFeature(isPremium, isFreeTrialActive)) {
+                            gateFeature = PremiumFeature.ANTI_TAMPERING
+                            showGateDialog = true
+                        } else {
+                            if (activar) {
+                                DeviceAdminHelper.solicitarActivacion(context)
+                            } else {
+                                DeviceAdminHelper.desactivar(context)
+                                deviceAdminActivo = false
+                            }
+                        }
+                    }
+                )
+            }
+
+            // ── Sección Premium ──────────────────────────────────────────────
+            item { Spacer(modifier = Modifier.height(16.dp)); SectionHeader("Premium") }
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isPremium)
+                            androidx.compose.ui.graphics.Color(0xFF4CAF50).copy(alpha = 0.12f)
+                        else
+                            androidx.compose.ui.graphics.Color(0xFFFFC107).copy(alpha = 0.12f)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (isPremium) Icons.Default.Star else Icons.Default.LockOpen,
+                            contentDescription = null,
+                            tint = if (isPremium)
+                                androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                            else
+                                androidx.compose.ui.graphics.Color(0xFFFFC107),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = if (isPremium) "Plan Premium activo" else "Plan Gratuito",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = if (isPremium)
+                                    "Acceso vitalicio a todas las funciones"
+                                else
+                                    "Desbloquea todo por 14,99 € (pago único)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+            item {
+                SettingsActionItem(
+                    icon = Icons.Default.Refresh,
+                    title = "Restaurar compras",
+                    description = "Recupera el acceso premium tras reinstalar o cambiar de dispositivo",
+                    onClick = {
+                        ConversionTracker.trackRestorePurchasesTapped()
+                        onRestorePurchases?.invoke()
+                        showRestoreSnackbar = true
+                    }
+                )
+            }
+
+            // ── Sección DEBUG (solo visible en builds debug) ────────────────────────────────
+            if (BuildConfig.DEBUG) {
+                item { Spacer(modifier = Modifier.height(16.dp)); SectionHeader("🛠️ Testing (DEBUG)") }
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = androidx.compose.ui.graphics.Color(0xFFB71C1C).copy(alpha = 0.08f)
+                        ),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "Herramientas de prueba del trial",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = androidx.compose.ui.graphics.Color(0xFFB71C1C),
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        settingsRepo.simulateTrialExpired()
+                                        Toast.makeText(
+                                            context,
+                                            "⌛ Trial simulado como expirado (reinicia la app)",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = androidx.compose.ui.graphics.Color(0xFFB71C1C)
+                                )
+                            ) {
+                                Text("Simular trial expirado (49h)", color = androidx.compose.ui.graphics.Color.White)
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedButton(
+                                onClick = {
+                                    scope.launch {
+                                        settingsRepo.resetTrialForTesting()
+                                        Toast.makeText(
+                                            context,
+                                            "✅ Trial reseteado (reinicia la app)",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Resetear trial (nueva instalación)")
+                            }
+                        }
+                    }
+                }
+            }
+
             item { Spacer(modifier = Modifier.height(24.dp)) }
         }
     }
@@ -208,6 +451,7 @@ fun SettingsScreen(
     if (showPinDialog) {
         PinLockScreen(
             requiredPin = currentPin,
+            profileId = profileId,
             onPinVerified = {
                 showPinDialog = false
                 pendingAction?.invoke()
@@ -216,6 +460,22 @@ fun SettingsScreen(
             onBack = {
                 showPinDialog = false
                 pendingAction = null
+            }
+        )
+    }
+
+    // Diálogo de gate premium para funciones Seguridad Avanzada
+    if (showGateDialog && gateFeature != null) {
+        PremiumGateDialog(
+            feature = gateFeature!!,
+            onUpgrade = {
+                showGateDialog = false
+                gateFeature = null
+                onShowPremium?.invoke()
+            },
+            onDismiss = {
+                showGateDialog = false
+                gateFeature = null
             }
         )
     }
@@ -423,7 +683,7 @@ fun SettingsActionItem(
                 )
             }
             Icon(
-                Icons.Default.ArrowForward,
+                Icons.Filled.ArrowForward,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )

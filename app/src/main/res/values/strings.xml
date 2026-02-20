@@ -26,5 +26,17 @@
     <string name="this_month">Este mes</string>
     <string name="blocked_sites">Sitios bloqueados</string>
     <string name="category_breakdown">Desglose por categoría</string>
-    <string name="top_blocked_sites">Sitios más bloqueados</string>
+    <string name="top_blocked_sites">Sitios más bloqueados</string>    <!-- TrustFlow Engine — niveles de confianza y mensajes de gamificación -->
+    <string name="trust_cadete">Cadete</string>
+    <string name="trust_explorador">Explorador</string>
+    <string name="trust_guardian">Guardián</string>
+    <string name="trust_locked_desc">🔴 Bloqueo total activo. Mantener la racha 7 días para desbloquear el Modo Precaución.</string>
+    <string name="trust_caution_desc">🟡 Modo Precaución: 15 s de reflexión antes de abrir apps sensibles. ¡Sigue así!</string>
+    <string name="trust_trusted_desc">🟢 Zona de Confianza: acceso libre con %d min restantes hoy. El sistema registra el uso para el informe.</string>
+    <string name="autonomy_minutes_remaining">%d min restantes hoy</string>
+    <string name="soft_block_warning">⚠️ Esto se registrará en tu informe de esta semana</string>
+    <string name="hard_block_message">🔒 Límite alcanzado. Mantén tu racha para ganar autonomía.</string>
+    <string name="trust_progress_label">%d días para desbloquear el Modo Autonomía</string>
+    <string name="trust_reset_button">⚠️ Resetear confianza manualmente</string>
+
 </resources>

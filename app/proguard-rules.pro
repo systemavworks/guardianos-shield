@@ -33,3 +33,36 @@
 -allowaccessmodification
 -repackageclasses ''
 -flattenpackagehierarchy ''
+
+# ============= SECURITY (EncryptedSharedPreferences) =============
+-keep class androidx.security.crypto.** { *; }
+-keep class com.google.crypto.tink.** { *; }
+-dontwarn com.google.crypto.tink.**
+-keep class com.guardianos.shield.security.SecurityHelper { *; }
+
+# ============= VPN SERVICE (CRÍTICO) =============
+-keep public class * extends android.net.VpnService {
+    public <methods>;
+}
+-keep class com.guardianos.shield.service.DnsFilterService { *; }
+-keep class com.guardianos.shield.service.AppMonitorService { *; }
+-keep class com.guardianos.shield.service.LightweightMonitorService { *; }
+
+# ============= DATASTORE =============
+-keep class androidx.datastore.*.** { *; }
+-keepclassmembers class * extends androidx.datastore.preferences.core.Preferences {
+    <fields>;
+}
+
+# ============= GOOGLE PLAY BILLING =============
+-keep class com.android.billingclient.** { *; }
+-keep interface com.android.billingclient.** { *; }
+-keepclassmembers class com.android.billingclient.** { *; }
+-dontwarn com.android.billingclient.**
+
+# ============= GSON & RETROFIT =============
+-keepattributes Signature,*Annotation*
+-keep class com.google.gson.** { *; }
+-keepclasseswithmembers class * {
+    @retrofit2.http.* <methods>;
+}

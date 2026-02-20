@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Fondo del icono adaptativo: gradiente azul Guardianos Shield -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#1A237E" />
+    <gradient
+        android:startColor="#1976D2"
+        android:endColor="#0D47A1"
+        android:angle="135"
+        android:type="linear" />
 </shape>

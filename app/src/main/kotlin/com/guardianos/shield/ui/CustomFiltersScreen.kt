@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.guardianos.shield.data.CustomFilterEntity
+import com.guardianos.shield.billing.FreeTierLimits
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,8 +30,20 @@ fun CustomFiltersScreen(
     onAddToBlacklist: (String) -> Unit,
     onAddToWhitelist: (String) -> Unit,
     onRemoveFilter: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    isPremium: Boolean = false,
+    onShowPremium: () -> Unit = {}
 ) {
+    // Plan FREE: pantalla completamente bloqueada
+    if (!isPremium) {
+        FreePremiumGateScreen(
+            feature = PremiumFeature.FILTROS_ILIMITADOS,
+            onUpgrade = onShowPremium,
+            onBack = onBack
+        )
+        return
+    }
+
     var newDomain by remember { mutableStateOf("") }
     var filterType by remember { mutableStateOf(FilterType.BLACKLIST) }
 

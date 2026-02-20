@@ -35,6 +35,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.lifecycleScope
 import com.guardianos.shield.R
+import com.guardianos.shield.billing.FreeTierLimits
 import com.guardianos.shield.data.GuardianDatabase
 import com.guardianos.shield.data.GuardianRepository
 import com.guardianos.shield.ui.theme.GuardianShieldTheme
@@ -54,14 +55,17 @@ class SafeBrowserActivity : ComponentActivity() {
     private var searchQuery by mutableStateOf("")
     private var showHistory by mutableStateOf(false)
     private var browsingHistory = mutableStateListOf<String>()
+    /** Si el usuario es premium (pasado por intent o DataStore) */
+    private var isPremium = false
 
     companion object {
         private const val CHANNEL_ID = "GuardianShield_Blocked"
         private const val NOTIFICATION_ID_BASE = 2000
         
-        fun createIntent(context: Context): Intent {
+        fun createIntent(context: Context, isPremium: Boolean = false): Intent {
             return Intent(context, SafeBrowserActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                putExtra("is_premium", isPremium)
             }
         }
     }
@@ -70,6 +74,7 @@ class SafeBrowserActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         repository = GuardianRepository(this, GuardianDatabase.getDatabase(this))
+        isPremium = intent.getBooleanExtra("is_premium", false)
 
         intent.getStringExtra("redirected_from")?.let { sourceApp ->
             Log.d("SafeBrowser", "Redirigido desde: $sourceApp")
@@ -211,6 +216,36 @@ class SafeBrowserActivity : ComponentActivity() {
                         )
                         IconButton(onClick = { showHistory = false }) {
                             Icon(Icons.Rounded.Close, "Cerrar")
+                        }
+                    }
+
+                    // Banner FREE: historial limitado
+                    if (!isPremium) {
+                        Spacer(Modifier.height(8.dp))
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFFFF3E0)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Lock,
+                                    contentDescription = null,
+                                    tint = Color(0xFFE65100),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    text = "Plan FREE: últimas ${FreeTierLimits.MAX_BROWSER_HISTORY_FREE} URLs.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFFE65100),
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
                     }
 
@@ -376,67 +411,118 @@ class SafeBrowserActivity : ComponentActivity() {
     private fun addToHistory(url: String) {
         if (!browsingHistory.contains(url)) {
             browsingHistory.add(0, url)
-            if (browsingHistory.size > 20) {
+            val max = FreeTierLimits.maxBrowserHistory(isPremium)
+            if (browsingHistory.size > max) {
                 browsingHistory.removeLast()
             }
         }
     }
 
     private fun showBlockedPage(url: String, reason: String) {
+        val domain = extractDomain(url)
         val icon = if (reason.contains("horario", ignoreCase = true)) "⏰" else "🛡️"
+
+        // Detectar categoría para contenido educativo
+        val categoria = when {
+            reason.contains("horario", ignoreCase = true) -> "HORARIO"
+            domain.contains("facebook") || domain.contains("instagram") ||
+            domain.contains("tiktok") || domain.contains("twitter") ||
+            domain.contains("snapchat") || domain.contains("discord") -> "RRSS"
+            domain.contains("porn") || domain.contains("xxx") || domain.contains("adult") ||
+            domain.contains("sex") || domain.contains("erotic") -> "ADULTO"
+            domain.contains("casino") || domain.contains("bet") ||
+            domain.contains("gambling") || domain.contains("poker") -> "APUESTAS"
+            else -> "GENERAL"
+        }
+
+        val (tituloEducativo, explicacion, alternativas) = contenidoEducativo(categoria)
+
         val html = """
             <!DOCTYPE html>
-            <html>
+            <html lang="es">
             <head>
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <style>
+                    * { box-sizing: border-box; margin: 0; padding: 0; }
                     body {
-                        font-family: Arial, sans-serif;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
                         color: white;
-                        text-align: center;
-                        padding: 20px;
-                        margin: 0;
+                        min-height: 100vh;
+                        padding: 16px;
                     }
                     .container {
-                        max-width: 600px;
-                        margin: 50px auto;
-                        background: rgba(255,255,255,0.1);
-                        backdrop-filter: blur(10px);
-                        border-radius: 20px;
-                        padding: 40px;
-                        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+                        max-width: 540px;
+                        margin: 24px auto;
                     }
                     .shield-icon {
-                        font-size: 80px;
-                        margin-bottom: 20px;
+                        font-size: 64px;
+                        text-align: center;
+                        margin-bottom: 12px;
                     }
                     h1 {
-                        margin: 20px 0;
-                        font-size: 28px;
+                        text-align: center;
+                        font-size: 22px;
+                        margin-bottom: 4px;
                     }
-                    p {
-                        font-size: 16px;
-                        opacity: 0.9;
-                        line-height: 1.6;
-                    }
-                    .url {
-                        background: rgba(0,0,0,0.2);
-                        padding: 15px;
-                        border-radius: 10px;
-                        margin: 20px 0;
-                        word-break: break-all;
+                    .url-badge {
+                        background: rgba(255,255,255,0.12);
+                        border-radius: 8px;
+                        padding: 8px 14px;
                         font-family: monospace;
+                        font-size: 13px;
+                        word-break: break-all;
+                        text-align: center;
+                        margin: 12px 0;
+                        opacity: 0.85;
+                    }
+                    .card {
+                        background: rgba(255,255,255,0.07);
+                        border-radius: 14px;
+                        padding: 18px;
+                        margin: 12px 0;
+                        border-left: 4px solid rgba(255,255,255,0.3);
+                    }
+                    .card.educativo { border-left-color: #42a5f5; }
+                    .card.alternativas { border-left-color: #66bb6a; }
+                    .card-title {
+                        font-size: 13px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.8px;
+                        opacity: 0.65;
+                        margin-bottom: 8px;
+                    }
+                    .card-title.blue { color: #90caf9; }
+                    .card-title.green { color: #a5d6a7; }
+                    p { font-size: 14px; line-height: 1.6; opacity: 0.9; }
+                    ul { padding-left: 18px; }
+                    li { font-size: 14px; line-height: 1.8; opacity: 0.85; }
+                    .footer {
+                        text-align: center;
+                        font-size: 11px;
+                        opacity: 0.35;
+                        margin-top: 20px;
                     }
                 </style>
             </head>
             <body>
                 <div class="container">
                     <div class="shield-icon">$icon</div>
-                    <h1>Sitio Bloqueado</h1>
-                    <p>$reason</p>
-                    <div class="url">$url</div>
-                    <p>Este sitio ha sido bloqueado por GuardianOS Shield para tu protección.</p>
+                    <h1>Sitio bloqueado</h1>
+                    <div class="url-badge">$url</div>
+
+                    <div class="card educativo">
+                        <div class="card-title blue">📚 $tituloEducativo</div>
+                        <p>$explicacion</p>
+                    </div>
+
+                    <div class="card alternativas">
+                        <div class="card-title green">✅ ¿Qué puedo hacer?</div>
+                        <ul>$alternativas</ul>
+                    </div>
+
+                    <div class="footer">GuardianOS Shield — protección 100% local, sin envío de datos</div>
                 </div>
             </body>
             </html>
@@ -445,6 +531,60 @@ class SafeBrowserActivity : ComponentActivity() {
         runOnUiThread {
             webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
         }
+    }
+
+    /**
+     * Devuelve contenido educativo contextualizado por categoría.
+     * Triple: (título, explicación, alternativas en HTML <li>)
+     */
+    private fun contenidoEducativo(categoria: String): Triple<String, String, String> = when (categoria) {
+        "RRSS" -> Triple(
+            "¿Por qué se bloquean las redes sociales?",
+            "Las redes sociales están diseñadas para mantenerte conectado el mayor tiempo posible. " +
+            "Los algoritmos muestran contenido que genera reacciones fuertes, lo que puede afectar " +
+            "el estado de ánimo, el sueño y la concentración, sobre todo en menores de edad.",
+            "<li>Habla con tus amigos en persona o por llamada</li>" +
+            "<li>Escríbeles un mensaje de texto o WhatsApp (si está permitido)</li>" +
+            "<li>Haz una actividad offline: deporte, lectura, dibujo</li>" +
+            "<li>Si necesitas las redes para algo concreto, pide permiso a tu padre/madre</li>"
+        )
+        "ADULTO" -> Triple(
+            "Contenido no apropiado para tu edad",
+            "Este sitio contiene contenido para adultos que no es adecuado para menores. " +
+            "Ver este tipo de contenido a edades tempranas puede generar expectativas poco " +
+            "realistas y afectar negativamente al desarrollo emocional y relacional.",
+            "<li>Si tienes dudas sobre sexualidad, habla con un adulto de confianza</li>" +
+            "<li>Consulta recursos educativos de sanidad o tu médico de familia</li>" +
+            "<li>En clase de educación física o tutoría también puedes resolver dudas</li>"
+        )
+        "APUESTAS" -> Triple(
+            "Las apuestas online son un riesgo real",
+            "Los sitios de apuestas y casinos online están diseñados para que pierdas dinero. " +
+            "La adicción al juego puede desarrollarse a cualquier edad y afecta gravemente " +
+            "a las finanzas, las relaciones y la salud mental.",
+            "<li>Si sientes curiosidad por el riesgo, prueba videojuegos de estrategia</li>" +
+            "<li>Habla con tu familia si ves publicidad de apuestas y te atrae</li>" +
+            "<li>Los juegos de azar están prohibidos para menores por ley en España</li>"
+        )
+        "HORARIO" -> Triple(
+            "Fuera del horario de uso",
+            "Tu padre o madre ha establecido un horario de uso del dispositivo. " +
+            "El descanso digital es tan importante como el descanso físico: " +
+            "la pantalla antes de dormir afecta al sueño y a la concentración al día siguiente.",
+            "<li>Aprovecha para leer un libro o revista</li>" +
+            "<li>Sal a dar un paseo o practica deporte</li>" +
+            "<li>Habla con tu familia sobre el horario si crees que debería ajustarse</li>" +
+            "<li>Usa la función \"Pedir permiso\" de GuardianOS si necesitas una excepción</li>"
+        )
+        else -> Triple(
+            "Sitio no permitido",
+            "Este sitio ha sido bloqueado por la configuración de control parental activa " +
+            "en este dispositivo. Si crees que el bloqueo es un error, puedes pedirle " +
+            "a tu padre o madre que revise la configuración.",
+            "<li>Comprueba si hay una alternativa educativa al contenido que buscabas</li>" +
+            "<li>Pide a tu padre/madre que revise los filtros si crees que es un error</li>" +
+            "<li>Prueba con el buscador de <a href='https://www.google.es' style='color:#90caf9'>Google</a> para encontrar fuentes seguras</li>"
+        )
     }
 
     private suspend fun isDomainBlocked(domain: String): Boolean = withContext(Dispatchers.IO) {

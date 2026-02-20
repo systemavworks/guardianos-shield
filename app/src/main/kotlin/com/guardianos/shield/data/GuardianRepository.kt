@@ -16,6 +16,7 @@ class GuardianRepository(
     private val profileDao = database.profileDao()
     private val filterDao = database.customFilterDao()
     private val dnsLogDao = database.dnsLogDao()
+    private val petitionDao = database.petitionDao()
 
     // ==================== BLOQUEOS ====================
 
@@ -119,6 +120,53 @@ class GuardianRepository(
     val activeProfile: Flow<UserProfileEntity?> = profileDao.getActiveProfile()
 
     suspend fun getActiveProfile(): UserProfileEntity? = activeProfile.firstOrNull()
+
+    // ── TrustFlow Engine ─────────────────────────────────────────────────────
+
+    /**
+     * Devuelve el nivel de confianza actual basado en la racha del perfil activo.
+     * LOCKED si no hay perfil activo (máxima precaución por defecto).
+     */
+    suspend fun getCurrentTrustLevel(): TrustLevel =
+        getTrustLevel(getActiveProfile()?.rachaActual ?: 0)
+
+    /**
+     * Registra en el historial que el menor accedió a una app en modo TRUSTED.
+     * No bloquea — solo deja huella para el informe del padre.
+     */
+    /** Devuelve los minutos de autonomía restantes para hoy (modo TRUSTED). */
+    suspend fun getMinutosAutonomiaRestantes(): Int =
+        getActiveProfile()?.minutosAutonomiaDiarios ?: 0
+
+    /**
+     * Consume 1 minuto del presupuesto diario de autonomía.
+     * Llamar desde A11yService cada vez que el menor abre una app en modo TRUSTED.
+     */
+    suspend fun consumirMinutoAutonomia() {
+        val perfil = getActiveProfile() ?: return
+        val restantes = (perfil.minutosAutonomiaDiarios - 1).coerceAtLeast(0)
+        profileDao.actualizarMinutosAutonomia(perfil.id, restantes)
+    }
+
+    /**
+     * Resetea el presupuesto diario a 60 minutos.
+     * Llamar desde LogCleanupWorker al inicio de cada nuevo día.
+     */
+    suspend fun resetearMinutosAutonomia() {
+        val perfil = getActiveProfile() ?: return
+        profileDao.actualizarMinutosAutonomia(perfil.id, 60)
+    }
+
+    suspend fun logTrustedAccess(packageName: String) {
+        blockedDao.insert(
+            BlockedSiteEntity(
+                domain    = packageName,
+                category  = "USO_RESPONSABLE",
+                timestamp = System.currentTimeMillis(),
+                threatLevel = 0
+            )
+        )
+    }
 
     suspend fun updateProfile(profile: UserProfileEntity) {
         profileDao.update(profile)
@@ -274,6 +322,111 @@ class GuardianRepository(
         if (sensitiveCategories["Violencia"] == true && (p.contains("violence") || p.contains("gore"))) return true
         if (sensitiveCategories["Sexo"] == true && (p.contains("sex") || p.contains("xxx") || p.contains("porn"))) return true
         return false
+    }
+
+    // ==================== PACTO DIGITAL FAMILIAR ====================
+
+    /** Flujo reactivo con todas las peticiones (más recientes primero) */
+    val peticionesFlow: Flow<List<PetitionEntity>> = petitionDao.getAll()
+
+    /** Flujo reactivo con peticiones pendientes de respuesta del padre */
+    val peticionesPendientesFlow: Flow<List<PetitionEntity>> = petitionDao.getPendientes()
+
+    /** Flujo del contador de pendientes para badge en el dashboard */
+    val contadorPendientesFlow: Flow<Int> = petitionDao.contarPendientes()
+
+    /**
+     * El menor crea una nueva petición.
+     * @param tipo        TIME_EXTENSION | APP_UNLOCK | SITE_UNLOCK
+     * @param valorSolicitado  paquete de app, dominio, o minutos extra
+     * @param razonHijo   texto libre explicando por qué lo pide
+     */
+    suspend fun crearPeticion(tipo: String, valorSolicitado: String, razonHijo: String): Long {
+        val perfilActivo = profileDao.getActiveProfile().firstOrNull()
+        val petition = PetitionEntity(
+            profileId = perfilActivo?.id ?: 1,
+            tipo = tipo,
+            valorSolicitado = valorSolicitado,
+            razonHijo = razonHijo
+        )
+        return petitionDao.insert(petition)
+    }
+
+    /**
+     * El padre responde a una petición (requiere PIN verificado en la UI).
+     * @param id       id de la petición
+     * @param aprobar  true = aprobada, false = rechazada
+     * @param nota     mensaje del padre (motivo o comentario)
+     * @param minutos  minutos extra concedidos (solo relevante para TIME_EXTENSION)
+     */
+    suspend fun responderPeticion(id: Int, aprobar: Boolean, nota: String, minutos: Int = 0) {
+        val estado = if (aprobar) "APPROVED" else "REJECTED"
+        petitionDao.responder(
+            id = id,
+            estado = estado,
+            nota = nota,
+            ahora = System.currentTimeMillis(),
+            minutos = minutos
+        )
+    }
+
+    suspend fun getPeticionesRecientes(limite: Int = 20): List<PetitionEntity> =
+        petitionDao.getRecientes(limite)
+
+    // ==================== GAMIFICACIÓN: RACHA DIARIA ====================
+
+    /**
+     * Registra un día limpio (sin intentos de acceso a contenido bloqueado).
+     * Actualiza la racha del perfil activo.
+     * Debe llamarse una vez al día desde un LogCleanupWorker o similar.
+     */
+    suspend fun registrarDiaLimpio() {
+        val hoy = getTodayDateString()
+        val perfil = profileDao.getActiveProfile().firstOrNull() ?: return
+
+        val ayer = getAyerDateString()
+        val nuevaRacha = if (perfil.ultimoDiaLimpio == ayer) {
+            // Día consecutivo — incrementar racha
+            perfil.rachaActual + 1
+        } else if (perfil.ultimoDiaLimpio == hoy) {
+            // Ya registrado hoy — no hacer nada
+            return
+        } else {
+            // Racha rota — empezar desde 1
+            1
+        }
+
+        val nuevaMax = maxOf(nuevaRacha, perfil.rachaMaxima)
+        profileDao.actualizarRacha(perfil.id, nuevaRacha, nuevaMax, hoy)
+    }
+
+    /**
+     * Rompe la racha del perfil activo cuando se detecta un intento de acceso bloqueado.
+     * Se llama automáticamente desde addBlockedSite cuando la categoría es de contenido.
+     */
+    suspend fun romperRachaIfNeeded(categoria: String) {
+        // Solo romper racha por bloqueos de contenido real (no por apps permitidas)
+        if (categoria == "APP_PERMITIDA") return
+        val hoy = getTodayDateString()
+        val perfil = profileDao.getActiveProfile().firstOrNull() ?: return
+        if (perfil.ultimoDiaLimpio == hoy && perfil.rachaActual > 0) {
+            // Primera infracción del día — la racha se romca al día siguiente
+            // (damos margen: la racha del día en curso no se rompe mid-day)
+            return
+        }
+        if (perfil.rachaActual > 0 && perfil.ultimoDiaLimpio != hoy) {
+            profileDao.actualizarRacha(perfil.id, 0, perfil.rachaMaxima, "")
+        }
+    }
+
+    private fun getAyerDateString(): String {
+        val cal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -1) }
+        return String.format(
+            "%04d-%02d-%02d",
+            cal.get(Calendar.YEAR),
+            cal.get(Calendar.MONTH) + 1,
+            cal.get(Calendar.DAY_OF_MONTH)
+        )
     }
 
     // ==================== LIMPIEZA DE DATOS ====================

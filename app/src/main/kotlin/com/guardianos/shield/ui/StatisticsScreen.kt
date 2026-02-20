@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.guardianos.shield.data.BlockedSiteEntity
 import com.guardianos.shield.data.StatisticEntity
+import com.guardianos.shield.billing.FreeTierLimits
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.math.max
@@ -34,9 +35,30 @@ fun StatisticsScreen(
     todayBlocked: Int,
     weeklyStats: List<StatisticEntity>,
     recentBlocked: List<BlockedSiteEntity>,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    isPremium: Boolean = false,
+    onShowPremium: () -> Unit = {}
 ) {
     var selectedPeriod by remember { mutableStateOf("Hoy") }
+
+    // En FREE: filtrar registros de últimas 48 horas
+    val cutoffMs = System.currentTimeMillis() -
+            FreeTierLimits.MAX_HISTORY_HOURS * 60 * 60 * 1_000L
+    val visibleBlocked = if (isPremium) recentBlocked
+    else recentBlocked.filter { it.timestamp >= cutoffMs }
+
+    // Banner de aviso FREE sobre datos limitados
+    var showFreeLimitBanner by remember { mutableStateOf(!isPremium) }
+
+    // Dialog gate para exportar
+    var showExportGate by remember { mutableStateOf(false) }
+    if (showExportGate) {
+        PremiumGateDialog(
+            feature = PremiumFeature.EXPORTAR_HISTORIAL,
+            onUpgrade = { showExportGate = false; onShowPremium() },
+            onDismiss = { showExportGate = false }
+        )
+    }
     
     Scaffold(
         topBar = {
@@ -44,12 +66,22 @@ fun StatisticsScreen(
                 title = { Text("Estadísticas") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.Filled.ArrowBack, "Volver")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Exportar reporte */ }) {
-                        Icon(Icons.Default.Share, "Compartir")
+                    IconButton(onClick = {
+                        if (isPremium) { /* TODO: exportar */ }
+                        else showExportGate = true
+                    }) {
+                        Icon(
+                            Icons.Default.Share,
+                            contentDescription = "Exportar historial",
+                            tint = if (isPremium)
+                                MaterialTheme.colorScheme.onSurface
+                            else
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                        )
                     }
                 }
             )
@@ -62,6 +94,44 @@ fun StatisticsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Banner FREE si aplica
+            if (!isPremium && showFreeLimitBanner) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = androidx.compose.ui.graphics.Color(0xFFFFF3E0)
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Warning,
+                                contentDescription = null,
+                                tint = androidx.compose.ui.graphics.Color(0xFFE65100),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "⚠️ Plan FREE: solo se muestran las últimas 48h. Actualiza a Premium para 30 días.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = androidx.compose.ui.graphics.Color(0xFFE65100),
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(
+                                onClick = { showFreeLimitBanner = false },
+                                modifier = Modifier.size(20.dp)
+                            ) {
+                                Icon(Icons.Filled.Close, contentDescription = "Cerrar", modifier = Modifier.size(14.dp))
+                            }
+                        }
+                    }
+                }
+            }
             item {
                 QuickSummaryCard(
                     todayBlocked = todayBlocked,
@@ -119,7 +189,7 @@ fun StatisticsScreen(
                 )
             }
 
-            items(recentBlocked.groupBy { it.domain }
+            items(visibleBlocked.groupBy { it.domain }
                 .map { it.key to it.value.size }
                 .sortedByDescending { it.second }
                 .take(10)
@@ -172,7 +242,7 @@ fun QuickSummaryCard(
                 color = Color(0xFF2196F3)
             )
             
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier
                     .height(60.dp)
                     .width(1.dp)

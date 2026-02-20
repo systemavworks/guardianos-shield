@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Políticas del Device Admin de GuardianOS Shield.
+    Solo se usa para impedir la desinstalación de la app sin PIN parental.
+    NO se solicitan permisos de reset de contraseña ni borrado de datos.
+-->
+<device-admin xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-policies>
+        <!-- Necesario para que el sistema pida confirmación antes de desinstalar -->
+        <watch-login />
+    </uses-policies>
+</device-admin>

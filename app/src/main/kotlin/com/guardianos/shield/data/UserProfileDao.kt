@@ -34,4 +34,18 @@ interface UserProfileDao {
 
     @Query("DELETE FROM user_profiles")
     suspend fun deleteAll()
+
+    /** Actualiza los campos de racha del perfil — usado por la gamificación */
+    @Query("""
+        UPDATE user_profiles
+        SET rachaActual = :rachaActual,
+            rachaMaxima = :rachaMaxima,
+            ultimoDiaLimpio = :ultimoDiaLimpio
+        WHERE id = :profileId
+    """)
+    suspend fun actualizarRacha(profileId: Int, rachaActual: Int, rachaMaxima: Int, ultimoDiaLimpio: String)
+
+    /** Resetea los minutos de autonomía diaria (se llama cada noche desde LogCleanupWorker) */
+    @Query("UPDATE user_profiles SET minutosAutonomiaDiarios = :minutos WHERE id = :profileId")
+    suspend fun actualizarMinutosAutonomia(profileId: Int, minutos: Int)
 }

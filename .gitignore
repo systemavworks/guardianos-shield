@@ -43,6 +43,7 @@ firebase.json
 
 # Backups
 *-backup-*/
+*-backup-*.tar.gz
 *.BAK
 *.bak
 *.backup
@@ -52,6 +53,39 @@ firebase.json
 *.temp
 *.swp
 *~
+
+# Logs de compilación
+build.log
+*.build.log
+
+# APKs de release en raíz
+*.apk
+*.aab
+
+# Artefactos de scripts
+scripts/__pycache__/
+*.pyc
+
+# Assets generados localmente
+guardianos_shield_logo*.png
+play_store_icon_*.png
+
+# Play Store assets privados (screenshots, etc.)
+play_store_assets/screenshots/
+play_store_assets/*.psd
+play_store_assets/*.ai
+
+# Archivos de firma release
+keystore/
+release-signing/
+*.signingConfig
+
+# Hash sums (se regeneran en CI)
+SHA256SUMS.txt
+
+# Archivos de auditoría internos
+SECURITY_AUDIT.txt
+SECURITY_FIXES_SUMMARY.txt
 
 # macOS
 .DS_Store

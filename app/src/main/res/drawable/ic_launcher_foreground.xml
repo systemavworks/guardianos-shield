@@ -1,3 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-    android:src="@drawable/guardianos_shield_logo" />
+<!-- Icono de lanzador — Guardianos Shield
+     Zona segura adaptativa: 27-81dp en viewport 108x108 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Sombra del escudo (desplazada 2dp, azul oscuro) -->
+    <path
+        android:fillColor="#0D47A1"
+        android:alpha="0.6"
+        android:pathData="M56,25 L82,36 L82,58 C78,73 69,82 56,88 C43,82 34,73 30,58 L30,36 Z" />
+
+    <!-- Escudo principal — blanco sólido -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,23 L80,34 L80,56 C76,71 67,80 54,86 C41,80 32,71 28,56 L28,34 Z" />
+
+    <!-- Relleno interior del escudo — azul muy claro -->
+    <path
+        android:fillColor="#DDEEFF"
+        android:pathData="M54,29 L75,38 L75,56 C72,68 65,76 54,81 C43,76 36,68 33,56 L33,38 Z" />
+
+    <!-- Línea superior del escudo — azul medio, decorativa -->
+    <path
+        android:fillColor="#1976D2"
+        android:alpha="0.35"
+        android:pathData="M54,29 L75,38 L75,42 L54,34 L33,42 L33,38 Z" />
+
+    <!-- Checkmark — azul oscuro, grueso y visible -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#1565C0"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M40,55 L50,67 L70,42" />
+
+</vector>

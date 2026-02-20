@@ -9,19 +9,23 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.guardianos.shield.security.SecurityHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PinLockScreen(
     requiredPin: String?,
+    profileId: Int? = null,
     onPinVerified: () -> Unit,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     var enteredPin by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
 
@@ -95,15 +99,27 @@ fun PinLockScreen(
             Button(
                 onClick = {
                     when {
-                        requiredPin.isNullOrEmpty() -> {
-                            // Sin PIN configurado, permitir acceso pero advertir
-                            onPinVerified()
+                        // Modo legacy: verificar contra requiredPin (para migración)
+                        !requiredPin.isNullOrEmpty() -> {
+                            if (enteredPin == requiredPin) {
+                                // Migrar PIN a almacenamiento seguro si hay profileId
+                                profileId?.let { SecurityHelper.migrateLegacyPin(context, it, requiredPin) }
+                                onPinVerified()
+                            } else {
+                                errorMessage = "PIN incorrecto"
+                            }
                         }
-                        enteredPin == requiredPin -> {
-                            onPinVerified()
+                        // Modo nuevo: usar SecurityHelper
+                        profileId != null -> {
+                            if (SecurityHelper.verifyPin(context, profileId, enteredPin)) {
+                                onPinVerified()
+                            } else {
+                                errorMessage = "PIN incorrecto"
+                            }
                         }
+                        // Sin PIN configurado
                         else -> {
-                            errorMessage = "PIN incorrecto"
+                            onPinVerified()
                             enteredPin = ""
                         }
                     }
