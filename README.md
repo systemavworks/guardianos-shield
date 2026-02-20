@@ -13,6 +13,7 @@ Sin rastreo • Sin servidores externos • Privacidad total
 ## 📋 Descripción
 
 **GuardianOS Shield** es una aplicación Android de control parental que protege a los menores mediante:
+
 - 🔒 **VPN DNS transparente** con CleanBrowsing Adult Filter (sin captura de tráfico)
 - 🌐 **Navegador seguro** integrado con bloqueo local forzado de redes sociales
 - ⏰ **Control de horarios** personalizables (con soporte cruce de medianoche)
@@ -37,61 +38,112 @@ La aplicación sigue una arquitectura en capas limpia y modular:
 ```
 guardianos-shield/
 ├── app/src/main/kotlin/com/guardianos/shield/
-│   ├── MainActivity.kt           # Activity principal (Jetpack Compose)
-│   ├── data/                     # 📦 Capa de Datos
-│   │   ├── GuardianDatabase.kt   # Room Database (v3)
-│   │   ├── GuardianRepository.kt # Repositorio central (DAO + lógica)
-│   │   ├── UserProfileEntity.kt  # Perfiles de usuario/menores
-│   │   ├── CustomFilterEntity.kt # Filtros personalizados (blacklist/whitelist)
-│   │   ├── DnsLogEntity.kt       # Logs de consultas DNS bloqueadas
-│   │   ├── BlockedSiteEntity.kt  # Historial de sitios bloqueados
-│   │   ├── SensitiveAppEntity.kt # Apps sensibles monitoreadas
-│   │   └── SettingsDataStore.kt  # Configuración (DataStore)
-│   ├── service/                  # ⚙️ Servicios en Segundo Plano
-│   │   ├── DnsFilterService.kt   # VPN Service (DNS transparente)
-│   │   ├── LocalBlocklist.kt     # Lista de dominios bloqueados local
-│   │   ├── AppMonitorService.kt  # Monitoreo de apps foreground
-│   │   ├── UsageStatsMonitor.kt  # Detección de apps sensibles
-│   │   └── LogCleanupWorker.kt   # Limpieza periódica de logs
-│   ├── ui/                       # 🎨 Interfaz de Usuario (Jetpack Compose)
-│   │   ├── SafeBrowserActivity.kt# Navegador seguro con WebView
-│   │   ├── ParentalControlScreen.kt # Pantalla de configuración parental
-│   │   ├── CustomFiltersScreen.kt   # Gestión de filtros personalizados
-│   │   ├── StatisticsScreen.kt      # Estadísticas y logs
-│   │   ├── SettingsScreen.kt        # Configuración general
-│   │   └── theme/                   # Material Design 3
-│   └── viewmodel/                # 📊 ViewModels (MVVM)
+│   ├── MainActivity.kt                      # Activity principal (Jetpack Compose)
+│   ├── billing/                             # 💳 Facturación y Planes
+│   │   ├── BillingManager.kt               # Google Play Billing 6+ (pago único 14,99 €)
+│   │   └── FreeTierLimits.kt               # Límites plan gratuito (historial 48h, features)
+│   ├── data/                                # 📦 Capa de Datos
+│   │   ├── GuardianDatabase.kt             # Room Database (v4)
+│   │   ├── GuardianRepository.kt           # Repositorio central (DAO + lógica)
+│   │   ├── UserProfileEntity.kt            # Perfiles de usuario/menores
+│   │   ├── CustomFilterEntity.kt           # Filtros personalizados (blacklist/whitelist)
+│   │   ├── DnsLogEntity.kt                 # Logs de consultas DNS bloqueadas
+│   │   ├── BlockedSiteEntity.kt            # Historial de sitios bloqueados
+│   │   ├── SensitiveAppEntity.kt           # Apps sensibles monitoreadas
+│   │   ├── PetitionEntity.kt               # Peticiones Pacto Digital (hijo→padre)
+│   │   ├── StatisticEntity.kt              # Estadísticas de uso diarias
+│   │   ├── DomainStat.kt                   # Agrupación estadística por dominio
+│   │   └── SettingsDataStore.kt            # Configuración (DataStore)
+│   ├── security/                            # 🔐 Seguridad y Administración
+│   │   ├── SecurityHelper.kt               # PIN cifrado con EncryptedSharedPreferences AES256_GCM
+│   │   ├── DeviceAdminHelper.kt            # Anti-desinstalación vía DevicePolicyManager
+│   │   └── GuardianDeviceAdminReceiver.kt  # BroadcastReceiver de Device Admin
+│   ├── service/                             # ⚙️ Servicios en Segundo Plano
+│   │   ├── DnsFilterService.kt             # VPN Service (DNS transparente CleanBrowsing)
+│   │   ├── LocalBlocklist.kt               # Lista de dominios bloqueados local
+│   │   ├── AppMonitorService.kt            # Foreground Service persistente de monitoreo
+│   │   ├── UsageStatsMonitor.kt            # Detección de apps foreground (UsageStats)
+│   │   ├── AppBlockerAccessibilityService.kt # Bloqueo via Accessibility Events (sin root)
+│   │   ├── LightweightMonitorService.kt    # Monitor ligero (LifecycleService, broadcast)
+│   │   ├── RealisticAppBlocker.kt          # Bloqueo persistente de navegadores/apps sociales
+│   │   ├── SafeBrowsingService.kt          # Lanza SafeBrowserActivity como servicio
+│   │   ├── ScheduleManager.kt              # Control de horarios por días con AlarmManager
+│   │   └── LogCleanupWorker.kt             # Limpieza periódica de logs (WorkManager)
+│   ├── ui/                                  # 🎨 Interfaz de Usuario (Jetpack Compose)
+│   │   ├── SafeBrowserActivity.kt          # Navegador seguro con WebView
+│   │   ├── SafeBrowserViewModel.kt         # ViewModel dedicado para el navegador
+│   │   ├── AppBlockedActivity.kt           # Pantalla de bloqueo encima de la app (no escapable)
+│   │   ├── PactScreen.kt                   # Pacto Digital Familiar (buzón hijo + responder padre)
+│   │   ├── PinLockScreen.kt                # Verificación de PIN parental (Compose)
+│   │   ├── StreakWidget.kt                 # Widget de racha diaria con badges y animaciones
+│   │   ├── PremiumPurchaseScreen.kt        # Pantalla de compra premium (14,99 € vitalicio)
+│   │   ├── PremiumGate.kt                  # Componente guard para features premium
+│   │   ├── FreeTrialBanner.kt              # Banner con días restantes de prueba
+│   │   ├── FreeTrialExpiredDialog.kt       # Diálogo al expirar el periodo de prueba
+│   │   ├── ParentalControlScreen.kt        # Configuración parental
+│   │   ├── CustomFiltersScreen.kt          # Gestión de filtros personalizados
+│   │   ├── StatisticsScreen.kt             # Estadísticas y logs
+│   │   ├── SettingsScreen.kt               # Configuración general
+│   │   └── theme/                          # Material Design 3
+│   └── viewmodel/                           # 📊 ViewModels (MVVM)
 │       ├── MainViewModel.kt
 │       ├── ParentalViewModel.kt
 │       └── StatsViewModel.kt
-├── AndroidManifest.xml           # Permisos y servicios
-└── build.gradle.kts              # Configuración Gradle
+├── AndroidManifest.xml                      # Permisos y servicios
+└── build.gradle.kts                         # Configuración Gradle
 ```
 
 ### 📦 Capa de Datos (`data/`)
-- **Room Database**: Base de datos local SQLite con TypeConverters
-- **Repository Pattern**: `GuardianRepository` centraliza acceso a datos
-- **DataStore**: Configuración persistente asíncrona
-- **Entities**: Modelos de datos con anotaciones Room
-- **DAOs**: Interfaces con queries SQL y Flows reactivos
+
+- **Room Database v4**: Base de datos local SQLite con TypeConverters
+- **Repository Pattern**: `GuardianRepository` centraliza el acceso a todos los DAOs
+- **DataStore**: Configuración persistente asíncrona (reemplaza SharedPreferences)
+- **Entities**: `UserProfileEntity`, `BlockedSiteEntity`, `DnsLogEntity`, `CustomFilterEntity`, `SensitiveAppEntity`, `PetitionEntity`, `StatisticEntity`
+- **DAOs**: Interfaces con queries SQL y Flows reactivos para actualizaciones en tiempo real
 
 ### ⚙️ Capa de Servicios (`service/`)
-- **DnsFilterService**: VPN Service que configura DNS seguros sin procesar paquetes
-- **LocalBlocklist**: Bloqueo local hardcoded de redes sociales/contenido adulto
-- **AppMonitorService**: Foreground Service persistente para monitoreo
-- **UsageStatsMonitor**: Detecta apps en foreground y redirige a navegador seguro
+
+- **DnsFilterService**: VPN Service que configura DNS seguros (CleanBrowsing) sin procesar paquetes
+- **LocalBlocklist**: Bloqueo local hardcoded de redes sociales y contenido adulto
+- **AppMonitorService**: Foreground Service persistente con notificación permanente
+- **UsageStatsMonitor**: Detecta app foreground cada 2 s y redirige al navegador seguro
+- **AppBlockerAccessibilityService**: Bloqueo en tiempo real vía `AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED`, sin root
+- **LightweightMonitorService**: `LifecycleService` ligero con receptor de broadcasts para detección de apps
+- **RealisticAppBlocker**: Service dedicado con listas hardcoded de navegadores y apps sociales a bloquear
+- **SafeBrowsingService**: Lanza `SafeBrowserActivity` directamente al iniciarse
+- **ScheduleManager**: Control de horarios con `AlarmManager` por días de la semana y franjas horarias
+- **LogCleanupWorker**: `CoroutineWorker` de WorkManager para limpieza periódica de logs
+
+### 🔐 Capa de Seguridad (`security/`)
+
+- **SecurityHelper**: Guarda y verifica el PIN parental con `EncryptedSharedPreferences` (AES256-GCM) + AndroidKeyStore
+- **DeviceAdminHelper**: Registra la app como Device Admin para impedir desinstalación sin PIN
+- **GuardianDeviceAdminReceiver**: `DeviceAdminReceiver` que gestiona los eventos de administración del dispositivo
+
+### 💳 Capa de Facturación (`billing/`)
+
+- **BillingManager**: Integración con Google Play Billing Library 6+; pago único vitalicio `premium_guardianos` (14,99 €); restaura el estado premium tras reinstalación vía `queryPurchases()`
+- **FreeTierLimits**: Define límites del plan gratuito — historial máximo 48 h, sin perfiles múltiples, sin horarios personalizados, sin filtros propios, sin alertas push
 
 ### 🎨 Capa de UI (`ui/`)
+
 - **Jetpack Compose**: UI declarativa moderna
 - **Material Design 3**: Theming dinámico
 - **Navigation Component**: Navegación entre pantallas
-- **SafeBrowserActivity**: WebView con bloqueo integrado antes de cargar URLs
+- **SafeBrowserActivity + SafeBrowserViewModel**: WebView con bloqueo en URL loading, ahora con ViewModel desacoplado
+- **AppBlockedActivity**: Pantalla full-screen que se superpone a cualquier app bloqueada; no puede cerrarse sin PIN parental o mediante Pacto Digital
+- **PactScreen**: Dos pestañas — "Mi buzón" para el menor (enviar peticiones) y "Responder" para el padre (aprobar/rechazar con PIN)
+- **PinLockScreen**: Pantalla Compose de verificación de PIN para acceder a zona parental
+- **StreakWidget**: Widget de racha de días consecutivos "limpios" con badges, animación de pulso y récord personal
+- **PremiumPurchaseScreen / PremiumGate**: Pantalla y guards de paywall para features premium
+- **FreeTrialBanner / FreeTrialExpiredDialog**: Componentes para gestión del periodo de prueba
 
 ---
 
 ## ✨ Características Principales
 
 ### 🔒 VPN DNS Transparente
+
 - **Tecnología**: Android VpnService sin captura de tráfico (no usa `addRoute("0.0.0.0", 0)`)
 - **DNS Provider**: CleanBrowsing Adult Filter (185.228.168.168 / 185.228.169.168)
 - **Filtrado automático**:
@@ -106,6 +158,7 @@ guardianos-shield/
 - **Bloqueo local adicional**: Lista hardcoded de redes sociales como respaldo
 
 ### 🌐 Navegador Seguro
+
 - **WebView integrado** con bloqueo en tiempo real antes de cargar URLs
 - **Doble capa de protección**: DNS filtering + bloqueo local forzado
 - **Verificación de horario** automática antes de cargar cualquier página
@@ -115,6 +168,7 @@ guardianos-shield/
 - **Notificaciones por bloqueo** con categorización automática
 
 ### ⏰ Control de Horarios
+
 - **Horario permitido configurable** (ej: 09:00 - 20:00)
 - **Bloqueo automático fuera del horario** establecido
 - **Soporte para horarios cruzando medianoche** (ej: 22:00 - 08:00)
@@ -123,6 +177,7 @@ guardianos-shield/
 - **Sin modo bypass**: Control estricto aplicado
 
 ### 👤 Perfiles de Usuario
+
 - **Múltiples perfiles** para diferentes menores
 - **Configuración por edad** (0-7, 8-12, 13-15, 16-17)
 - **Niveles de restricción**: LOW, MEDIUM, HIGH, STRICT
@@ -130,7 +185,8 @@ guardianos-shield/
 - **Perfil activo** aplicado en tiempo real
 - **Configuración granular**: Por categoría (adulto, social, gaming, etc.)
 
-### 🔔 Sistema de Notificaciones (NUEVO)
+### 🔔 Sistema de Notificaciones
+
 - **Sitios web bloqueados**: Notificación con categoría automática
   - Red Social bloqueada
   - Contenido Adulto bloqueado
@@ -141,25 +197,71 @@ guardianos-shield/
 - **Auto-cancelables** al tocarlas
 - **Canales separados**: "Sitios Bloqueados" y "Apps Bloqueadas"
 
-### 📊 Monitoreo de Apps
-- **Detección de navegadores externos** (Chrome, Brave, Firefox, Edge, Opera, etc.)
-- **Redirección automática** al navegador seguro
-- **UsageStats API** para detección precisa de app foreground
-- **Foreground Service persistente** (resistente a task killers OPPO/Motorola)
-- **Notificación por redirección**: "App bloqueada - [nombre]"
+### 📊 Monitoreo de Apps (Triple Capa)
 
-### 🔐 Privacidad y Seguridad
-- ✅ **100% local**: Sin conexión a servidores externos
-- ✅ **Sin analytics ni tracking**
-- ✅ **Sin almacenamiento en la nube**
-- ✅ **Datos cifrados** en Room Database
+- **UsageStats API** (principal): Detecta app foreground cada 2 s desde `UsageStatsMonitor`
+- **AccessibilityService** (refuerzo): `AppBlockerAccessibilityService` reacciona a `TYPE_WINDOW_STATE_CHANGED` en tiempo real sin permisos root
+- **LightweightMonitorService** (respaldo): `LifecycleService` ligero activo incluso cuando `UsageStats` no está disponible
+- **Detección de navegadores** externos (Chrome, Brave, Firefox, Edge, Opera, Samsung Browser, UC, Mi Browser)
+- **Detección de apps sociales**: Facebook, Instagram, TikTok, Snapchat, Twitter, Reddit, WhatsApp, Telegram, Discord
+- **Redirección automática** al navegador seguro o a `AppBlockedActivity`
+- **Foreground Service persistente** (resistente a task killers OPPO/Motorola)
+
+### 🤝 Pacto Digital Familiar
+
+- **Sistema de peticiones local**: El menor solicita permisos sin salir del dispositivo
+  - ⏱️ `TIME_EXTENSION` — Solicitar más tiempo de pantalla
+  - 📱 `APP_UNLOCK` — Pedir desbloqueo temporal de una app
+  - 🌐 `SITE_UNLOCK` — Pedir desbloqueo de un sitio específico
+- **Buzón del menor**: Historial de peticiones enviadas y sus estados
+- **Panel del padre**: Responder con PIN → aprobar (con nota) o rechazar (con motivo)
+- **Estados**: `PENDING` → `APPROVED` / `REJECTED`
+- **100% offline**: Sin notificaciones push ni servidores externos
+
+### 🏆 Racha Diaria (Streak)
+
+- **Días consecutivos "limpios"** sin intentos de acceso a contenido bloqueado
+- **Badges por hitos**: 7, 14, 30, 60, 90 días
+- **Récord personal** guardado en `UserProfileEntity`
+- **Animación de pulso** cuando la racha está activa
+- **Widget** embebido en el dashboard principal
+
+### 💳 Planes y Billing
+
+- **Plan Gratuito**: VPN DNS activa siempre, historial últimas 48 h en todos los módulos, navegador seguro (10 URLs historial), monitoreo básico
+- **Plan Premium** (14,99 € — pago único vitalicio, sin suscripción):
+  - ✅ Control parental completo y perfiles múltiples
+  - ✅ Horarios personalizados por días de la semana
+  - ✅ Filtros personalizados (blacklist/whitelist ilimitados)
+  - ✅ Historial extendido (30 días)
+  - ✅ Exportación de historial a CSV
+  - ✅ Alertas push premium
+  - ✅ Pacto Digital Familiar completo
+  - ✅ Periodo de prueba gratuito incluido
+- **Google Play Billing Library 6+**: `BillingManager` restaura el estado premium automáticamente tras reinstalación
+- **PremiumGate**: Componente Compose que muestra el diálogo de paywall cuando se accede a features premium desde el plan gratuito
+
+### 🔐 Seguridad Avanzada
+
+- ✅ **PIN parental cifrado**: `EncryptedSharedPreferences` con AES256-GCM + AndroidKeyStore
+- ✅ **Anti-desinstalación**: Device Admin vía `DevicePolicyManager`; un menor no puede eliminar la app sin el PIN del padre
+- ✅ **AppBlockedActivity inescapable**: La pantalla de bloqueo impide volver a la app bloqueada sin PIN o petición aprobada
+- ✅ **100% local**: Sin analytics, sin almacenamiento en la nube
 - ✅ **Open Source** y auditable
+
+### 📊 Estadísticas Mejoradas
+
+- **StatisticEntity**: Almacena métricas diarias de uso y bloqueos por categoría
+- **DomainStat**: Agrupación por dominio más bloqueado para gráficas de top-10
+- **Historial**: 48 h en plan gratuito → 30 días en premium
+- **Exportación CSV**: Disponible en plan premium
 
 ---
 
 ## 🚀 Instalación y Compilación
 
 ### Requisitos Previos
+
 - **Android Studio** Hedgehog (2023.1.1) o superior
 - **JDK 17** o superior
 - **Gradle 8.6+** (incluido en el proyecto)
@@ -167,12 +269,14 @@ guardianos-shield/
 - **Kotlin 1.9.0+**
 
 ### Clonar el Repositorio
+
 ```bash
 git clone https://github.com/systemavworks/guardianos-shield.git
 cd guardianos-shield
 ```
 
 ### Compilar con Gradle
+
 ```bash
 # Compilar APK de debug
 ./gradlew assembleDebug
@@ -188,6 +292,7 @@ cd guardianos-shield
 ```
 
 ### Instalación en Dispositivo
+
 ```bash
 # Instalar APK de debug via ADB
 adb install app/build/outputs/apk/debug/app-debug.apk
@@ -202,28 +307,34 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 ## 📱 Uso de la Aplicación
 
 ### 1️⃣ Primera Configuración
+
 1. **Instalar** la app y abrirla
 2. **Crear perfil** del menor (nombre, edad, nivel de restricción)
 3. **Configurar horario** permitido (opcional)
 4. **Activar VPN**: Botón en pantalla principal
 5. **Conceder permisos**:
-   - VPN (Android pedirá confirmación)
-   - UsageStats (para monitoreo de apps)
-   - Notificaciones (Android 13+)
+  - VPN (Android pedirá confirmación)
+  - UsageStats (para monitoreo de apps)
+  - Accesibilidad: `AppBlockerAccessibilityService` en Ajustes > Accesibilidad (bloqueo reforzado sin root)
+  - Device Admin (opcional): para impedir que el menor desinstale la app
+  - Notificaciones (Android 13+)
 
 ### 2️⃣ Activar Protección VPN
+
 - Toca el botón **"Activar Protección"** en la pantalla principal
 - Android pedirá permiso para establecer VPN
 - Una vez activo, verás notificación persistente: **"DNS Seguro Activado"**
 - Internet funcionará normalmente, pero contenido bloqueado será inaccesible
 
 ### 3️⃣ Navegador Seguro
+
 - **Abrir**: Toca el icono del navegador en la pantalla principal
 - **Navegar**: Introduce URLs o búsquedas en Google
 - **Bloqueos**: Verás página de bloqueo con razón (horario, categoría, etc.)
 - **Historial**: Botón de historial para ver sitios visitados
 
 ### 4️⃣ Control Parental
+
 - **Acceder**: Menú > Control Parental
 - **Configurar**:
   - Horario permitido (activar y establecer inicio/fin)
@@ -232,6 +343,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 - **Guardar**: Los cambios se aplican inmediatamente
 
 ### 5️⃣ Filtros Personalizados
+
 - **Acceder**: Menú > Filtros Personalizados
 - **Agregar a blacklist**: Introduce dominio (ej: `tiktok.com`) y presiona ➕
 - **Agregar a whitelist**: Cambia a whitelist y agrega dominios permitidos
@@ -239,24 +351,52 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 - **Se aplican instantáneamente** en el navegador seguro
 
 ### 6️⃣ Estadísticas
+
 - **Ver logs**: Menú > Estadísticas
 - **Sitios bloqueados hoy**: Contador en tiempo real
 - **Historial semanal**: Gráfica de bloqueos
 - **Exportar**: Botón para exportar logs a CSV
 
 ### 7️⃣ Monitoreo de Apps
+
 - **Activar**: Menú > Configuración > Monitoreo de Apps
 - **Conceder UsageStats**: Android te llevará a configuración
+- **Conceder Accesibilidad** (refuerzo): Ajustes > Accesibilidad > GuardianOS Shield
 - **Funcionamiento**:
   - Si el menor abre Chrome/Brave/Firefox → se redirige a navegador seguro
+  - `AppBlockerAccessibilityService` actúa en tiempo real (sin root)
+  - `LightweightMonitorService` como respaldo adicional
   - Notificación: "App bloqueada - Chrome"
   - Foreground Service mantiene monitoreo activo
+
+### 8️⃣ Pacto Digital Familiar (Nuevo)
+
+- **Acceder**: Menú > Pacto Digital
+- **El menor** puede enviar peticiones desde su pestaña (sin PIN)
+  - Más tiempo, desbloquear app, desbloquear sitio
+- **El padre** abre la pestaña "Responder", introduce el PIN y aprueba o rechaza
+- **Sin internet**: Todo queda en el dispositivo
+
+### 9️⃣ Anti-desinstalación (Device Admin)
+
+- **Activar**: Menú > Seguridad > Activar Device Admin
+- Android mostrará un diálogo de confirmación del sistema
+- Una vez activo, el menor **no puede desinstalar** la app sin el PIN parental
+- **Desactivar**: El padre introduce el PIN en Seguridad > Desactivar Device Admin
+
+### 🔟 Plan Premium
+
+- **Ver plan actual**: Banner en la pantalla principal o Menú > Premium
+- **Comprar (14,99 € — pago único)**: Pantalla Premium > "Activar Premium"
+- Google Play gestiona el pago; el estado se restaura automáticamente tras reinstalación
+- Las features premium (horarios, filtros propios, perfiles múltiples) se desbloquean inmediatamente
 
 ---
 
 ## 🔧 Funcionamiento Técnico
 
 ### VPN DNS Transparente
+
 ```kotlin
 // DnsFilterService.kt - Configuración VPN simplificada
 Builder()
@@ -271,6 +411,7 @@ Builder()
 ```
 
 **Arquitectura correcta (191 líneas vs 700+ anteriores)**:
+
 - ✅ **Sin captura de paquetes**: No usa `addRoute("0.0.0.0", 0)` que bloqueaba internet
 - ✅ **Solo DNS**: Android resuelve DNS usando servidores CleanBrowsing configurados
 - ✅ **CleanBrowsing hace el filtrado** en sus servidores (Adult Filter = más restrictivo)
@@ -278,6 +419,7 @@ Builder()
 - ✅ **Patrón estándar**: Mismo que usan apps como 1.1.1.1, DNS66, NextDNS
 
 ### Bloqueo Local en SafeBrowserActivity (Doble Capa)
+
 ```kotlin
 // Verificar dominio ANTES de cargar - crítico para redes sociales
 private suspend fun isDomainBlocked(domain: String): Boolean {
@@ -287,7 +429,7 @@ private suspend fun isDomainBlocked(domain: String): Boolean {
         showBlockNotification("Horario no permitido")
         return true
     }
-    
+
     // 2️⃣ Lista local hardcoded de redes sociales (respaldo si DNS falla)
     val socialMediaDomains = setOf(
         "facebook.com", "instagram.com", "tiktok.com", "twitter.com", 
@@ -298,31 +440,32 @@ private suspend fun isDomainBlocked(domain: String): Boolean {
         showBlockNotification("Red Social bloqueada: $domain")
         return true
     }
-    
+
     // 3️⃣ Filtros personalizados del usuario (blacklist isActive=true)
     val filters = repository.getAllCustomFilters()
     if (filters.any { it.isActive && domain.contains(it.domain, ignoreCase = true) }) {
         return true
     }
-    
+
     // 4️⃣ Keywords adulto/gambling
     val adultKeywords = listOf("porn", "xxx", "adult", "sex", "casino", "bet")
     if (adultKeywords.any { domain.contains(it, ignoreCase = true) }) {
         return true
     }
-    
+
     return false
 }
 ```
 
 ### Monitoreo de Apps con UsageStats
+
 ```kotlin
 // UsageStatsMonitor.kt - Detectar app foreground cada 2 segundos
 private suspend fun monitorForegroundApp() {
     val statsManager = getSystemService(UsageStatsManager::class.java)
     val stats = statsManager.queryUsageStats(INTERVAL_DAILY, startTime, endTime)
     val foregroundApp = stats.maxByOrNull { it.lastTimeUsed }?.packageName
-    
+
     // Si es navegador externo → redirigir + notificar
     if (foregroundApp in browserPackages && foregroundApp != "com.guardianos.shield") {
         showAppBlockedNotification(getAppLabel(foregroundApp))
@@ -332,6 +475,7 @@ private suspend fun monitorForegroundApp() {
 ```
 
 ### Sistema de Notificaciones
+
 ```kotlin
 // Notificación automática al bloquear
 private fun showBlockNotification(domain: String) {
@@ -341,7 +485,7 @@ private fun showBlockNotification(domain: String) {
         domain.contains("casino") -> "Apuestas"
         else -> "Sitio Restringido"
     }
-    
+
     NotificationCompat.Builder(this, CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_shield)
         .setContentTitle("🚫 Sitio bloqueado")
@@ -351,9 +495,87 @@ private fun showBlockNotification(domain: String) {
 }
 ```
 
+### Bloqueo de Apps con AccessibilityService
+
+```kotlin
+// AppBlockerAccessibilityService.kt — detecta cambios de ventana en tiempo real
+override fun onAccessibilityEvent(event: AccessibilityEvent) {
+    if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+    val packageName = event.packageName?.toString() ?: return
+
+    scope.launch {
+        val ahora = System.currentTimeMillis()
+        if (packageName == ultimaAppBloqueada &&
+            ahora - tiempoUltimoBloqueo < INTERVALO_MIN_BLOQUEO) return@launch
+
+        val apps = repository.getAllSensitiveApps().firstOrNull() ?: return@launch
+        val matching = apps.firstOrNull { it.packageName == packageName } ?: return@launch
+
+        val profile = repository.getActiveProfile() ?: return@launch
+        if (!profile.isWithinAllowedTime()) {
+            ultimaAppBloqueada = packageName
+            tiempoUltimoBloqueo = ahora
+            val intent = AppBlockedActivity.createIntent(this@AppBlockerAccessibilityService, packageName)
+            startActivity(intent)
+        }
+    }
+}
+```
+
+### Control de Horarios con ScheduleManager
+
+```kotlin
+// ScheduleManager.kt — franjas por día de la semana con AlarmManager
+data class TimeSlot(
+    val dayOfWeek: Int,   // Calendar.MONDAY ... Calendar.SUNDAY
+    val startHour: Int, val startMinute: Int,
+    val endHour: Int,   val endMinute: Int
+) {
+    fun isNowInSlot(): Boolean {
+        val now = Calendar.getInstance()
+        if (now.get(Calendar.DAY_OF_WEEK) != dayOfWeek) return false
+        val current = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+        return current in (startHour * 60 + startMinute)..(endHour * 60 + endMinute)
+    }
+}
+```
+
+### Anti-desinstalación con DeviceAdmin
+
+```kotlin
+// DeviceAdminHelper.kt
+fun solicitarActivacion(context: Context) {
+    val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+        putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, getComponentName(context))
+        putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+            "GuardianOS Shield necesita este permiso para impedir que un menor " +
+            "desinstale la app de control parental sin el PIN del padre/madre.")
+    }
+    context.startActivity(intent)
+}
+```
+
+### PIN Cifrado con EncryptedSharedPreferences
+
+```kotlin
+// SecurityHelper.kt
+fun savePin(context: Context, profileId: Int, pin: String): Boolean {
+    val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build()
+    val prefs = EncryptedSharedPreferences.create(
+        context, PREFS_NAME, masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+    prefs.edit().putString("pin_$profileId", hashPin(pin)).apply()
+    return true
+}
+```
+
 ## 🛠️ Desarrollo y Debugging
 
 ### Compilar versiones
+
 ```bash
 # Debug (con logs)
 ./gradlew assembleDebug
@@ -374,16 +596,31 @@ private fun showBlockNotification(domain: String) {
 ### Comandos de debugging útiles
 
 ```bash
-# Ver logs de VPN y DNS filtering
+# VPN y DNS filtering
 adb logcat | grep GuardianVPN
 
-# Ver logs de monitoreo de apps
+# Monitoreo de apps (UsageStats)
 adb logcat | grep UsageStatsMonitor
 
-# Ver logs del navegador seguro
+# AccessibilityService (bloqueo reforzado)
+adb logcat | grep AppBlockerA11y
+
+# Monitor ligero
+adb logcat | grep LightweightMonitor
+
+# Navegador seguro
 adb logcat | grep SafeBrowser
 
-# Ver todos los logs de la app
+# ScheduleManager (horarios)
+adb logcat | grep ScheduleManager
+
+# Billing / Premium
+adb logcat | grep BillingManager
+
+# Device Admin
+adb logcat | grep DeviceAdmin
+
+# Todos los logs de la app
 adb logcat | grep "com.guardianos.shield"
 
 # Verificar permisos concedidos
@@ -392,38 +629,52 @@ adb shell dumpsys package com.guardianos.shield | grep permission
 # Verificar estado de la VPN
 adb shell dumpsys connectivity | grep VPN
 
-# Forzar detener app (útil para reiniciar servicios)
+# Verificar DNS activo
+adb shell dumpsys connectivity | grep "DNS servers"
+
+# Forzar detener app (reiniciar servicios)
 adb shell am force-stop com.guardianos.shield
 
-# Instalar y ejecutar directamente
+# Instalar y ejecutar
 adb install -r app/build/outputs/apk/debug/app-debug.apk && adb shell am start -n com.guardianos.shield/.MainActivity
 ```
 
 ### Debugging común
-1. **VPN no se activa**: 
-   - Verificar que no haya otra VPN activa
-   - Desactivar DNS privado en Ajustes > Red
-   - Conceder permiso VPN cuando Android lo pida
-   
-2. **Sitios no se bloquean**: 
-   - Verificar logs DNS: `adb logcat | grep GuardianVPN`
-   - Confirmar DNS activo: debe mostrar 185.228.168.168
-   - Verificar lista local en `LocalBlocklist.kt` y `SafeBrowserActivity.kt`
-   
-3. **Monitoreo no funciona**: 
-   - Conceder UsageStats: Ajustes > Aplicaciones especiales > Acceso a uso
-   - Verificar Foreground Service activo
-   - Desactivar optimización de batería para la app
-   
-4. **Notificaciones no aparecen**: 
-   - Android 13+ requiere permiso POST_NOTIFICATIONS
-   - Verificar canales de notificación creados
-   - Revisar configuración de notificaciones de la app
 
+1. **VPN no se activa**:
+  
+  - Verificar que no haya otra VPN activa
+  - Desactivar DNS privado en Ajustes > Red
+  - Conceder permiso VPN cuando Android lo pida
+2. **Sitios no se bloquean**:
+  
+  - Verificar logs DNS: `adb logcat | grep GuardianVPN` — debe mostrar 185.228.168.168
+  - Verificar lista local en `LocalBlocklist.kt` y `SafeBrowserActivity.kt`
+3. **Monitoreo no funciona**:
+  
+  - Conceder UsageStats: Ajustes > Apps > Acceso especial > Acceso a uso
+  - Comprobar que `AppBlockerAccessibilityService` está habilitado en Accesibilidad
+  - Desactivar optimización de batería para la app
+4. **Notificaciones no aparecen**:
+  
+  - Android 13+ requiere permiso POST_NOTIFICATIONS
+  - Verificar canales de notificación creados
+  - Revisar configuración de la app en Ajustes > Notificaciones
 5. **Horarios no funcionan**:
-   - Verificar perfil activo con `repository.getActiveProfile()`
-   - Confirmar `scheduleEnabled = true` y horarios correctos
-   - Ver logs: "BLOQUEADO POR HORARIO"
+  
+  - Verificar perfil activo con `repository.getActiveProfile()`
+  - Confirmar `scheduleEnabled = true` y franjas en `ScheduleManager`
+  - Ver logs: `adb logcat | grep ScheduleManager`
+6. **Device Admin no se activa**:
+  
+  - Llamar a `DeviceAdminHelper.solicitarActivacion(context)` desde una Activity
+  - Verificar que `GuardianDeviceAdminReceiver` está declarado en `AndroidManifest.xml`
+  - Comprobar con: `adb shell dpm list-owners`
+7. **Premium no se restaura tras reinstalación**:
+  
+  - Verificar conexión a Play Store
+  - Comprobar logs: `adb logcat | grep BillingManager`
+  - `BillingManager.queryPurchases()` consulta las compras existentes en segundo plano
 
 ---
 
@@ -441,7 +692,7 @@ Ver el archivo [LICENSE](https://github.com/systemavworks/guardianos-shield/blob
 📍 Andalucía, España  
 🌐 Web: [https://guardianos.es](https://guardianos.es)  
 📧 Email: [info@guardianos.es](mailto:info@guardianos.es)  
-💼 GitHub: [@systemavworks](https://github.com/systemavworks)
+💼 GitHub: [@systemavworks](https://github.com/systemavworks/guardianos-shield)
 
 ---
 
@@ -453,12 +704,12 @@ Ver el archivo [LICENSE](https://github.com/systemavworks/guardianos-shield/blob
 - **Material Design 3** por el sistema de diseño
 - **Cloudflare** por los servidores DNS alternativos
 
-
 ---
 
 ## 📞 Soporte
 
 ¿Problemas o preguntas?
+
 - 🐛 **Issues**: [GitHub Issues](https://github.com/systemavworks/guardianos-shield/issues)
 - 📧 **Email**: info@guardianos.es
 - 🌐 **Web**: [https://guardianos.es/soporte](https://guardianos.es/soporte)
@@ -468,8 +719,26 @@ Ver el archivo [LICENSE](https://github.com/systemavworks/guardianos-shield/blob
 
 ## 📝 Roadmap
 
+### ✅ Implementado
+
+- [x] VPN DNS transparente con CleanBrowsing Adult Filter
+- [x] Navegador seguro (WebView + doble capa de bloqueo)
+- [x] Control de horarios con soporte cruce de medianoche y franjas por día
+- [x] Monitoreo triple de apps (UsageStats + AccessibilityService + LightweightMonitor)
+- [x] Bloqueo de app inescapable (`AppBlockedActivity`)
+- [x] Pacto Digital Familiar (peticiones hijo → padre, todo local)
+- [x] Racha diaria con badges y animaciones (`StreakWidget`)
+- [x] PIN parental cifrado con AES256-GCM + AndroidKeyStore
+- [x] Anti-desinstalación via Device Admin
+- [x] Plan Premium con Google Play Billing 6+ (14,99 € vitalicio)
+- [x] Plan Gratuito con límites de 48 h de historial
+- [x] Estadísticas ampliadas (`StatisticEntity`, `DomainStat`)
+- [x] Room Database v4 con migraciones
+
+### 🔜 Próximas versiones
+
 - [ ] Dashboard web para padres en guardianos.es
-- [ ] Exportar configuración (backup/restore)
+- [ ] Exportar configuración completa (backup/restore)
 - [ ] Modo kiosk para bloquear salida de la app
 - [ ] Soporte para múltiples dispositivos sincronizados (opcional)
 - [ ] Integración con Google Family Link
@@ -478,9 +747,9 @@ Ver el archivo [LICENSE](https://github.com/systemavworks/guardianos-shield/blob
 - [ ] Bloqueo de compras in-app
 - [ ] Soporte para tablets y ChromeOS
 - [ ] Exportación de informes en PDF
-- [ ] Widget de estadísticas para home screen
+- [ ] Widget de estadísticas para pantalla de inicio (Android AppWidget)
 
 ---
 
 **Hecho con ❤️ en Andalucía**  
-*Protegiendo a nuestros pequeños en el mundo digital*
+*Protegiendo a nuestros pequeños en el mundo digital
