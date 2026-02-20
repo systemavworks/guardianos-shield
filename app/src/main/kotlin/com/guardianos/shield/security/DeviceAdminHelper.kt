@@ -20,11 +20,11 @@ object DeviceAdminHelper {
     }
 
     /**
-     * Lanza el diálogo del sistema para que el usuario active el Device Admin.
-     * Debe llamarse desde una Activity (no desde un Service).
+     * Crea el Intent para solicitar activación de Device Admin,
+     * sin lanzarlo (lo lanza el caller vía ActivityResultLauncher para obtener resultado).
      */
-    fun solicitarActivacion(context: Context) {
-        val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
+    fun crearIntentActivacion(context: Context): Intent =
+        Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
             putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, getComponentName(context))
             putExtra(
                 DevicePolicyManager.EXTRA_ADD_EXPLANATION,
@@ -32,8 +32,13 @@ object DeviceAdminHelper {
                 "desinstale la app de control parental sin el PIN del padre/madre."
             )
         }
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
+
+    /**
+     * Lanza el diálogo del sistema para que el usuario active el Device Admin.
+     * Debe llamarse desde una Activity (no desde un Service).
+     */
+    fun solicitarActivacion(context: Context) {
+        context.startActivity(crearIntentActivacion(context).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
     /**

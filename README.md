@@ -313,11 +313,11 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 3. **Configurar horario** permitido (opcional)
 4. **Activar VPN**: Botón en pantalla principal
 5. **Conceder permisos**:
-  - VPN (Android pedirá confirmación)
-  - UsageStats (para monitoreo de apps)
-  - Accesibilidad: `AppBlockerAccessibilityService` en Ajustes > Accesibilidad (bloqueo reforzado sin root)
-  - Device Admin (opcional): para impedir que el menor desinstale la app
-  - Notificaciones (Android 13+)
+   - VPN (Android pedirá confirmación)
+   - UsageStats (para monitoreo de apps)
+   - Accesibilidad: `AppBlockerAccessibilityService` en Ajustes > Accesibilidad (bloqueo reforzado sin root)
+   - Device Admin (opcional): para impedir que el menor desinstale la app
+   - Notificaciones (Android 13+)
 
 ### 2️⃣ Activar Protección VPN
 
@@ -641,40 +641,46 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk && adb shell am start -
 
 ### Debugging común
 
-1. **VPN no se activa**:
-  
-  - Verificar que no haya otra VPN activa
-  - Desactivar DNS privado en Ajustes > Red
-  - Conceder permiso VPN cuando Android lo pida
-2. **Sitios no se bloquean**:
-  
-  - Verificar logs DNS: `adb logcat | grep GuardianVPN` — debe mostrar 185.228.168.168
-  - Verificar lista local en `LocalBlocklist.kt` y `SafeBrowserActivity.kt`
-3. **Monitoreo no funciona**:
-  
-  - Conceder UsageStats: Ajustes > Apps > Acceso especial > Acceso a uso
-  - Comprobar que `AppBlockerAccessibilityService` está habilitado en Accesibilidad
-  - Desactivar optimización de batería para la app
-4. **Notificaciones no aparecen**:
-  
-  - Android 13+ requiere permiso POST_NOTIFICATIONS
-  - Verificar canales de notificación creados
-  - Revisar configuración de la app en Ajustes > Notificaciones
+1. **VPN no se activa**: 
+   
+   - Verificar que no haya otra VPN activa
+   - Desactivar DNS privado en Ajustes > Red
+   - Conceder permiso VPN cuando Android lo pida
+
+2. **Sitios no se bloquean**: 
+   
+   - Verificar logs DNS: `adb logcat | grep GuardianVPN` — debe mostrar 185.228.168.168
+   - Verificar lista local en `LocalBlocklist.kt` y `SafeBrowserActivity.kt`
+
+3. **Monitoreo no funciona**: 
+   
+   - Conceder UsageStats: Ajustes > Apps > Acceso especial > Acceso a uso
+   - Comprobar que `AppBlockerAccessibilityService` está habilitado en Accesibilidad
+   - Desactivar optimización de batería para la app
+
+4. **Notificaciones no aparecen**: 
+   
+   - Android 13+ requiere permiso POST_NOTIFICATIONS
+   - Verificar canales de notificación creados
+   - Revisar configuración de la app en Ajustes > Notificaciones
+
 5. **Horarios no funcionan**:
-  
-  - Verificar perfil activo con `repository.getActiveProfile()`
-  - Confirmar `scheduleEnabled = true` y franjas en `ScheduleManager`
-  - Ver logs: `adb logcat | grep ScheduleManager`
+   
+   - Verificar perfil activo con `repository.getActiveProfile()`
+   - Confirmar `scheduleEnabled = true` y franjas en `ScheduleManager`
+   - Ver logs: `adb logcat | grep ScheduleManager`
+
 6. **Device Admin no se activa**:
-  
-  - Llamar a `DeviceAdminHelper.solicitarActivacion(context)` desde una Activity
-  - Verificar que `GuardianDeviceAdminReceiver` está declarado en `AndroidManifest.xml`
-  - Comprobar con: `adb shell dpm list-owners`
+   
+   - Llamar a `DeviceAdminHelper.solicitarActivacion(context)` desde una Activity
+   - Verificar que `GuardianDeviceAdminReceiver` está declarado en `AndroidManifest.xml`
+   - Comprobar con: `adb shell dpm list-owners`
+
 7. **Premium no se restaura tras reinstalación**:
-  
-  - Verificar conexión a Play Store
-  - Comprobar logs: `adb logcat | grep BillingManager`
-  - `BillingManager.queryPurchases()` consulta las compras existentes en segundo plano
+   
+   - Verificar conexión a Play Store
+   - Comprobar logs: `adb logcat | grep BillingManager`
+   - `BillingManager.queryPurchases()` consulta las compras existentes en segundo plano
 
 ---
 
@@ -752,4 +758,4 @@ Ver el archivo [LICENSE](https://github.com/systemavworks/guardianos-shield/blob
 ---
 
 **Hecho con ❤️ en Andalucía**  
-*Protegiendo a nuestros pequeños en el mundo digital
+*Protegiendo a nuestros pequeños en el mundo digital*

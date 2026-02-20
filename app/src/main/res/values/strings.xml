@@ -38,5 +38,6 @@
     <string name="hard_block_message">🔒 Límite alcanzado. Mantén tu racha para ganar autonomía.</string>
     <string name="trust_progress_label">%d días para desbloquear el Modo Autonomía</string>
     <string name="trust_reset_button">⚠️ Resetear confianza manualmente</string>
+    <string name="accessibility_service_description">GuardianOS Shield — Bloqueo de apps en tiempo real</string>
 
 </resources>

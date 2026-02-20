@@ -11,7 +11,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
@@ -22,8 +21,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -44,7 +41,7 @@ fun PremiumPurchaseScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val buttonText = if (isPremium) "¡Ya eres premium!" else "Desbloquear por 14,99 €"
 
-    val version = "v1.0.0"
+    val version = "v1.1.0 Build 20260220"
     val year = "2026"
     val context = LocalContext.current
     var devTapCount by remember { mutableStateOf(0) }
@@ -285,76 +282,37 @@ fun PremiumPurchaseScreen(
                 )
                 val url = "https://guardianos.es/politica-privacidad"
                 val email = "info@guardianos.es"
-                val annotatedUrl = buildAnnotatedString {
-                    append(url)
-                    addStyle(
-                        style = SpanStyle(
-                            color = Color(0xFF1976D2),
-                            fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline
-                        ),
-                        start = 0,
-                        end = url.length
-                    )
-                    addStringAnnotation(
-                        tag = "URL",
-                        annotation = url,
-                        start = 0,
-                        end = url.length
-                    )
-                }
-                ClickableText(
-                    text = annotatedUrl,
+                val linkColor = MaterialTheme.colorScheme.primary
+                Text(
+                    text = url,
                     style = MaterialTheme.typography.bodySmall.copy(
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        color = linkColor,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline
                     ),
-                    onClick = { offset ->
-                        annotatedUrl.getStringAnnotations("URL", offset, offset)
-                            .firstOrNull()?.let { sa ->
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(sa.item))
-                                context.startActivity(intent)
-                            }
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            context.startActivity(intent)
+                        }
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                val annotatedEmail = buildAnnotatedString {
-                    append("¿Dudas o problemas? Escríbenos a $email")
-                    val start = 25
-                    val end = start + email.length
-                    addStyle(
-                        style = SpanStyle(
-                            color = Color(0xFF1976D2),
-                            fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline
-                        ),
-                        start = start,
-                        end = end
-                    )
-                    addStringAnnotation(
-                        tag = "EMAIL",
-                        annotation = email,
-                        start = start,
-                        end = end
-                    )
-                }
-                ClickableText(
-                    text = annotatedEmail,
+                Text(
+                    text = "¿Dudas o problemas? Escríbenos a $email",
                     style = MaterialTheme.typography.bodySmall.copy(
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     ),
-                    onClick = { offset ->
-                        annotatedEmail.getStringAnnotations("EMAIL", offset, offset)
-                            .firstOrNull()?.let { sa ->
-                                val intent = Intent(Intent.ACTION_SENDTO).apply {
-                                    data = Uri.parse("mailto:${sa.item}")
-                                }
-                                context.startActivity(intent)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:$email")
                             }
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                            context.startActivity(intent)
+                        }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(

@@ -8,7 +8,7 @@ import android.view.accessibility.AccessibilityEvent
 import com.guardianos.shield.billing.FreeTierLimits
 import com.guardianos.shield.data.GuardianDatabase
 import com.guardianos.shield.data.GuardianRepository
-import com.guardianos.shield.data.SettingsDataStore
+import com.guardianos.shield.data.SettingsRepository
 import com.guardianos.shield.ui.AppBlockedActivity
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.firstOrNull
@@ -26,7 +26,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var repository: GuardianRepository
-    private lateinit var settingsDataStore: SettingsDataStore
+    private lateinit var settingsDataStore: SettingsRepository
 
     // Evitar disparos múltiples para la misma app en poco tiempo
     private var ultimaAppBloqueada: String? = null
@@ -51,7 +51,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         repository = GuardianRepository(this, GuardianDatabase.getDatabase(this))
-        settingsDataStore = SettingsDataStore(this)
+        settingsDataStore = SettingsRepository(this)
 
         serviceInfo = AccessibilityServiceInfo().apply {
             eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED

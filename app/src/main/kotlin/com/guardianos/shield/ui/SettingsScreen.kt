@@ -5,11 +5,15 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -60,6 +64,7 @@ fun SettingsScreen(
     var pendingAction: (() -> Unit)? by remember { mutableStateOf(null) }
 
     // Estados para gates de nuevas funciones premium
+    var showAboutDialog by remember { mutableStateOf(false) }
     var showGateDialog by remember { mutableStateOf(false) }
     var gateFeature by remember { mutableStateOf<PremiumFeature?>(null) }
     var accessibilityActivo by remember {
@@ -71,6 +76,14 @@ fun SettingsScreen(
         )
     }
     var deviceAdminActivo by remember { mutableStateOf(DeviceAdminHelper.estaActivo(context)) }
+
+    // Launcher para el diálogo de sistema de Device Admin — captura el resultado
+    // para actualizar el estado inmediatamente al volver (evita crash por startActivity directo)
+    val deviceAdminLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
+        deviceAdminActivo = DeviceAdminHelper.estaActivo(context)
+    }
 
     if (showRestoreSnackbar) {
         LaunchedEffect(Unit) {
@@ -252,8 +265,8 @@ fun SettingsScreen(
                 SettingsActionItem(
                     icon = Icons.Default.Info,
                     title = "Acerca de GuardianOS Shield",
-                    description = "Versión 1.0.0 • Build 20260123",
-                    onClick = { /* Mostrar info */ }
+                    description = "Versión 1.1.0 • Build 20260220",
+                    onClick = { showAboutDialog = true }
                 )
             }
             item {
@@ -316,7 +329,10 @@ fun SettingsScreen(
                             showGateDialog = true
                         } else {
                             if (activar) {
-                                DeviceAdminHelper.solicitarActivacion(context)
+                                // Usar launcher para capturar el resultado y actualizar estado
+                                deviceAdminLauncher.launch(
+                                    DeviceAdminHelper.crearIntentActivacion(context)
+                                )
                             } else {
                                 DeviceAdminHelper.desactivar(context)
                                 deviceAdminActivo = false
@@ -445,6 +461,11 @@ fun SettingsScreen(
 
             item { Spacer(modifier = Modifier.height(24.dp)) }
         }
+    }
+
+    // Diálogo Acerca de
+    if (showAboutDialog) {
+        AboutGuardianDialog(onDismiss = { showAboutDialog = false })
     }
 
     // Diálogo de PIN antes de acciones críticas
@@ -690,6 +711,191 @@ fun SettingsActionItem(
         }
     }
     Spacer(modifier = Modifier.height(4.dp))
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AboutGuardianDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(16.dp),
+        title = null,
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // ── Cabecera ──────────────────────────────────────────────
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Security,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "GuardianOS Shield",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "v1.1.0 · Build 20260220",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Control parental inteligente para Android. Filtra contenido, bloquea apps y protege la navegación sin necesidad de root.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // ── Funciones principales ─────────────────────────────────
+                Text(
+                    text = "FUNCIONES PRINCIPALES",
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        letterSpacing = 1.5.sp
+                    ),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                AboutFeatureRow(
+                    icon = Icons.Default.Dns,
+                    title = "Filtro DNS (CleanBrowsing)",
+                    subtitle = "Bloquea contenido adulto, redes sociales, juegos y malware a nivel de red automáticamente."
+                )
+                AboutFeatureRow(
+                    icon = Icons.Default.Language,
+                    title = "Navegador seguro",
+                    subtitle = "WebView integrado con validación de URLs y página de bloqueo explicativa."
+                )
+                AboutFeatureRow(
+                    icon = Icons.Default.AppBlocking,
+                    title = "Bloqueo de apps · Premium",
+                    subtitle = "Impide abrir Instagram, TikTok, etc. fuera del horario permitido mediante accesibilidad."
+                )
+                AboutFeatureRow(
+                    icon = Icons.Default.Schedule,
+                    title = "Horarios y rachas",
+                    subtitle = "Define franjas horarias de uso. El sistema TrustFlow premia el cumplimiento con autonomía progresiva."
+                )
+                AboutFeatureRow(
+                    icon = Icons.Default.BarChart,
+                    title = "Estadísticas e historial",
+                    subtitle = "Consulta qué dominios y apps se han bloqueado, con registro completo de actividad."
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // ── Primeros pasos ────────────────────────────────────────
+                Text(
+                    text = "PRIMEROS PASOS",
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        letterSpacing = 1.5.sp
+                    ),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                val pasos = listOf(
+                    "Activa la VPN desde el panel principal para habilitar el filtro DNS.",
+                    "Configura un PIN en Ajustes → Seguridad para proteger la configuración.",
+                    "Añade apps a bloquear en la sección Gestión de apps.",
+                    "Activa el servicio de accesibilidad (Ajustes → Seguridad Avanzada) para el bloqueo en tiempo real.",
+                    "Revisa el historial y estadísticas desde el Dashboard."
+                )
+                pasos.forEachIndexed { index, paso ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 3.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = "${index + 1}.",
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.width(20.dp)
+                        )
+                        Text(
+                            text = paso,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // ── Footer ───────────────────────────────────────────────
+                Text(
+                    text = "Desarrollado en Andalucía, España 🇪🇸 · Proyecto open source",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cerrar", color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    )
+}
+
+@Composable
+private fun AboutFeatureRow(icon: ImageVector, title: String, subtitle: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .size(18.dp)
+                .padding(top = 1.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Column {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
