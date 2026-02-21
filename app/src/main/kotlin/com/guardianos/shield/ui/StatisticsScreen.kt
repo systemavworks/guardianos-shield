@@ -41,11 +41,33 @@ fun StatisticsScreen(
 ) {
     var selectedPeriod by remember { mutableStateOf("Hoy") }
 
-    // En FREE: filtrar registros de últimas 48 horas
-    val cutoffMs = System.currentTimeMillis() -
-            FreeTierLimits.MAX_HISTORY_HOURS * 60 * 60 * 1_000L
-    val visibleBlocked = if (isPremium) recentBlocked
-    else recentBlocked.filter { it.timestamp >= cutoffMs }
+    val now = System.currentTimeMillis()
+    // FREE: historial limitado a 48h
+    val cutoffMs = now - FreeTierLimits.MAX_HISTORY_HOURS * 60 * 60 * 1_000L
+    // Corte temporal según período seleccionado
+    val periodCutoffMs = when (selectedPeriod) {
+        "Hoy"    -> now - 24 * 60 * 60 * 1_000L
+        "Semana" -> now - 7 * 24 * 60 * 60 * 1_000L
+        "Mes"    -> now - 30 * 24 * 60 * 60 * 1_000L
+        "Año"    -> now - 365 * 24 * 60 * 60 * 1_000L
+        else     -> now - 24 * 60 * 60 * 1_000L
+    }
+    // Filtrar por período + límite FREE, excluyendo registros de uso permitido
+    val visibleBlocked = recentBlocked
+        .filter { it.timestamp >= if (isPremium) periodCutoffMs else maxOf(cutoffMs, periodCutoffMs) }
+        .filter { it.category != "APP_PERMITIDA" && it.category != "USO_RESPONSABLE" }
+    // Contadores de categoría calculados desde datos reales del período activo
+    val adultBlocked   = visibleBlocked.count { it.category == "ADULT" }
+    val malwareBlocked = visibleBlocked.count { it.category == "MALWARE" || it.category == "MALWARE_PHISHING" }
+    val socialBlocked  = visibleBlocked.count { it.category == "SOCIAL_MEDIA" || it.category == "APP_BLOQUEADA" }
+    val gamblingBlocked = visibleBlocked.count { it.category == "GAMBLING" }
+    val gamingBlocked  = visibleBlocked.count { it.category == "GAMING" }
+    // Filtrar barras del gráfico según período seleccionado
+    val chartStats = when (selectedPeriod) {
+        "Hoy"    -> weeklyStats.takeLast(1)
+        "Semana" -> weeklyStats.takeLast(7)
+        else     -> weeklyStats  // Mes y Año: todos los disponibles (hasta 30 días)
+    }
 
     // Banner de aviso FREE sobre datos limitados
     var showFreeLimitBanner by remember { mutableStateOf(!isPremium) }
@@ -135,8 +157,8 @@ fun StatisticsScreen(
             item {
                 QuickSummaryCard(
                     todayBlocked = todayBlocked,
-                    weeklyBlocked = weeklyStats.sumOf { it.totalBlocked },
-                    monthlyBlocked = weeklyStats.sumOf { it.totalBlocked } * 4
+                    weeklyBlocked = weeklyStats.takeLast(7).sumOf { it.totalBlocked },
+                    monthlyBlocked = weeklyStats.sumOf { it.totalBlocked }
                 )
             }
 
@@ -157,8 +179,8 @@ fun StatisticsScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         BarChart(
-                            data = weeklyStats.map { it.totalBlocked },
-                            labels = weeklyStats.map { stat ->
+                            data = chartStats.map { it.totalBlocked },
+                            labels = chartStats.map { stat ->
                                 val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(stat.dateKey)
                                 android.text.format.DateFormat.format("dd/MM", date).toString()
                             }
@@ -169,10 +191,11 @@ fun StatisticsScreen(
 
             item {
                 CategoryBreakdownCard(
-                    adultContent = weeklyStats.sumOf { it.adultContentBlocked },
-                    violence = weeklyStats.sumOf { it.violenceBlocked },
-                    malware = weeklyStats.sumOf { it.malwareBlocked },
-                    socialMedia = weeklyStats.sumOf { it.socialMediaBlocked }
+                    adultContent = adultBlocked,
+                    malware = malwareBlocked,
+                    socialMedia = socialBlocked,
+                    gambling = gamblingBlocked,
+                    gaming = gamingBlocked
                 )
             }
 
@@ -192,13 +215,18 @@ fun StatisticsScreen(
             items(visibleBlocked.groupBy { it.domain }
                 .map { it.key to it.value.size }
                 .sortedByDescending { it.second }
-                .take(10)
+                .take(20)
             ) { (domain, count) ->
                 TopBlockedSiteItem(domain = domain, count = count)
             }
 
             item {
-                RecommendationsCard(todayBlocked = todayBlocked)
+                RecommendationsCard(
+                    totalInPeriod = visibleBlocked.size,
+                    adultBlocked = adultBlocked,
+                    gamblingBlocked = gamblingBlocked,
+                    selectedPeriod = selectedPeriod
+                )
             }
         }
     }
@@ -399,11 +427,12 @@ fun BarChart(
 @Composable
 fun CategoryBreakdownCard(
     adultContent: Int,
-    violence: Int,
     malware: Int,
-    socialMedia: Int
+    socialMedia: Int,
+    gambling: Int = 0,
+    gaming: Int = 0
 ) {
-    val total = adultContent + violence + malware + socialMedia
+    val total = adultContent + malware + socialMedia + gambling + gaming
     
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -422,12 +451,6 @@ fun CategoryBreakdownCard(
                 color = Color(0xFFE57373)
             )
             CategoryItem(
-                name = "Violencia",
-                count = violence,
-                total = total,
-                color = Color(0xFFFFB74D)
-            )
-            CategoryItem(
                 name = "Malware/Phishing",
                 count = malware,
                 total = total,
@@ -439,6 +462,20 @@ fun CategoryBreakdownCard(
                 total = total,
                 color = Color(0xFF81C784)
             )
+            CategoryItem(
+                name = "Videojuegos/Gaming",
+                count = gaming,
+                total = total,
+                color = Color(0xFFFFB74D)
+            )
+            if (gambling > 0) {
+                CategoryItem(
+                    name = "Apuestas/Casino",
+                    count = gambling,
+                    total = total,
+                    color = Color(0xFFAB47BC)
+                )
+            }
         }
     }
 }
@@ -528,48 +565,106 @@ fun TopBlockedSiteItem(domain: String, count: Int) {
 }
 
 @Composable
-fun RecommendationsCard(todayBlocked: Int) {
-    val recommendation = when {
-        todayBlocked > 50 -> "Alto nivel de intentos de acceso bloqueados. Considera revisar el nivel de restricción."
-        todayBlocked > 20 -> "Actividad moderada detectada. El sistema está funcionando correctamente."
-        else -> "Excelente. Pocos intentos de acceso a contenido restringido."
+fun RecommendationsCard(
+    totalInPeriod: Int,
+    adultBlocked: Int,
+    gamblingBlocked: Int,
+    selectedPeriod: String
+) {
+    // Umbrales adaptados al período seleccionado
+    val highThreshold = when (selectedPeriod) {
+        "Hoy"    -> 30
+        "Semana" -> 120
+        "Mes"    -> 400
+        else     -> 800
     }
-    
-    val icon = when {
-        todayBlocked > 50 -> Icons.Default.Warning
-        todayBlocked > 20 -> Icons.Default.Info
-        else -> Icons.Default.Check
-    }
-    
-    val color = when {
-        todayBlocked > 50 -> MaterialTheme.colorScheme.errorContainer
-        todayBlocked > 20 -> MaterialTheme.colorScheme.tertiaryContainer
-        else -> MaterialTheme.colorScheme.primaryContainer
+    val moderateThreshold = highThreshold / 4
+
+    // Porcentaje de contenido especialmente sensible (adulto + apuestas)
+    val sensitivePct = if (totalInPeriod > 0)
+        (adultBlocked + gamblingBlocked).toFloat() / totalInPeriod
+    else 0f
+
+    data class RecoState(
+        val icon: androidx.compose.ui.graphics.vector.ImageVector,
+        val message: String,
+        val bgColor: androidx.compose.ui.graphics.Color,
+        val iconColor: androidx.compose.ui.graphics.Color,
+        val borderColor: androidx.compose.ui.graphics.Color
+    )
+
+    val state = when {
+        totalInPeriod == 0 -> RecoState(
+            icon        = Icons.Default.Check,
+            message     = "Sin bloqueos registrados en este período. Asegúrate de que el filtrado DNS esté activo para garantizar la protección.",
+            bgColor     = Color(0xFF1B5E20).copy(alpha = 0.08f),
+            iconColor   = Color(0xFF2E7D32),
+            borderColor = Color(0xFF2E7D32).copy(alpha = 0.4f)
+        )
+        sensitivePct >= 0.5f -> RecoState(
+            icon        = Icons.Default.Warning,
+            message     = "⚠️ El ${(sensitivePct * 100).toInt()}% de los bloqueos son contenido adulto o apuestas (${adultBlocked + gamblingBlocked} de $totalInPeriod). Verifica que los filtros DNS estén activos.",
+            bgColor     = Color(0xFFB71C1C).copy(alpha = 0.08f),
+            iconColor   = Color(0xFFC62828),
+            borderColor = Color(0xFFC62828).copy(alpha = 0.4f)
+        )
+        totalInPeriod > highThreshold -> RecoState(
+            icon        = Icons.Default.Warning,
+            message     = "Actividad elevada: $totalInPeriod intentos bloqueados en el período. Revisa qué apps o dominios generan más intentos en el desglose.",
+            bgColor     = Color(0xFFB71C1C).copy(alpha = 0.08f),
+            iconColor   = Color(0xFFC62828),
+            borderColor = Color(0xFFC62828).copy(alpha = 0.4f)
+        )
+        totalInPeriod > moderateThreshold -> RecoState(
+            icon        = Icons.Default.Info,
+            message     = "Actividad moderada: $totalInPeriod bloqueos en el período. El sistema protege correctamente. Revisa el desglose si alguna categoría destaca.",
+            bgColor     = Color(0xFFE65100).copy(alpha = 0.08f),
+            iconColor   = Color(0xFFE65100),
+            borderColor = Color(0xFFE65100).copy(alpha = 0.4f)
+        )
+        else -> RecoState(
+            icon        = Icons.Default.Check,
+            message     = "Actividad baja: $totalInPeriod bloqueos en el período. La protección funciona con normalidad.",
+            bgColor     = Color(0xFF1B5E20).copy(alpha = 0.08f),
+            iconColor   = Color(0xFF2E7D32),
+            borderColor = Color(0xFF2E7D32).copy(alpha = 0.4f)
+        )
     }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = color)
+        colors = CardDefaults.cardColors(
+            containerColor = state.bgColor,
+            contentColor   = MaterialTheme.colorScheme.onSurface
+        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, state.borderColor),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             Icon(
-                icon,
+                imageVector       = state.icon,
                 contentDescription = null,
-                modifier = Modifier.size(40.dp)
+                tint              = state.iconColor,
+                modifier          = Modifier
+                    .size(28.dp)
+                    .padding(top = 2.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    "Recomendación",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    text       = "Recomendación",
+                    style      = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color      = MaterialTheme.colorScheme.onSurface
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    recommendation,
-                    style = MaterialTheme.typography.bodyMedium
+                    text  = state.message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
                 )
             }
         }

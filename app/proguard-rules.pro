@@ -48,6 +48,31 @@
 -keep class com.guardianos.shield.service.AppMonitorService { *; }
 -keep class com.guardianos.shield.service.LightweightMonitorService { *; }
 
+# ============= ACCESSIBILITY SERVICE (CRÍTICO para bloqueo de apps) =============
+-keep public class * extends android.accessibilityservice.AccessibilityService {
+    public <methods>;
+}
+-keep class com.guardianos.shield.service.AppBlockerAccessibilityService { *; }
+
+# ============= WORKMANAGER (LogCleanupWorker) =============
+-keep class * extends androidx.work.Worker { *; }
+-keep class * extends androidx.work.CoroutineWorker { *; }
+-keep class com.guardianos.shield.service.LogCleanupWorker { *; }
+-keep class androidx.work.** { *; }
+
+# ============= DEVICE ADMIN =============
+-keep public class * extends android.app.admin.DeviceAdminReceiver {
+    public <methods>;
+}
+-keep class com.guardianos.shield.security.GuardianDeviceAdminReceiver { *; }
+
+# ============= DATASTORE & SETTINGS =============
+-keep class com.guardianos.shield.data.SettingsDataStore { *; }
+-keep class com.guardianos.shield.data.SettingsRepository { *; }
+
+# ============= BROADCAST RECEIVERS =============
+-keep class * extends android.content.BroadcastReceiver { *; }
+
 # ============= DATASTORE =============
 -keep class androidx.datastore.*.** { *; }
 -keepclassmembers class * extends androidx.datastore.preferences.core.Preferences {

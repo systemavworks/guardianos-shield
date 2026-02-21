@@ -334,10 +334,12 @@ class SafeBrowserActivity : ComponentActivity() {
                             // 🔔 NOTIFICACIÓN DE BLOQUEO
                             showBlockNotification(domain)
                         } else {
+                            // ── YouTube: forzar Restricted Mode ───────────────────────────
+                            val safeUrl = applySafeSearchParams(url, domain)
                             withContext(Dispatchers.Main) {
-                                view?.loadUrl(url)
+                                view?.loadUrl(safeUrl)
                             }
-                            addToHistory(url)
+                            addToHistory(safeUrl)
                         }
                     }
                     return true
@@ -405,6 +407,55 @@ class SafeBrowserActivity : ComponentActivity() {
             URL(url).host.lowercase().removePrefix("www.")
         } catch (e: Exception) {
             ""
+        }
+    }
+
+    /**
+     * Aplica parámetros de SafeSearch/RestrictedMode según el dominio:
+     *  • YouTube  → añade restrict=strict  (Modo Restringido de YouTube)
+     *  • Google   → añade safe=strict      (SafeSearch estricto de Google)
+     *
+     * El Modo Restringido de YouTube oculta vídeos marcados como no aptos para menores.
+     * No es 100% perfecto, pero bloquea la gran mayoría de contenido inapropiado.
+     * Para filtrado completo, usar la app YouTube Kids desde el bloqueo de apps.
+     */
+    private fun applySafeSearchParams(url: String, domain: String): String {
+        return try {
+            val uri = android.net.Uri.parse(url)
+            val builder = uri.buildUpon()
+
+            when {
+                domain.contains("youtube.com") || domain == "youtu.be" -> {
+                    // Restricted Mode: oculta contenido no apto para menores
+                    if (uri.getQueryParameter("restrict") != "strict") {
+                        builder.appendQueryParameter("restrict", "strict")
+                    }
+                    val safeUrl = builder.build().toString()
+                    Log.d("SafeBrowser", "🎬 YouTube RestrictedMode aplicado: $safeUrl")
+                    safeUrl
+                }
+                domain.contains("google.") && uri.path?.contains("/search") == true -> {
+                    // SafeSearch estricto en Google
+                    if (uri.getQueryParameter("safe") != "strict") {
+                        builder.appendQueryParameter("safe", "strict")
+                    }
+                    val safeUrl = builder.build().toString()
+                    Log.d("SafeBrowser", "🔍 Google SafeSearch aplicado: $safeUrl")
+                    safeUrl
+                }
+                domain.contains("bing.com") && uri.path?.contains("/search") == true -> {
+                    // SafeSearch estricto en Bing
+                    if (uri.getQueryParameter("safeSearch") != "Strict") {
+                        builder.appendQueryParameter("safeSearch", "Strict")
+                    }
+                    val safeUrl = builder.build().toString()
+                    Log.d("SafeBrowser", "🔍 Bing SafeSearch aplicado: $safeUrl")
+                    safeUrl
+                }
+                else -> url
+            }
+        } catch (e: Exception) {
+            url // Si falla el parsing, devolver la URL original sin modificar
         }
     }
 

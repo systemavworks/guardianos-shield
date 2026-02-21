@@ -34,6 +34,9 @@ class LogCleanupWorker(context: Context, params: WorkerParameters) : CoroutineWo
             // 3. Resetear presupuesto de autonomía para el nuevo día (60 min)
             repository.resetearMinutosAutonomia()
 
+            // 4. Resetear bono de gaming concedido por el padre (los bonos son diarios)
+            repository.resetearGamingExtra()
+
             Result.success()
         } catch (e: Exception) {
             Result.retry()

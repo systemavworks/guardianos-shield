@@ -48,4 +48,20 @@ interface UserProfileDao {
     /** Resetea los minutos de autonomía diaria (se llama cada noche desde LogCleanupWorker) */
     @Query("UPDATE user_profiles SET minutosAutonomiaDiarios = :minutos WHERE id = :profileId")
     suspend fun actualizarMinutosAutonomia(profileId: Int, minutos: Int)
+
+    /** Actualiza el bono de minutos de gaming concedido por el padre */
+    @Query("UPDATE user_profiles SET minutosGamingExtra = :minutos WHERE id = :profileId")
+    suspend fun actualizarGamingExtra(profileId: Int, minutos: Int)
+
+    /**
+     * Adelanta la racha al umbral mínimo del siguiente nivel (7 o 30 días).
+     * Solo permite subir un nivel, nunca bajar.
+     */
+    @Query("""
+        UPDATE user_profiles
+        SET rachaActual = :nuevaRacha,
+            rachaMaxima = MAX(rachaMaxima, :nuevaRacha)
+        WHERE id = :profileId
+    """)
+    suspend fun adelantarRacha(profileId: Int, nuevaRacha: Int)
 }

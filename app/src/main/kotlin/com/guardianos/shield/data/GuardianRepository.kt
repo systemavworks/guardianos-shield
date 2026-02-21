@@ -72,7 +72,8 @@ class GuardianRepository(
 
     // ==================== FLUJOS OBSERVABLES ====================
 
-    val recentBlocked: Flow<List<BlockedSiteEntity>> = blockedDao.getRecentBlocked(20)
+    // Últimos 100 registros — suficiente para Hoy/Semana/Mes sin paginación
+    val recentBlocked: Flow<List<BlockedSiteEntity>> = blockedDao.getRecentBlocked(100)
     val todayBlockedCount: Flow<Int> = blockedDao.getTodayBlockedCount(getTodayStartTimestamp())
 
     // ✅ MÉTODO AÑADIDO: getRecentBlockedSites
@@ -157,6 +158,59 @@ class GuardianRepository(
         profileDao.actualizarMinutosAutonomia(perfil.id, 60)
     }
 
+    // ─── RECOMPENSAS DEL PADRE ────────────────────────────────────────────────
+
+    /**
+     * Concede [minutos] de gaming extra al menor (máx. 120 min acumulados).
+     * Funciona para CUALQUIER nivel de confianza, solo en apps de categoría GAMING.
+     * El padre lo otorga desde el Panel Padre → TrustLevelCard.
+     */
+    suspend fun otorgarTiempoGaming(minutos: Int) {
+        val perfil = getActiveProfile() ?: return
+        val nuevoTotal = (perfil.minutosGamingExtra + minutos).coerceAtMost(120)
+        profileDao.actualizarGamingExtra(perfil.id, nuevoTotal)
+    }
+
+    /** Devuelve los minutos de gaming bonus disponibles hoy. */
+    suspend fun getMinutosGamingExtra(): Int =
+        getActiveProfile()?.minutosGamingExtra ?: 0
+
+    /**
+     * Consume 1 minuto del bono de gaming.
+     * Llamar desde AppBlockerAccessibilityService cuando el menor esté usando gaming.
+     * Retorna true si quedaban minutos y se consumió uno, false si ya estaba a 0.
+     */
+    suspend fun consumirMinutoGaming(): Boolean {
+        val perfil = getActiveProfile() ?: return false
+        if (perfil.minutosGamingExtra <= 0) return false
+        profileDao.actualizarGamingExtra(perfil.id, perfil.minutosGamingExtra - 1)
+        return true
+    }
+
+    /**
+     * Resetea el bono de gaming a 0 (llamar desde LogCleanupWorker al inicio del día).
+     * Los bonos son diarios y no se acumulan de un día a otro.
+     */
+    suspend fun resetearGamingExtra() {
+        val perfil = getActiveProfile() ?: return
+        profileDao.actualizarGamingExtra(perfil.id, 0)
+    }
+
+    /**
+     * Adelanta la racha del menor al umbral mínimo del siguiente nivel.
+     * Solo puede subir UN nivel (LOCKED→CAUTION o CAUTION→TRUSTED), nunca bajar.
+     * El padre lo usa como reconocimiento explícito cuando el hijo se ha ganado el salto.
+     */
+    suspend fun adelantarNivel() {
+        val perfil = getActiveProfile() ?: return
+        val nuevaRacha = when (perfil.trustLevel) {
+            TrustLevel.LOCKED  -> 7   // LOCKED → CAUTION (Explorador)
+            TrustLevel.CAUTION -> 30  // CAUTION → TRUSTED (Guardián)
+            TrustLevel.TRUSTED -> return // Ya en el nivel máximo
+        }
+        profileDao.adelantarRacha(perfil.id, nuevaRacha)
+    }
+
     suspend fun logTrustedAccess(packageName: String) {
         blockedDao.insert(
             BlockedSiteEntity(
@@ -206,8 +260,8 @@ class GuardianRepository(
             parentalPin = parentalPin,
             restrictionLevel = restrictionLevel,
             scheduleEnabled = false,
-            startTimeMinutes = 480,
-            endTimeMinutes = 1260,
+            startTimeMinutes = 900,   // 15:00 — llegan del colegio
+            endTimeMinutes = 1260,    // 21:00 — hora de dormir
             blockAdultContent = true,
             blockGambling = true,
             blockSocialMedia = false,
@@ -315,13 +369,121 @@ class GuardianRepository(
     }
 
     fun isAppSensitive(packageName: String): Boolean {
+        return getCategoriaApp(packageName) != "UNKNOWN" ||
+               sensitiveApps.any { packageName.lowercase().contains(it.lowercase()) }
+    }
+
+    /**
+     * Devuelve la categoría de restricción de un paquete.
+     * Usada por AppBlockerAccessibilityService para decidir si bloquear
+     * según las flags del perfil (blockGambling, blockGaming, blockSocialMedia, etc.)
+     */
+    fun getCategoriaApp(packageName: String): String {
         val p = packageName.lowercase()
-        if (sensitiveApps.any { p.contains(it.lowercase()) }) return true
-        if (sensitiveCategories["Redes sociales"] == true && (p.contains("facebook") || p.contains("instagram") || p.contains("tiktok") || p.contains("twitter") || p.contains("snapchat") || p.contains("discord") || p.contains("telegram"))) return true
-        if (sensitiveCategories["Apuestas"] == true && (p.contains("bet") || p.contains("casino") || p.contains("gambling"))) return true
-        if (sensitiveCategories["Violencia"] == true && (p.contains("violence") || p.contains("gore"))) return true
-        if (sensitiveCategories["Sexo"] == true && (p.contains("sex") || p.contains("xxx") || p.contains("porn"))) return true
-        return false
+        return when {
+            // ── Herramientas de evasión (SIEMPRE bloqueadas, prioridad máxima) ───────
+            p == "org.torproject.torbrowser" || p == "org.torproject.android" ||
+            p == "com.psiphon3" || p == "com.psiphon3.subscription" ||
+            p == "com.turbo.vpn" || p == "free.vpn.unblock.proxy.turbovpn" ||
+            p == "com.govpn.android" || p == "com.northghost.hideme" ||
+            p == "com.hotspotshield.android.vpn" || p == "com.anchorfree.hydravpn" ||
+            p == "com.windscribe.vpn" || p == "com.protonvpn.android" ||
+            p == "com.vpnmaster.android" || p == "com.secure.vpn.proxy.freevpn" ||
+            p == "com.cloudflare.onedotonedotonedotone" || p == "com.cloudflare.cloudflareandroid" ||
+            p == "com.ultrasurf.us" ||
+            p.contains("ultrasurf") || p.contains("psiphon") ||
+            (p.contains("vpn") && p.contains("proxy")) -> "BYPASS_TOOL"
+
+            // ── Apps educativas (NUNCA se bloquean por toggle de juegos) ────────────
+            // Idiomas y lectura
+            p == "com.duolingo" || p == "com.duolingo.schools" ||
+            p.startsWith("com.busuu.") ||
+            // Khan Academy
+            p == "org.khanacademy.android" || p == "com.khanacademy.kids" ||
+            // YouTube Kids (filtrado)
+            p == "com.google.android.apps.youtube.kids" ||
+            // Classroom y herramientas escolares
+            p == "com.google.android.apps.classroom" ||
+            p == "com.classdojo.android" ||
+            p == "com.quizlet.quizletandroid" ||
+            // Programación para niños
+            p == "com.scratchjr.android" || p == "org.scratch" ||
+            p == "com.tynker.tynker" || p == "com.lightbot.lightbothoc" ||
+            p == "com.codemonkey.school" ||
+            // Minecraft Educación (distinto al juego normal)
+            p == "com.mojang.minecraftconsole" ||
+            p.contains("minecrafteducation") ||
+            // Toca Boca (juego creativo/educativo, sin violencia)
+            p.startsWith("com.tocaboca.") ||
+            // Mátemáticas y ciencia
+            p.startsWith("no.dragonbox.") || p == "com.prodigygame.prodigy" ||
+            p == "com.microblink.photomath" ||
+            // Libros y enciclopedias
+            p == "com.epickids.android" || p == "com.epic.epic" ||
+            p == "org.pbskids.video" ||
+            p.contains("natgeokids") ||
+            // Otros educativos populares
+            p == "air.com.originlearning.abcmouse" ||
+            p == "com.byjus.thelearningapp" -> "EDUCATIONAL"
+
+            // Redes sociales (por nombre de paquete exacto o keyword)
+            p == "com.instagram.android" || p == "com.instagram.lite" ||
+            p == "com.zhiliaoapp.musically" || p == "com.ss.android.ugc.trill" ||
+            p == "com.facebook.katana" || p == "com.facebook.lite" ||
+            p == "com.whatsapp" || p == "com.whatsapp.w4b" ||
+            p == "com.snapchat.android" || p == "com.twitter.android" ||
+            p == "com.google.android.youtube" || p == "com.facebook.orca" ||
+            p == "com.telegram.messenger" || p == "org.telegram.messenger" ||
+            p == "com.discord" || p == "com.reddit.frontpage" ||
+            p == "com.netflix.mediaclient" || p == "tv.twitch.android.app" ||
+            p == "com.bereal.ft" ||
+            p.contains("tiktok") || p.contains("instagram") ||
+            p.contains("facebook") || p.contains("snapchat") ||
+            p.contains("twitter") -> "SOCIAL_MEDIA"
+
+            // Apuestas/Casino (paquetes específicos + keywords)
+            p == "com.betfair.exchange" || p == "com.betway.android" ||
+            p == "com.williamhill.sport" || p == "air.com.888holdemnlite" ||
+            p == "com.unibet.android" || p == "eu.bwin.mobile" ||
+            p == "com.ladbrokes.android" || p == "com.paddy.power" ||
+            p == "com.pokerstars.eu" || p == "com.pokerstars.mobile" ||
+            p == "com.betsson.android" || p == "com.entain.betwaymobile" ||
+            p.contains("bet365") || p.contains("betway") || p.contains("sportingbet") ||
+            p.contains("casino") || p.contains("gambling") || p.contains("poker") ||
+            (p.contains("bet") && !p.startsWith("com.android")) -> "GAMBLING"
+
+            // Videojuegos populares entre menores
+            p == "com.roblox.client" || p == "com.mojang.minecraftpe" ||
+            p == "com.supercell.clashofclans" || p == "com.supercell.clashroyale" ||
+            p == "com.brawlstars" || p == "com.supercell.brawlstars" ||
+            p == "com.epicgames.fortnite" || p == "com.garena.free.fire.northamerica" ||
+            p == "com.activision.callofduty.shooter" || p == "com.ea.gp.fifamobile" ||
+            p == "com.nintendo.zaaa" || p == "com.pearlabyss.blackdesertm" ||
+            p == "com.devsisters.ck" || p == "com.innersloth.spacemafia" ||
+            p == "com.supercell.hayday" ||
+            // Rovio (Angry Birds, Dream Blast, etc.)
+            p.startsWith("com.rovio.") ||
+            // Puzzle / trivial / quizzes
+            p == "com.n3twork.tetris" || p == "com.etermax.preguntados2" ||
+            p == "com.etermax.preguntados" || p == "com.ea.game.trivial_pursuit_row" ||
+            // Candy Crush y saga King
+            p.startsWith("com.king.") ||
+            // Casual / tiempo infinito
+            p == "com.kiloo.subwaysurf" || p == "com.halfbrick.fruitninja" ||
+            p == "com.halfbrick.fruitninjafree" ||
+            // PEGI 16+ / violentos o muy adictivos
+            p == "com.rockstargames.gtasa" || p == "com.rockstargames.bully" ||
+            p == "com.tencent.ig" || p == "com.wb.goog.mkx.mobile" ||
+            p == "com.wb.goog.mk11" || p == "com.mihoyo.genshinimpact" ||
+            p == "com.bhvr.deadbydaylightmobile" -> "GAMING"
+
+            // Contenido adulto
+            p.contains("porn") || p.contains("sex") && !p.startsWith("com.android") ||
+            p.contains("xxx") || p.contains("adult") && !p.startsWith("com.android") ||
+            p.contains("erotic") -> "ADULT"
+
+            else -> "UNKNOWN"
+        }
     }
 
     // ==================== PACTO DIGITAL FAMILIAR ====================

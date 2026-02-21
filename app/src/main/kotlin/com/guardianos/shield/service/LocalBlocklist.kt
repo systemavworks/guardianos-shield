@@ -41,12 +41,17 @@ object LocalBlocklist {
         "facebook.com", "www.facebook.com", "m.facebook.com", "fb.com",
         "instagram.com", "www.instagram.com", "m.instagram.com",
         "tiktok.com", "www.tiktok.com", "m.tiktok.com",
-        "twitter.com", "www.twitter.com", "m.twitter.com", "x.com",
-        "discord.com", "www.discord.com",
+        "twitter.com", "www.twitter.com", "m.twitter.com", "x.com", "www.x.com",
+        "discord.com", "www.discord.com", "discordapp.com",
         "snapchat.com", "www.snapchat.com",
-        "reddit.com", "www.reddit.com",
+        "reddit.com", "www.reddit.com", "old.reddit.com",
         "whatsapp.com", "web.whatsapp.com",
-        "telegram.org", "web.telegram.org"
+        "telegram.org", "web.telegram.org",
+        "twitch.tv", "www.twitch.tv", "m.twitch.tv",
+        "bereal.com", "www.bereal.com",
+        "pinterest.com", "www.pinterest.com", "es.pinterest.com",
+        "youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be",
+        "linkedin.com", "www.linkedin.com", "es.linkedin.com"
     )
 
     suspend fun isBlocked(domain: String, repository: GuardianRepository): Boolean {

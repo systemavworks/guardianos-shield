@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    overlay_blocker.xml — Pantalla de bloqueo via WindowManager
+    Se infla directamente por AppBlockerAccessibilityService (no Activity).
+    NO usar ?attr/colorPrimary ni colores de tema — solo valores hardcoded/@color.
+    Usa LinearLayout para no requerir constraintlayout como dependencia.
+
+    IDs usados desde configurarOverlayView():
+      tv_titulo, tv_modo, tv_app_name, tv_horario, btn_ir_inicio, btn_pedir_permiso, tv_racha
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E6000000"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Icono de escudo -->
+    <ImageView
+        android:id="@+id/iv_shield"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:src="@drawable/ic_shield"
+        android:tint="#FFFFFF"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Título principal -->
+    <TextView
+        android:id="@+id/tv_titulo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="App Bloqueada"
+        android:textColor="#FFFFFF"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp" />
+
+    <!-- Modo de bloqueo (LOCKED / CAUTION) — actualizado desde código -->
+    <TextView
+        android:id="@+id/tv_modo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🔴 Bloqueo Total"
+        android:textColor="#FF5252"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Nombre de la app bloqueada (relleno desde código) -->
+    <TextView
+        android:id="@+id/tv_app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="—"
+        android:textColor="#BBDEFB"
+        android:textSize="18sp"
+        android:layout_marginBottom="10dp" />
+
+    <!-- Horario permitido (se oculta si scheduleEnabled=false) -->
+    <TextView
+        android:id="@+id/tv_horario"
+        android:layout_width="280dp"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#80FFFFFF"
+        android:textSize="13sp"
+        android:gravity="center"
+        android:visibility="gone"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Botón principal: ir al inicio (Home) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_ir_inicio"
+        android:layout_width="240dp"
+        android:layout_height="52dp"
+        android:text="Ir al inicio"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#1565C0"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Botón secundario: solicitar permiso parental -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_pedir_permiso"
+        android:layout_width="240dp"
+        android:layout_height="52dp"
+        android:text="Pedir permiso al padre"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#37474F"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Racha actual del usuario -->
+    <TextView
+        android:id="@+id/tv_racha"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🔥 0 días de racha"
+        android:textColor="#80FFFFFF"
+        android:textSize="13sp" />
+
+</LinearLayout>

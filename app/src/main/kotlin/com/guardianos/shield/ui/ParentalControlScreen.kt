@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.guardianos.shield.data.UserProfileEntity
 import java.util.*
@@ -48,14 +49,18 @@ fun ParentalControlScreen(
             parentalPin = "",
             restrictionLevel = "MEDIUM",
             isActive = true,
-            startTimeMinutes = 480,
-            endTimeMinutes = 1260,
+            startTimeMinutes = 900,  // 15:00 — llegan del colegio
+            endTimeMinutes = 1260,   // 21:00 — hora de dormir
             createdAt = System.currentTimeMillis()
         )) 
     }
     
     var startTime by remember { mutableStateOf(profile.startTimeMinutes) }
     var endTime by remember { mutableStateOf(profile.endTimeMinutes) }
+    var weekendStartTime by remember { mutableStateOf(profile.weekendStartTimeMinutes) }
+    var weekendEndTime by remember { mutableStateOf(profile.weekendEndTimeMinutes) }
+    var schoolStartTime by remember { mutableStateOf(profile.schoolStartTimeMinutes) }
+    var schoolEndTime by remember { mutableStateOf(profile.schoolEndTimeMinutes) }
 
     // ── Dialogs premium gate ───────────────────────────────────────────────
     var showScheduleGate by remember { mutableStateOf(false) }
@@ -194,6 +199,126 @@ fun ParentalControlScreen(
                             startTime = startTime,
                             endTime = endTime
                         )
+
+                        // ── Horario fin de semana ────────────────────────────────────
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "📅 Horario diferente el fin de semana",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = if (profile.weekendScheduleEnabled)
+                                        "Sáb y Dom: ${weekendStartTime/60}:%02d – ${weekendEndTime/60}:%02d".format(
+                                            weekendStartTime%60, weekendEndTime%60)
+                                    else "Mismo horario que entre semana",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = profile.weekendScheduleEnabled,
+                                onCheckedChange = { enabled ->
+                                    profile = profile.copy(weekendScheduleEnabled = enabled)
+                                    onProfileUpdate(profile)
+                                }
+                            )
+                        }
+
+                        if (profile.weekendScheduleEnabled) {
+                            TimeSelector(
+                                label = "Fin de semana: desde las",
+                                currentTime = weekendStartTime,
+                                onTimeSelected = { time ->
+                                    weekendStartTime = time
+                                    profile = profile.copy(weekendStartTimeMinutes = time)
+                                    onProfileUpdate(profile)
+                                }
+                            )
+                            TimeSelector(
+                                label = "Fin de semana: hasta las",
+                                currentTime = weekendEndTime,
+                                onTimeSelected = { time ->
+                                    weekendEndTime = time
+                                    profile = profile.copy(weekendEndTimeMinutes = time)
+                                    onProfileUpdate(profile)
+                                }
+                            )
+                        }
+
+                        // ── Bloqueo durante el horario del cole (L-V) ────────────
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "🏫 Bloquear móvil en el colegio (Lun–Vie)",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = if (profile.schoolScheduleEnabled)
+                                        "Bloqueado de ${schoolStartTime/60}:%02d a ${schoolEndTime/60}:%02d".format(
+                                            schoolStartTime%60, schoolEndTime%60)
+                                    else "No se bloquea en horas lectivas",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (profile.schoolScheduleEnabled)
+                                        MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = profile.schoolScheduleEnabled,
+                                onCheckedChange = { enabled ->
+                                    profile = profile.copy(schoolScheduleEnabled = enabled)
+                                    onProfileUpdate(profile)
+                                }
+                            )
+                        }
+
+                        if (profile.schoolScheduleEnabled) {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "⚠️ El móvil quedará bloqueado durante estas horas de lunes a viernes, independientemente del horario libre configurado arriba.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.padding(10.dp)
+                                )
+                            }
+                            TimeSelector(
+                                label = "Entrada al cole",
+                                currentTime = schoolStartTime,
+                                onTimeSelected = { time ->
+                                    schoolStartTime = time
+                                    profile = profile.copy(schoolStartTimeMinutes = time)
+                                    onProfileUpdate(profile)
+                                }
+                            )
+                            TimeSelector(
+                                label = "Salida del cole",
+                                currentTime = schoolEndTime,
+                                onTimeSelected = { time ->
+                                    schoolEndTime = time
+                                    profile = profile.copy(schoolEndTimeMinutes = time)
+                                    onProfileUpdate(profile)
+                                }
+                            )
+                        }
                     }
                 } else {
                     Card(
@@ -215,6 +340,107 @@ fun ParentalControlScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color(0xFF6C757D)
                             )
+                        }
+                    }
+                }
+            }
+
+            // ── Bloqueo por categoría ─────────────────────────────────────────────
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Rounded.Block,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            Text(
+                                text = "Bloqueo por categoría",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Text(
+                            text = "Estas apps se bloquean siempre, independientemente del horario configurado.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                        )
+
+                        // Contenido adulto
+                        CategoryBlockRow(
+                            emoji = "🔞",
+                            titulo = "Contenido adulto",
+                            subtitulo = "Apps y webs con contenido para adultos",
+                            checked = profile.blockAdultContent,
+                            onCheckedChange = {
+                                profile = profile.copy(blockAdultContent = it)
+                                onProfileUpdate(profile)
+                            }
+                        )
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+
+                        // Apuestas y casino
+                        CategoryBlockRow(
+                            emoji = "🎰",
+                            titulo = "Apuestas y casino",
+                            subtitulo = "Betway, PokerStars, casinos online…",
+                            checked = profile.blockGambling,
+                            onCheckedChange = {
+                                profile = profile.copy(blockGambling = it)
+                                onProfileUpdate(profile)
+                            }
+                        )
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+
+                        // Redes sociales
+                        CategoryBlockRow(
+                            emoji = "📱",
+                            titulo = "Redes sociales y mensajería",
+                            subtitulo = "TikTok, Instagram, WhatsApp, Discord…",
+                            checked = profile.blockSocialMedia,
+                            onCheckedChange = {
+                                profile = profile.copy(blockSocialMedia = it)
+                                onProfileUpdate(profile)
+                            }
+                        )
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 6.dp))
+
+                        // Videojuegos
+                        CategoryBlockRow(
+                            emoji = "🎮",
+                            titulo = "Videojuegos",
+                            subtitulo = "Angry Birds, Fortnite, Roblox, Candy Crush, GTA, PUBG\u2026 No afecta a apps educativas.",
+                            checked = profile.blockGaming,
+                            onCheckedChange = {
+                                profile = profile.copy(blockGaming = it)
+                                onProfileUpdate(profile)
+                            }
+                        )
+
+                        if (profile.blockGaming) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "🏧 Apps educativas siempre permitidas: Duolingo, Khan Academy, YouTube Kids, Toca Boca, Scratch, DragonBox y otras no se bloquean aunque este ajuste esté activado. Si usas horarios, todas las apps (incluidas las educativas) se pausan fuera del tiempo permitido.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    modifier = Modifier.padding(10.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -247,9 +473,9 @@ fun ParentalControlScreen(
                         }
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            text = "• Los horarios se aplican al reiniciar la app\n" +
-                                   "• Para bloqueo en tiempo real, usa el \"Modo Recomendado\" (DNS Cloudflare Family)\n" +
-                                   "• El PIN parental protege estos ajustes",
+                            text = "• Los horarios se aplican en tiempo real sin reiniciar la app\n" +
+                                   "• El filtrado DNS actúa a nivel de red (CleanBrowsing Adult Filter) en Modo Recomendado y Avanzado\n" +
+                                   "• El PIN parental protege estos ajustes contra cambios no autorizados",
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -536,5 +762,42 @@ private fun CurrentScheduleStatus(
                 )
             }
         }
+    }
+}
+@Composable
+private fun CategoryBlockRow(
+    emoji: String,
+    titulo: String,
+    subtitulo: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = emoji,
+            fontSize = 20.sp,
+            modifier = Modifier.padding(end = 10.dp)
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = titulo,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = subtitulo,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
     }
 }

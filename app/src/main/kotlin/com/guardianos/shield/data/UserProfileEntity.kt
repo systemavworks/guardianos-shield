@@ -71,11 +71,42 @@ data class UserProfileEntity(
     val scheduleEnabled: Boolean = false,
 
     // Hora de inicio permitida en minutos desde medianoche (0 = 00:00)
-    // Ejemplos: 480 = 08:00, 540 = 09:00
-    val startTimeMinutes: Int = 480,   // por defecto 8:00
+    // 900 = 15:00 — a partir de cuando el menor llega del colegio
+    val startTimeMinutes: Int = 900,   // por defecto 15:00
 
     // Hora de fin permitida en minutos desde medianoche (1439 = 23:59)
     val endTimeMinutes: Int = 1260,    // por defecto 21:00
+
+    // ──────────────────────────────────────────────
+    //    HORARIO FIN DE SEMANA (sábado y domingo)
+    // ──────────────────────────────────────────────
+
+    // Si false, los fines de semana se aplica el horario de semana normal
+    val weekendScheduleEnabled: Boolean = false,
+
+    // Hora de inicio permitida el fin de semana en minutos desde medianoche
+    // 600 = 10:00 — pueden levantarse más tarde y tener más tiempo libre
+    val weekendStartTimeMinutes: Int = 600,  // por defecto 10:00
+
+    // Hora de fin permitida el fin de semana en minutos desde medianoche
+    // 1320 = 22:00 — se pueden acostar una hora más tarde que entre semana
+    val weekendEndTimeMinutes: Int = 1320,   // por defecto 22:00
+
+    // ──────────────────────────────────────────────
+    //    HORARIO DE COLEGIO (bloqueo L-V durante horas lectivas)
+    // ──────────────────────────────────────────────
+
+    // Si true, bloquea el móvil de lunes a viernes durante las horas del colegio,
+    // independientemente del horario libre configurado.
+    val schoolScheduleEnabled: Boolean = false,
+
+    // Hora de entrada al colegio en minutos desde medianoche
+    // 540 = 09:00 (hora habitual de entrada en colegios españoles)
+    val schoolStartTimeMinutes: Int = 540,  // 09:00
+
+    // Hora de salida del colegio en minutos desde medianoche
+    // 840 = 14:00 (hora habitual de salida en colegios españoles)
+    val schoolEndTimeMinutes: Int = 840,    // 14:00
 
     // ──────────────────────────────────────────────
     //          CATEGORÍAS DE BLOQUEO ACTIVAS
@@ -125,7 +156,17 @@ data class UserProfileEntity(
 
     // Minutos disponibles hoy para el modo TRUSTED (se resetea cada día a 60).
     // Cuando llega a 0, el modo TRUSTED se comporta como LOCKED hasta mañana.
-    val minutosAutonomiaDiarios: Int = 60
+    val minutosAutonomiaDiarios: Int = 60,
+
+    // ──────────────────────────────────────────────
+    //   RECOMPENSA DEL PADRE — BONUS GAMING
+    // ──────────────────────────────────────────────
+
+    // Minutos de gaming extra concedidos manualmente por el padre.
+    // Funciona en CUALQUIER nivel de confianza (incluido LOCKED).
+    // Solo se aplica a apps con categoría GAMING. Se consume minuto a minuto.
+    // El padre puede otorgar hasta 120 min/día. Se resetea a 0 cada noche.
+    val minutosGamingExtra: Int = 0
 ) {
     /**
      * Propiedad calculada (no persistida por Room) — nivel de confianza actual.
@@ -147,22 +188,44 @@ data class UserProfileEntity(
         val now = java.util.Calendar.getInstance()
         val currentMinutes = now.get(java.util.Calendar.HOUR_OF_DAY) * 60 +
                             now.get(java.util.Calendar.MINUTE)
-        
-        val currentTime = String.format("%02d:%02d", 
-            now.get(java.util.Calendar.HOUR_OF_DAY), 
-            now.get(java.util.Calendar.MINUTE))
-        val startTime = String.format("%02d:%02d", startTimeMinutes / 60, startTimeMinutes % 60)
-        val endTime = String.format("%02d:%02d", endTimeMinutes / 60, endTimeMinutes % 60)
+        val dayOfWeek = now.get(java.util.Calendar.DAY_OF_WEEK) // 1=Dom, 7=Sáb
+        val isWeekend = dayOfWeek == java.util.Calendar.SATURDAY ||
+                        dayOfWeek == java.util.Calendar.SUNDAY
 
-        val result = if (startTimeMinutes <= endTimeMinutes) {
+        // ── Capa 1: horario de colegio (L-V, tiene prioridad) ───────────────
+        if (!isWeekend && schoolScheduleEnabled) {
+            val inSchool = currentMinutes in schoolStartTimeMinutes..schoolEndTimeMinutes
+            if (inSchool) {
+                val h = currentMinutes / 60; val m = currentMinutes % 60
+                android.util.Log.d("UserProfile",
+                    "🏫 BLOQUEADO horario cole: %02d:%02d (cole %02d:%02d–%02d:%02d)".format(
+                        h, m,
+                        schoolStartTimeMinutes/60, schoolStartTimeMinutes%60,
+                        schoolEndTimeMinutes/60,   schoolEndTimeMinutes%60))
+                return false
+            }
+        }
+
+        // ── Capa 2: ventana de tiempo libre (semana o fin de semana) ────────
+        val startMin = if (isWeekend && weekendScheduleEnabled) weekendStartTimeMinutes else startTimeMinutes
+        val endMin   = if (isWeekend && weekendScheduleEnabled) weekendEndTimeMinutes   else endTimeMinutes
+        val tipoHorario = if (isWeekend && weekendScheduleEnabled) "fin de semana" else "semana"
+
+        val currentTime = String.format("%02d:%02d",
+            now.get(java.util.Calendar.HOUR_OF_DAY),
+            now.get(java.util.Calendar.MINUTE))
+        val startTime = String.format("%02d:%02d", startMin / 60, startMin % 60)
+        val endTime   = String.format("%02d:%02d", endMin   / 60, endMin   % 60)
+
+        val result = if (startMin <= endMin) {
             // Horario normal (ej: 8:00 a 21:00)
-            currentMinutes in startTimeMinutes..endTimeMinutes
+            currentMinutes in startMin..endMin
         } else {
             // Horario cruzado medianoche (ej: 22:00 a 08:00)
-            currentMinutes >= startTimeMinutes || currentMinutes <= endTimeMinutes
+            currentMinutes >= startMin || currentMinutes <= endMin
         }
-        
-        android.util.Log.d("UserProfile", "⏰ Verificando horario: actual=$currentTime, rango=$startTime-$endTime, dentro=$result")
+
+        android.util.Log.d("UserProfile", "⏰ Verificando horario [$tipoHorario]: actual=$currentTime, rango=$startTime-$endTime, dentro=$result")
         return result
     }
 

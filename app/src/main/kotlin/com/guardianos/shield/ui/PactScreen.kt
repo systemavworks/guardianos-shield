@@ -88,6 +88,17 @@ fun PactScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            Icons.Rounded.ArrowBack,
+                            contentDescription = "Volver",
+                            tint = Color.White
+                        )
+                    }
+                    Spacer(Modifier.width(6.dp))
                     Icon(
                         Icons.Rounded.Handshake,
                         contentDescription = null,
@@ -154,10 +165,15 @@ fun PactScreen(
                                 trustLevel = perfil.trustLevel,
                                 rachaActual = perfil.rachaActual,
                                 minutosRestantes = perfil.minutosAutonomiaDiarios,
+                                minutosGamingExtra = perfil.minutosGamingExtra,
                                 onForzarReset = {
-                                    scope.launch {
-                                        repository.resetearMinutosAutonomia()
-                                    }
+                                    scope.launch { repository.resetearMinutosAutonomia() }
+                                },
+                                onOtorgarGaming = { minutos ->
+                                    scope.launch { repository.otorgarTiempoGaming(minutos) }
+                                },
+                                onAdelantar = {
+                                    scope.launch { repository.adelantarNivel() }
                                 },
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
@@ -510,7 +526,6 @@ private fun DialogoNuevaPeticion(
                 // Selector de tipo
                 listOf(
                     "TIME_EXTENSION" to "⏱️ Más tiempo de pantalla",
-                    "APP_UNLOCK" to "📱 Desbloquear una app",
                     "SITE_UNLOCK" to "🌐 Desbloquear un sitio web"
                 ).forEach { (tipo, etiqueta) ->
                     Row(
@@ -528,7 +543,6 @@ private fun DialogoNuevaPeticion(
 
                 val labelValor = when (tipoSeleccionado) {
                     "TIME_EXTENSION" -> "¿Cuántos minutos extra?"
-                    "APP_UNLOCK" -> "¿Qué app? (nombre)"
                     else -> "¿Qué sitio web?"
                 }
 
@@ -742,7 +756,10 @@ internal fun TrustLevelCard(
     trustLevel: TrustLevel,
     rachaActual: Int,
     minutosRestantes: Int,
+    minutosGamingExtra: Int = 0,
     onForzarReset: () -> Unit,
+    onOtorgarGaming: (Int) -> Unit,
+    onAdelantar: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val (colorNivel, descripcion) = when (trustLevel) {
@@ -762,6 +779,10 @@ internal fun TrustLevelCard(
         TrustLevel.TRUSTED -> 1f
     }.coerceIn(0f, 1f)
 
+    // Estados de diálogos
+    var mostrarDialogoGaming by remember { mutableStateOf(false) }
+    var mostrarDialogoNivel   by remember { mutableStateOf(false) }
+
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
@@ -771,6 +792,7 @@ internal fun TrustLevelCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            // ── Cabecera: emoji + nombre + racha ───────────────────────────
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(trustLevel.emoji, fontSize = 28.sp)
                 Spacer(Modifier.width(12.dp))
@@ -795,6 +817,7 @@ internal fun TrustLevelCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
+            // ── Barra de progreso al siguiente nivel ───────────────────────
             if (trustLevel != TrustLevel.TRUSTED) {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(
@@ -835,6 +858,82 @@ internal fun TrustLevelCard(
                 }
             }
 
+            // ── Indicador bonus gaming (si hay minutos activos) ─────────────
+            if (minutosGamingExtra > 0) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF1565C0).copy(alpha = 0.10f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF1565C0).copy(alpha = 0.35f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("🎮", fontSize = 18.sp)
+                        Spacer(Modifier.width(8.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Bonus gaming activo hoy",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFF1565C0)
+                            )
+                            Text(
+                                "$minutosGamingExtra min disponibles — se gastan minuto a minuto",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+
+            HorizontalDivider(color = colorNivel.copy(alpha = 0.15f))
+
+            // ── Botones de acción del padre ─────────────────────────────
+            Text(
+                "Acciones del padre",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            // Botón: dar tiempo de gaming
+            OutlinedButton(
+                onClick = { mostrarDialogoGaming = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF1565C0)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF1565C0).copy(alpha = 0.5f)),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Icon(Icons.Rounded.SportsEsports, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    if (minutosGamingExtra > 0) "🎮 Ampliar tiempo de gaming ($minutosGamingExtra min activos)"
+                    else "🎮 Dar tiempo de gaming hoy",
+                    fontSize = 13.sp
+                )
+            }
+
+            // Botón: adelantar nivel (solo si no es TRUSTED)
+            if (trustLevel != TrustLevel.TRUSTED) {
+                val nivelDestino = if (trustLevel == TrustLevel.LOCKED) "Explorador 🟡" else "Guardián 🟢"
+                OutlinedButton(
+                    onClick = { mostrarDialogoNivel = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = colorNivel),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colorNivel.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(Icons.Rounded.EmojiEvents, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("🏅 Ascender a $nivelDestino (adelantar nivel)", fontSize = 13.sp)
+                }
+            }
+
+            // Botón: resetear minutos
             OutlinedButton(
                 onClick = onForzarReset,
                 modifier = Modifier.fillMaxWidth(),
@@ -847,5 +946,121 @@ internal fun TrustLevelCard(
                 Text("Resetear minutos de hoy", fontSize = 13.sp)
             }
         }
+    }
+
+    // ── Diálogo: dar tiempo de gaming ───────────────────────────────
+    if (mostrarDialogoGaming) {
+        var minutosSeleccionados by remember { mutableIntStateOf(30) }
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoGaming = false },
+            icon = { Text("🎮", fontSize = 28.sp) },
+            title = { Text("Dar tiempo de gaming", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        "Selecciona cuántos minutos de gaming extra concedes hoy. ¿Cuánto tiempo quieres dar?",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    // Presets de tiempo
+                    val opciones = listOf(15, 30, 60, 90)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        opciones.forEach { min ->
+                            FilterChip(
+                                modifier = Modifier.weight(1f),
+                                selected = minutosSeleccionados == min,
+                                onClick = { minutosSeleccionados = min },
+                                label = {
+                                    Text(
+                                        "${min}m",
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textAlign = TextAlign.Center,
+                                        fontSize = 13.sp
+                                    )
+                                }
+                            )
+                        }
+                    }
+                    if (minutosGamingExtra > 0) {
+                        Text(
+                            "Ya tiene $minutosGamingExtra min activos. Se sumarán (máx. 120 min/día).",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF1565C0)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    onOtorgarGaming(minutosSeleccionados)
+                    mostrarDialogoGaming = false
+                }) {
+                    Text("Conceder $minutosSeleccionados min")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogoGaming = false }) { Text("Cancelar") }
+            }
+        )
+    }
+
+    // ── Diálogo: adelantar nivel ──────────────────────────────────
+    if (mostrarDialogoNivel) {
+        val nivelActual = trustLevel.etiqueta
+        val nivelDestino = if (trustLevel == TrustLevel.LOCKED) "Explorador" else "Guardián"
+        val efectos = if (trustLevel == TrustLevel.LOCKED)
+            "El menor pasará a Modo Precaución: verá una cuenta atrás de 15 s antes de abrir apps. Ya no es bloqueo duro."
+        else
+            "El menor pasará a Zona de Confianza: acceso libre con registro (60 min/día). El sistema sigue monitorizando."
+        AlertDialog(
+            onDismissRequest = { mostrarDialogoNivel = false },
+            icon = { Text("🏅", fontSize = 28.sp) },
+            title = { Text("Ascender a $nivelDestino", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Estás reconociendo el esfuerzo de $rachaActual días bien hechos.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        efectos,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFF1B5E20).copy(alpha = 0.08f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E7D32).copy(alpha = 0.3f))
+                    ) {
+                        Text(
+                            "ℹ️ Esto sólo sube UN nivel. La racha seguirá creciendo con normalidad.",
+                            modifier = Modifier.padding(10.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF2E7D32)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onAdelantar()
+                        mostrarDialogoNivel = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (trustLevel == TrustLevel.LOCKED) Color(0xFFFBC02D) else Color(0xFF388E3C)
+                    )
+                ) {
+                    Text("⬆️ Ascender a $nivelDestino")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarDialogoNivel = false }) { Text("Cancelar") }
+            }
+        )
     }
 }

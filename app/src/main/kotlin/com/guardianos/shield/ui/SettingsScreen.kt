@@ -1,4 +1,4 @@
-// app/src/main/java/com/guardianos/shield/ui/SettingsScreen.kt
+// app/src/main/kotlin/com/guardianos/shield/ui/SettingsScreen.kt
 package com.guardianos.shield.ui
 
 import android.content.Context
@@ -261,6 +261,14 @@ fun SettingsScreen(
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)); SectionHeader("Información") }
+            item {
+                SettingsActionItem(
+                    icon = Icons.Default.HelpOutline,
+                    title = "Guía de uso",
+                    description = "Primeros pasos y preguntas frecuentes para padres",
+                    onClick = { navController.navigate("help") }
+                )
+            }
             item {
                 SettingsActionItem(
                     icon = Icons.Default.Info,
@@ -746,7 +754,7 @@ fun AboutGuardianDialog(onDismiss: () -> Unit) {
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "v1.1.0 · Build 20260220",
+                            text = "v1.2.0 · Build 20260221",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -782,13 +790,28 @@ fun AboutGuardianDialog(onDismiss: () -> Unit) {
                 )
                 AboutFeatureRow(
                     icon = Icons.Default.Language,
-                    title = "Navegador seguro",
-                    subtitle = "WebView integrado con validación de URLs y página de bloqueo explicativa."
+                    title = "Navegador seguro + SafeSearch triple",
+                    subtitle = "WebView con validación de URLs. SafeSearch activado automáticamente en Google, Bing y YouTube."
                 )
                 AboutFeatureRow(
                     icon = Icons.Default.AppBlocking,
                     title = "Bloqueo de apps · Premium",
                     subtitle = "Impide abrir Instagram, TikTok, etc. fuera del horario permitido mediante accesibilidad."
+                )
+                AboutFeatureRow(
+                    icon = Icons.Default.Category,
+                    title = "Bloqueo por categorías",
+                    subtitle = "Controla por categoría: contenido adulto, apuestas, redes sociales y videojuegos. Las apps educativas (Duolingo, Khan Academy, etc.) nunca se bloquean."
+                )
+                AboutFeatureRow(
+                    icon = Icons.Default.Store,
+                    title = "Play Store fuera de horario",
+                    subtitle = "Bloquea el acceso a Google Play Store fuera del horario permitido para evitar instalaciones no autorizadas."
+                )
+                AboutFeatureRow(
+                    icon = Icons.Default.VpnLock,
+                    title = "Anti-evasión VPN automática",
+                    subtitle = "Detecta y bloquea al instante apps de VPN y proxies (Psiphon, Turbo VPN, Orbot, Hotspot Shield…) y alerta al padre."
                 )
                 AboutFeatureRow(
                     icon = Icons.Default.Schedule,
@@ -800,62 +823,73 @@ fun AboutGuardianDialog(onDismiss: () -> Unit) {
                     title = "Estadísticas e historial",
                     subtitle = "Consulta qué dominios y apps se han bloqueado, con registro completo de actividad."
                 )
-
-                Spacer(modifier = Modifier.height(14.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // ── Primeros pasos ────────────────────────────────────────
-                Text(
-                    text = "PRIMEROS PASOS",
-                    style = MaterialTheme.typography.labelLarge.copy(
-                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                        letterSpacing = 1.5.sp
-                    ),
-                    color = MaterialTheme.colorScheme.primary
+                AboutFeatureRow(
+                    icon = Icons.Default.NotificationsActive,
+                    title = "Resumen semanal para padres",
+                    subtitle = "Cada domingo a las 20:00 recibes un informe con el desglose de bloqueos de la semana: webs, apps, intentos de evasión."
                 )
-                Spacer(modifier = Modifier.height(10.dp))
-
-                val pasos = listOf(
-                    "Activa la VPN desde el panel principal para habilitar el filtro DNS.",
-                    "Configura un PIN en Ajustes → Seguridad para proteger la configuración.",
-                    "Añade apps a bloquear en la sección Gestión de apps.",
-                    "Activa el servicio de accesibilidad (Ajustes → Seguridad Avanzada) para el bloqueo en tiempo real.",
-                    "Revisa el historial y estadísticas desde el Dashboard."
-                )
-                pasos.forEachIndexed { index, paso ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 3.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = "${index + 1}.",
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.width(20.dp)
-                        )
-                        Text(
-                            text = paso,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
 
                 Spacer(modifier = Modifier.height(14.dp))
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 Spacer(modifier = Modifier.height(10.dp))
 
                 // ── Footer ───────────────────────────────────────────────
-                Text(
-                    text = "Desarrollado en Andalucía, España 🇪🇸 · Proyecto open source",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                val ctx = LocalContext.current
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = "Gracias por usar GuardianOS Shield de forma responsable.\nTu confianza es nuestra mayor responsabilidad.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Lock,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = "Sin rastreadores · Sin publicidad · Sin venta de datos",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "🌐 guardianos.es/shield",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clickable { openUrl(ctx, "https://guardianos.es/shield") }
+                            .padding(vertical = 2.dp)
+                    )
+                    Text(
+                        text = "✉ info@guardianos.es",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .clickable { openUrl(ctx, "mailto:info@guardianos.es") }
+                            .padding(vertical = 2.dp)
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Desarrollado en Andalucía, España 🇪🇸 · Proyecto open source",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
             }
         },
         confirmButton = {

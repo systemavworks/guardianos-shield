@@ -40,8 +40,36 @@ class UsageStatsMonitor(
     private val browserPackages = setOf(
         "com.android.chrome", "com.chrome.beta", "com.chrome.dev", "com.chrome.canary",
         "org.mozilla.firefox", "org.mozilla.firefox_beta", "com.opera.browser",
+        "com.opera.mini.native",           // Opera Mini
+        "com.opera.gx",                    // Opera GX
+        "com.UCMobile.intl", "com.UCMobile", // UC Browser
         "com.brave.browser", "com.microsoft.emmx", "com.sec.android.app.sbrowser",
-        "com.android.browser", "com.duckduckgo.mobile.android"
+        "com.android.browser", "com.duckduckgo.mobile.android",
+        "org.torproject.torbrowser",        // Tor Browser
+        "com.puffin.browser"               // Puffin
+    )
+
+    // Apps de evasión: VPN, proxies y tunneling que anulan el filtro DNS
+    // Se bloquean SIEMPRE, independientemente de cualquier toggle de perfil
+    private val vpnBypassPackages = setOf(
+        "org.torproject.torbrowser",        // Tor Browser
+        "org.torproject.android",           // Orbot (Tor proxy)
+        "com.psiphon3",                     // Psiphon VPN
+        "com.psiphon3.subscription",        // Psiphon VPN (Pro)
+        "com.turbo.vpn",                    // Turbo VPN
+        "com.govpn.android",                // GoVPN
+        "free.vpn.unblock.proxy.turbovpn",  // Turbo VPN (alt)
+        "com.northghost.hideme",            // hide.me VPN
+        "com.hotspotshield.android.vpn",    // Hotspot Shield
+        "com.anchorfree.hydravpn",          // Anchor Free Hydra
+        "com.windscribe.vpn",               // Windscribe
+        "com.protonvpn.android",            // ProtonVPN
+        "com.vpnmaster.android",            // VPN Master
+        "com.secure.vpn.proxy.freevpn",    // Free VPN Proxy
+        "com.cloudflare.onedotonedotonedotone", // 1.1.1.1 (Cloudflare Warp)
+        "com.cloudflare.cloudflareandroid", // Cloudflare Warp
+        "com.ultrasurf.us",                 // Ultrasurf
+        "com.lookup.anonymous.proxy"        // Anonymous Proxy genérico
     )
     
     private val socialMediaPackages = setOf(
@@ -68,7 +96,80 @@ class UsageStatsMonitor(
         "com.spotify.music",               // Spotify
         "com.netflix.mediaclient",         // Netflix
         "com.amazon.avod.thirdpartyclient", // Prime Video
-        "tv.twitch.android.app"            // Twitch
+        "tv.twitch.android.app",           // Twitch
+        "com.bereal.ft"                    // BeReal
+    )
+
+    // Tiendas de apps — bloqueadas fuera de horario para evitar instalaciones no autorizadas
+    private val appStorePackages = setOf(
+        "com.android.vending",              // Google Play Store
+        "com.huawei.appmarket",             // Huawei AppGallery
+        "com.samsung.android.app.samsungapps" // Samsung Galaxy Store
+    )
+
+    // Paquetes de apuestas/casino
+    private val gamblingPackages = setOf(
+        "com.betfair.exchange",            // Betfair
+        "com.betway.android",              // Betway
+        "com.williamhill.sport",           // William Hill
+        "air.com.888holdemnlite",          // 888 Poker
+        "com.unibet.android",              // Unibet
+        "eu.bwin.mobile",                  // Bwin
+        "com.ladbrokes.android",           // Ladbrokes
+        "com.paddy.power",                 // Paddy Power
+        "com.pokerstars.eu",               // PokerStars EU
+        "com.pokerstars.mobile",           // PokerStars
+        "com.betsson.android",             // Betsson
+        "com.entain.betwaymobile",         // Betway (Entain)
+        "com.sportingbet.android",         // Sportingbet
+        "com.kiziapp.betplay"              // BetPlay
+    )
+
+    // Videojuegos populares entre menores
+    private val gamingPackages = setOf(
+        // Multijugador online / Battle Royale
+        "com.roblox.client",               // Roblox
+        "com.mojang.minecraftpe",           // Minecraft
+        "com.supercell.clashofclans",       // Clash of Clans
+        "com.supercell.clashroyale",        // Clash Royale
+        "com.brawlstars",                   // Brawl Stars
+        "com.supercell.brawlstars",         // Brawl Stars (alt)
+        "com.epicgames.fortnite",           // Fortnite
+        "com.garena.free.fire.northamerica", // Free Fire
+        "com.activision.callofduty.shooter", // Call of Duty Mobile
+        "com.ea.gp.fifamobile",             // EA FC Mobile
+        "com.nintendo.zaaa",                // Mario Kart Tour
+        "com.pearlabyss.blackdesertm",      // Black Desert Mobile
+        "com.devsisters.ck",                // Cookie Run: Kingdom
+        "com.innersloth.spacemafia",        // Among Us
+        "com.supercell.hayday",             // Hay Day
+        // Rovio (Angry Birds, Dream Blast, etc.)
+        "com.rovio.baba",                   // Angry Birds 2
+        "com.rovio.dreamblast",             // Angry Birds Dream Blast
+        "com.rovio.angrybirds",             // Angry Birds Friends
+        "com.rovio.angrybirdsreloaded",     // Angry Birds Reloaded
+        "com.rovio.abgo2",                  // Angry Birds Go!
+        "com.rovio.angrybirdsstarwars2",    // Angry Birds Star Wars II
+        // Puzzle / trivial / quizzes
+        "com.n3twork.tetris",               // Tetris (oficial)
+        "com.etermax.preguntados2",         // Preguntados 2
+        "com.etermax.preguntados",          // Preguntados
+        "com.ea.game.trivial_pursuit_row",  // Trivial Pursuit
+        "com.king.candycrushsaga",          // Candy Crush Saga
+        "com.king.candycrushsodasaga",      // Candy Crush Soda
+        "com.king.candycrushjellysaga",     // Candy Crush Jelly
+        // Casual / tiempo infinito
+        "com.kiloo.subwaysurf",             // Subway Surfers
+        "com.halfbrick.fruitninja",         // Fruit Ninja
+        "com.halfbrick.fruitninjafree",     // Fruit Ninja Free
+        // PEGI 16+ / violentos o adictivos para menores
+        "com.rockstargames.gtasa",          // GTA: San Andreas
+        "com.rockstargames.bully",          // Bully: Aniversario
+        "com.tencent.ig",                   // PUBG Mobile
+        "com.wb.goog.mkx.mobile",           // Mortal Kombat X
+        "com.wb.goog.mk11",                 // Mortal Kombat 11
+        "com.miHoYo.GenshinImpact",         // Genshin Impact
+        "com.bhvr.deadbydaylightmobile"     // Dead by Daylight
     )
 
     fun startMonitoring() {
@@ -123,9 +224,11 @@ class UsageStatsMonitor(
 
             val foregroundApp = stats.maxByOrNull { it.lastTimeUsed }?.packageName ?: return@withLock
 
-            if (foregroundApp.startsWith("android.") || 
-                foregroundApp.startsWith("com.android.") || 
-                foregroundApp == context.packageName) return@withLock
+            // Excluir sistema Android excepto apps de usuario bajo com.android.* que queremos monitorizar
+            val isSystemPackage = foregroundApp.startsWith("android.") ||
+                (foregroundApp.startsWith("com.android.") && foregroundApp !in appStorePackages) ||
+                foregroundApp == context.packageName
+            if (isSystemPackage) return@withLock
 
             // Evitar procesar la misma app repetidamente
             if (foregroundApp == lastDetectedApp) return@withLock
@@ -133,8 +236,16 @@ class UsageStatsMonitor(
 
             if (foregroundApp in browserPackages) {
                 handleBrowserAttempt(foregroundApp)
+            } else if (foregroundApp in vpnBypassPackages) {
+                handleCategoryAttempt(foregroundApp, "BYPASS_TOOL", "VPN/Proxy de evasión")
+            } else if (foregroundApp in appStorePackages) {
+                handleAppStoreAttempt(foregroundApp)
             } else if (foregroundApp in socialMediaPackages) {
                 handleSocialMediaAttempt(foregroundApp)
+            } else if (foregroundApp in gamblingPackages) {
+                handleCategoryAttempt(foregroundApp, "GAMBLING", "Apuestas/Casino")
+            } else if (foregroundApp in gamingPackages) {
+                handleCategoryAttempt(foregroundApp, "GAMING", "Videojuego")
             }
         }
     }
@@ -202,6 +313,95 @@ class UsageStatsMonitor(
         }
     }
     
+    /**
+     * Bloquea la tienda de Google Play cuando el menor está fuera del horario permitido.
+     * Evita que instale apps no autorizadas fuera del tiempo de pantalla.
+     */
+    private fun handleAppStoreAttempt(packageName: String) {
+        val currentTime = System.currentTimeMillis()
+        if (lastBlockedApp == packageName && currentTime - lastBlockedTime < MIN_NOTIFICATION_INTERVAL) return
+
+        lastBlockedApp = packageName
+        lastBlockedTime = currentTime
+
+        val appLabel = getAppLabel(packageName)
+
+        repository?.let { repo ->
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val profile = repo.getActiveProfile()
+                    if (profile != null && !profile.isWithinAllowedTime()) {
+                        Log.i("UsageStatsMonitor", "⏰ FUERA DE HORARIO - Bloqueando tienda: $appLabel")
+                        showAppBlockedByScheduleNotification(appLabel)
+                        repo.addBlockedSite(
+                            domain = "$appLabel ($packageName)",
+                            category = "APP_STORE",
+                            threatLevel = 2
+                        )
+                        try {
+                            val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+                            activityManager.killBackgroundProcesses(packageName)
+                        } catch (e: Exception) {
+                            Log.w("UsageStatsMonitor", "⚠️ No se pudo cerrar $appLabel: ${e.message}")
+                        }
+                    } else {
+                        Log.i("UsageStatsMonitor", "✓ Tienda de apps dentro del horario: $appLabel")
+                    }
+                } catch (e: Exception) {
+                    Log.e("UsageStatsMonitor", "Error en handleAppStoreAttempt: ${e.message}")
+                }
+            }
+        }
+    }
+
+    /**
+     * Gestiona una app de apuestas/casino o videojuego detectada en foreground.
+     * Registra en la BD para aparecer en estadísticas. El bloqueo real lo aplica
+     * AppBlockerAccessibilityService (que ahora respeta blockGambling/blockGaming del perfil).
+     */
+    private fun handleCategoryAttempt(packageName: String, category: String, categoryLabel: String) {
+        val currentTime = System.currentTimeMillis()
+        if (lastBlockedApp == packageName && currentTime - lastBlockedTime < MIN_NOTIFICATION_INTERVAL) return
+
+        lastBlockedApp = packageName
+        lastBlockedTime = currentTime
+
+        val appLabel = getAppLabel(packageName)
+
+        repository?.let { repo ->
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val profile = repo.getActiveProfile()
+                    // BYPASS_TOOL siempre se bloquea — alerta urgente al padre
+                    val bloqueadoPorPerfil = when (category) {
+                        "BYPASS_TOOL" -> true
+                        "GAMBLING"    -> profile?.blockGambling ?: true
+                        "GAMING"      -> profile?.blockGaming ?: false
+                        else          -> false
+                    }
+
+                    if (bloqueadoPorPerfil) {
+                        Log.i("UsageStatsMonitor", "⛔ $categoryLabel BLOQUEADO: $appLabel")
+                        repo.addBlockedSite(
+                            domain = "$appLabel ($packageName)",
+                            category = category,
+                            threatLevel = if (category == "BYPASS_TOOL") 10 else 3
+                        )
+                        if (category == "BYPASS_TOOL") {
+                            showBypassToolDetectedNotification(appLabel)
+                        } else {
+                            showAppBlockedByScheduleNotification(appLabel)
+                        }
+                    } else {
+                        Log.i("UsageStatsMonitor", "✓ $categoryLabel permitido (perfil): $appLabel")
+                    }
+                } catch (e: Exception) {
+                    Log.e("UsageStatsMonitor", "Error en handleCategoryAttempt [$category]: ${e.message}")
+                }
+            }
+        }
+    }
+
     private fun handleBrowserAttempt(packageName: String) {
         if (lastBlockedApp == packageName && System.currentTimeMillis() - lastBlockedTime < 30000) return
         
@@ -404,6 +604,26 @@ class UsageStatsMonitor(
         notificationManager.notify(NOTIFICATION_ID_BASE + 2000 + appName.hashCode(), notification)
     }
     
+    // 🚨 Notificación de alerta máxima cuando se detecta una app de evasión VPN/proxy
+    private fun showBypassToolDetectedNotification(appName: String) {
+        createNotificationChannel()
+
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_shield)
+            .setContentTitle("🚨 ¡Intento de evasión detectado!")
+            .setContentText("$appName bloqueada automáticamente")
+            .setStyle(NotificationCompat.BigTextStyle()
+                .bigText("⚠️ El menor intentó abrir: $appName\n\nEsta app puede usarse para eludir el filtro parental. GuardianOS la ha bloqueado automáticamente y ha quedado registrado en el historial."))
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVibrate(longArrayOf(0, 500, 200, 500, 200, 500))
+            .setAutoCancel(false)
+            .build()
+
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(NOTIFICATION_ID_BASE + 9000 + appName.hashCode(), notification)
+    }
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(

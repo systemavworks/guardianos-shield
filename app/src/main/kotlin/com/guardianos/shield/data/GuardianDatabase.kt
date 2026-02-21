@@ -17,7 +17,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         SensitiveAppEntity::class,
         PetitionEntity::class   // ← Pacto Digital Familiar
     ],
-    version = 6,               // ← v5 → v6: TrustFlow minutosAutonomiaDiarios
+    version = 9,               // ← v8 → v9: bonus gaming para recompensas del padre
     exportSchema = false
 )
 abstract class GuardianDatabase : RoomDatabase() {
@@ -72,6 +72,33 @@ abstract class GuardianDatabase : RoomDatabase() {
             }
         }
 
+        /** Migración v6 → v7: añade horario diferenciado para fin de semana */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE user_profiles ADD COLUMN weekendScheduleEnabled INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE user_profiles ADD COLUMN weekendStartTimeMinutes INTEGER NOT NULL DEFAULT 600")
+                database.execSQL("ALTER TABLE user_profiles ADD COLUMN weekendEndTimeMinutes INTEGER NOT NULL DEFAULT 1320")
+            }
+        }
+
+        /** Migración v7 → v8: añade horario de colegio (bloqueo L-V en horas lectivas) */
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE user_profiles ADD COLUMN schoolScheduleEnabled INTEGER NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE user_profiles ADD COLUMN schoolStartTimeMinutes INTEGER NOT NULL DEFAULT 540")  // 09:00
+                database.execSQL("ALTER TABLE user_profiles ADD COLUMN schoolEndTimeMinutes INTEGER NOT NULL DEFAULT 840")    // 14:00
+            }
+        }
+
+        /** Migración v8 → v9: bonus de gaming concedido manualmente por el padre */
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE user_profiles ADD COLUMN minutosGamingExtra INTEGER NOT NULL DEFAULT 0"
+                )
+            }
+        }
+
         fun getDatabase(context: Context): GuardianDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -79,7 +106,7 @@ abstract class GuardianDatabase : RoomDatabase() {
                     GuardianDatabase::class.java,
                     "guardian_shield.db"
                 )
-                    .addMigrations(MIGRATION_4_5, MIGRATION_5_6)
+                    .addMigrations(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                     .fallbackToDestructiveMigration() // fallback solo si la migración falla
                     .build()
                 INSTANCE = instance

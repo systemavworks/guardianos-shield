@@ -4,6 +4,7 @@ package com.guardianos.shield
 import com.guardianos.shield.billing.BillingManager
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 
 // ============= IMPORTS CORREGIDOS Y OPTIMIZADOS =============
 // Icons
@@ -105,13 +106,12 @@ class MainActivity : ComponentActivity() {
     private var blockedCount by mutableStateOf(0)
     private val recentBlocked = mutableStateListOf<BlockedSiteEntity>()
     internal var currentProfile by mutableStateOf<UserProfileEntity?>(null)
-    private var showDnsDialog by mutableStateOf(false)
     private val customFiltersBlacklist = mutableStateListOf<CustomFilterEntity>()
     private val customFiltersWhitelist = mutableStateListOf<CustomFilterEntity>()
     private var showPinForVpnToggle by mutableStateOf(false)
     private var pendingModeChange: ProtectionMode? by mutableStateOf(null)
     private var showPinForModeChange by mutableStateOf(false)
-    
+
     // Servicios
     internal lateinit var repository: GuardianRepository
     internal lateinit var settingsRepository: SettingsRepository
@@ -308,6 +308,50 @@ class MainActivity : ComponentActivity() {
         } else {
             Log.w("MainActivity", "⚠️ Permiso UsageStats NO concedido - Monitoreo desactivado")
         }
+
+        // ✅ Programar resumen semanal (domingos ~20:00) con WorkManager
+        programarResumenSemanal()
+    }
+
+    /**
+     * Programa el WorkManager para enviar un resumen semanal de bloqueos cada domingo.
+     * Usa enqueueUniquePeriodicWork con política KEEP para no reprogramar si ya existe.
+     */
+    private fun programarResumenSemanal() {
+        try {
+            val ahora = java.util.Calendar.getInstance()
+            val proximoDomingo = java.util.Calendar.getInstance().apply {
+                // Avanzar hasta el próximo domingo a las 20:00
+                while (get(java.util.Calendar.DAY_OF_WEEK) != java.util.Calendar.SUNDAY) {
+                    add(java.util.Calendar.DAY_OF_YEAR, 1)
+                }
+                set(java.util.Calendar.HOUR_OF_DAY, 20)
+                set(java.util.Calendar.MINUTE, 0)
+                set(java.util.Calendar.SECOND, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+                // Si hoy es domingo pero ya pasaron las 20:00, ir al siguiente domingo
+                if (timeInMillis <= ahora.timeInMillis) {
+                    add(java.util.Calendar.WEEK_OF_YEAR, 1)
+                }
+            }
+
+            val retardoInicial = proximoDomingo.timeInMillis - ahora.timeInMillis
+
+            val peticion = androidx.work.PeriodicWorkRequestBuilder<com.guardianos.shield.service.WeeklySummaryWorker>(
+                7, java.util.concurrent.TimeUnit.DAYS
+            )
+                .setInitialDelay(retardoInicial, java.util.concurrent.TimeUnit.MILLISECONDS)
+                .build()
+
+            androidx.work.WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
+                com.guardianos.shield.service.WeeklySummaryWorker.WORK_NAME,
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                peticion
+            )
+            Log.i("MainActivity", "📅 Resumen semanal programado para el próximo domingo a las 20:00")
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error programando resumen semanal: ${e.message}")
+        }
     }
     
     private fun logDeviceInfo() {
@@ -434,13 +478,18 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun loadStatistics() {
-        // Observar cambios en tiempo real con Flow
+        // Observar historial completo en tiempo real (sin límite artificial de 20)
         lifecycleScope.launch {
             repository.recentBlocked.collect { sites ->
                 recentBlocked.clear()
-                recentBlocked.addAll(sites.take(20)) // Mostrar últimos 20
-                blockedCount = sites.size
-                Log.d("MainActivity", "📊 Estadísticas actualizadas: ${sites.size} registros")
+                recentBlocked.addAll(sites)
+                Log.d("MainActivity", "📊 Historial actualizado: ${sites.size} registros")
+            }
+        }
+        // Contador de HOY separado y preciso (usa todayStartTimestamp interno del Repository)
+        lifecycleScope.launch {
+            repository.todayBlockedCount.collect { count ->
+                blockedCount = count
             }
         }
     }
@@ -467,20 +516,37 @@ class MainActivity : ComponentActivity() {
         
         when (newMode) {
             ProtectionMode.Recommended -> {
-                lifecycleScope.launch {
-                    if (isServiceRunning) {
-                        stopVpnService()
-                        delay(500)
-                    }
-                    startLightweightMonitoring()
-                    Toast.makeText(this@MainActivity, "Modo Recomendado activado", Toast.LENGTH_SHORT).show()
-                }
-            }
-            ProtectionMode.Advanced -> {
+                // Recomendado: activa VPN + DNS CleanBrowsing automáticamente (sin configuración manual)
                 lifecycleScope.launch {
                     stopService(Intent(this@MainActivity, LightweightMonitorService::class.java))
                     delay(300)
-                    showDnsDialog = true
+                    if (!isServiceRunning) {
+                        requestVpnPermission()
+                    }
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Modo Recomendado — Filtrado DNS activado automáticamente",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+            ProtectionMode.Advanced -> {
+                // Avanzado: VPN + DNS CleanBrowsing + monitoreo de apps activo
+                lifecycleScope.launch {
+                    stopService(Intent(this@MainActivity, LightweightMonitorService::class.java))
+                    delay(300)
+                    if (!isServiceRunning) {
+                        requestVpnPermission()
+                    }
+                    // Activar también el monitoreo de apps si tiene permiso
+                    if (hasUsageStatsPermission && !isMonitoringActive) {
+                        startMonitoring()
+                    }
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Modo Avanzado — VPN + monitoreo de apps activo",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
             ProtectionMode.CustomStats -> {
@@ -490,7 +556,11 @@ class MainActivity : ComponentActivity() {
                         delay(300)
                     }
                     stopMonitoring()
-                    Toast.makeText(this@MainActivity, "Modo Manual - Sin protección activa", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Modo Manual — Sin protección DNS activa",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
@@ -758,15 +828,19 @@ fun GuardianShieldApp(
                 onShowPremium = onShowPremium
             ) 
         }
-        composable("statistics") { 
+        composable("statistics") {
+            val mainActivity = navController.context as MainActivity
+            // Conectar weeklyStats desde el Flow real del repositorio
+            val weeklyStats by mainActivity.repository.last30DaysStats
+                .collectAsState(initial = emptyList())
             StatisticsScreen(
-                todayBlocked = blockedCount,          // ✅ Usar contador existente
-                weeklyStats = emptyList(),            // ✅ Placeholder seguro
-                recentBlocked = recentBlocked,        // ✅ Ya lo tienes
+                todayBlocked = blockedCount,
+                weeklyStats = weeklyStats,
+                recentBlocked = recentBlocked,
                 onBack = { navController.popBackStack() },
                 isPremium = isPremium,
                 onShowPremium = onShowPremium
-            ) 
+            )
         }
         composable("pacto") {
             PactScreen(
@@ -797,6 +871,19 @@ fun GuardianShieldApp(
                     }
                 }
             ) 
+        }
+        composable("help") {
+            val ctx = LocalContext.current
+            HelpScreen(
+                onBack = { navController.popBackStack() },
+                isVpnActive = isServiceRunning,
+                isMonitoringActive = isMonitoringActive,
+                hasAccessibilityService = AppBlockerAccessibilityService.estaActivado(ctx),
+                hasPin = !currentProfile?.parentalPin.isNullOrEmpty(),
+                hasProfileConfigured = currentProfile != null &&
+                    currentProfile.name.isNotBlank() &&
+                    currentProfile.name !in listOf("Niño/a", "Perfil sin nombre")
+            )
         }
     }
 }
@@ -918,8 +1005,8 @@ fun HomeScreen(
                 )
             }
 
-            // Monitoreo de apps
-            if (protectionMode == ProtectionMode.Recommended) {
+            // Monitoreo de apps (Recomendado y Avanzado)
+            if (protectionMode == ProtectionMode.Recommended || protectionMode == ProtectionMode.Advanced) {
                 item {
                     MonitoringCard(
                         isActive = isMonitoringActive,
@@ -1082,6 +1169,30 @@ fun ProtectionModeSelector(
                     onClick = { onModeSelected(ProtectionMode.CustomStats) }
                 )
             }
+
+            Spacer(Modifier.height(8.dp))
+
+            // Descripción del modo seleccionado
+            val (modoIcono, modoDescripcion) = when (selectedMode) {
+                ProtectionMode.Recommended -> "🛡️" to "DNS CleanBrowsing activado automáticamente. Bloquea adultos, apuestas y malware sin configuración."
+                ProtectionMode.Advanced -> "🔒" to "VPN + DNS CleanBrowsing + monitoreo de apps. Máximo control y visibilidad de actividad."
+                ProtectionMode.CustomStats -> "⚙️" to "Sin protección DNS activa. Úsalo solo si configuras manualmente restricciones en el router."
+            }
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = modoIcono,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = modoDescripcion,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
     }
 }
@@ -1195,9 +1306,9 @@ fun StatusCard(
                     )
                     Text(
                         when (mode) {
-                            ProtectionMode.Recommended -> "Modo ligero"
-                            ProtectionMode.Advanced -> "VPN activa"
-                            ProtectionMode.CustomStats -> "Manual"
+                            ProtectionMode.Recommended -> if (isActive) "DNS CleanBrowsing activo" else "DNS filtrado desactivado"
+                            ProtectionMode.Advanced -> if (isActive) "VPN + monitoreo activo" else "VPN desactivada"
+                            ProtectionMode.CustomStats -> "Sin protección DNS"
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1205,7 +1316,7 @@ fun StatusCard(
                 }
             }
             
-            if (mode == ProtectionMode.Advanced) {
+            if (mode == ProtectionMode.Recommended || mode == ProtectionMode.Advanced) {
                 Switch(
                     checked = isActive,
                     onCheckedChange = { onToggle() }

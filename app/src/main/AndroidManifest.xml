@@ -21,6 +21,9 @@
     
     <!-- Permiso para cerrar apps en segundo plano (control parental) -->
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
+
+    <!-- 🔴 Overlay sobre otras apps — requerido para que el bloqueo VIA WindowManager funcione en Android 10+ -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     
     <!-- Para detectar apps instaladas (alertas de seguridad) -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
