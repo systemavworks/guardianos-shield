@@ -281,7 +281,7 @@ fun PremiumPurchaseScreen(
                     textAlign = TextAlign.Center
                 )
                 val url = "https://guardianos.es/politica-privacidad"
-                val urlTerminos = "https://guardianos.es/terminos"
+                val urlTerminos = "https://guardianos.es/shield/terminos"
                 val email = "info@guardianos.es"
                 val linkColor = MaterialTheme.colorScheme.primary
                 Text(
