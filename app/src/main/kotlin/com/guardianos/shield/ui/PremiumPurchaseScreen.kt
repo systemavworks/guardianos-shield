@@ -44,9 +44,6 @@ fun PremiumPurchaseScreen(
     val version = "v1.1.0 Build 20260220"
     val year = "2026"
     val context = LocalContext.current
-    var devTapCount by remember { mutableStateOf(0) }
-    val devUnlockTaps = 3
-
     if (billingError) {
         LaunchedEffect(billingError) {
             snackbarHostState.showSnackbar(
@@ -91,15 +88,7 @@ fun PremiumPurchaseScreen(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFFFC107))
-                        .clickable {
-                            devTapCount++
-                            if (devTapCount >= devUnlockTaps) {
-                                // Solo para builds de desarrollo/debug
-                                onPurchaseSuccess()
-                                devTapCount = 0
-                            }
-                        },
+                        .background(Color(0xFFFFC107)),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(

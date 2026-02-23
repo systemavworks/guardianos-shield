@@ -175,19 +175,6 @@ class BillingManager(private val context: Context) :
         queryPurchases()
     }
 
-    /**
-     * Solo para builds DEBUG: activa premium sin pasar por Google Play.
-     * NO incluir en release builds — se omite por buildType.
-     */
-    fun debugUnlockPremium() {
-        if (com.guardianos.shield.BuildConfig.DEBUG) {
-            CoroutineScope(Dispatchers.Main).launch {
-                _isPremium.value = true
-                Log.w(TAG, "[DEBUG] Premium activado en modo mock — solo en builds de desarrollo")
-            }
-        }
-    }
-
     // ─────────────────────────── PROCESAR COMPRA ───────────────────────────
 
     /**

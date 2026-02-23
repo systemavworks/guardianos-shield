@@ -55,13 +55,6 @@ class BillingManager(context: Context) {
         // Sin acción
     }
 
-    /**
-     * No-op en F-Droid (solo activo en builds DEBUG del flavor full).
-     */
-    fun debugUnlockPremium() {
-        // Sin acción en F-Droid
-    }
-
     companion object {
         private const val TAG = "BillingManager[fdroid]"
     }
