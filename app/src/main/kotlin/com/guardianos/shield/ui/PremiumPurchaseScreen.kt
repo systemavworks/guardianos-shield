@@ -274,53 +274,70 @@ fun PremiumPurchaseScreen(
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = "Consulta nuestra política de privacidad y términos:",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
-                )
-                val url = "https://guardianos.es/politica-privacidad"
+                val urlWeb      = "https://guardianos.es"
+                val urlPrivacy  = "https://guardianos.es/politica-privacidad"
                 val urlTerminos = "https://guardianos.es/shield/terminos"
-                val email = "info@guardianos.es"
-                val linkColor = MaterialTheme.colorScheme.primary
-                Text(
-                    text = url,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        textAlign = TextAlign.Center,
-                        color = linkColor,
-                        fontWeight = FontWeight.Bold,
-                        textDecoration = TextDecoration.Underline
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                            context.startActivity(intent)
+                val email       = "info@guardianos.es"
+                val linkColor   = MaterialTheme.colorScheme.primary
+                // Fila de enlaces: web · T&C · privacidad
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "🌐 guardianos.es",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = linkColor,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(urlWeb)))
                         }
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = urlTerminos,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        textAlign = TextAlign.Center,
-                        color = linkColor,
-                        fontWeight = FontWeight.Bold,
-                        textDecoration = TextDecoration.Underline
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(urlTerminos))
-                            context.startActivity(intent)
+                    )
+                    Text(
+                        text = "  ·  ",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    )
+                    Text(
+                        text = "Privacidad",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = linkColor,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(urlPrivacy)))
                         }
-                )
+                    )
+                    Text(
+                        text = "  ·  ",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    )
+                    Text(
+                        text = "T&C",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = linkColor,
+                            fontWeight = FontWeight.Bold,
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        modifier = Modifier.clickable {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(urlTerminos)))
+                        }
+                    )
+                }
                 Spacer(modifier = Modifier.height(4.dp))
+                // Enlace de email
                 Text(
-                    text = "¿Dudas o problemas? Escríbenos a $email",
+                    text = "📧 $email",
                     style = MaterialTheme.typography.bodySmall.copy(
                         textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        color = linkColor,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
