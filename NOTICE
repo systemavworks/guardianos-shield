@@ -1,0 +1,33 @@
+GuardianOS Shield
+Copyright 2026 Victor Shift Lara
+This product includes software developed for the GuardianOS Project
+(https://guardianos.es).
+=======================================================================
+TRADEMARK NOTICE
+The following are trademarks or registered trademarks of their
+respective owners and may NOT be used without explicit written permission:
+• "GuardianOS"
+• "GuardianOS Shield"
+• "guardianos"
+• "GuardianOS Shield API"
+• The logo file "guardianos_shield_logo.png" and derivative visual assets
+Apache License, Version 2.0 users: You are free to use, modify, and
+distribute the SOURCE CODE under the terms of the Apache 2.0 license,
+but you MAY NOT use the above trademarks to endorse or promote products
+derived from this software without prior written permission.
+For trademark licensing inquiries: info@guardianos.es
+=======================================================================
+THIRD-PARTY COMPONENTS
+This software includes the following third-party libraries, each
+distributed under their respective open-source licenses:
+• Kotlin (Apache 2.0) - https://kotlinlang.org
+• Jetpack Compose (Apache 2.0) - https://developer.android.com/jetpack/compose
+• Retrofit 2 (Apache 2.0) - https://square.github.io/retrofit/
+• OkHttp (Apache 2.0) - https://square.github.io/okhttp/
+• Room (Apache 2.0) - https://developer.android.com/jetpack/androidx/releases/room
+• Lifecycle (Apache 2.0) - https://developer.android.com/jetpack/androidx/releases/lifecycle
+• Coroutines (Apache 2.0) - https://github.com/Kotlin/kotlinx.coroutines
+• WorkManager (Apache 2.0) - https://developer.android.com/jetpack/androidx/releases/work
+• Google Play Billing Library (Apache 2.0) - https://developer.android.com/google/play/billing
+Full license texts for these components are available in their
+respective repositories.
