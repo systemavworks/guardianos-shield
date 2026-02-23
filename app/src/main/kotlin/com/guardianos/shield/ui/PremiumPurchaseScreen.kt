@@ -275,12 +275,13 @@ fun PremiumPurchaseScreen(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Consulta nuestra política de privacidad en:",
+                    text = "Consulta nuestra política de privacidad y términos:",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
                 )
                 val url = "https://guardianos.es/politica-privacidad"
+                val urlTerminos = "https://guardianos.es/terminos"
                 val email = "info@guardianos.es"
                 val linkColor = MaterialTheme.colorScheme.primary
                 Text(
@@ -295,6 +296,22 @@ fun PremiumPurchaseScreen(
                         .fillMaxWidth()
                         .clickable {
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            context.startActivity(intent)
+                        }
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = urlTerminos,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        textAlign = TextAlign.Center,
+                        color = linkColor,
+                        fontWeight = FontWeight.Bold,
+                        textDecoration = TextDecoration.Underline
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(urlTerminos))
                             context.startActivity(intent)
                         }
                 )
