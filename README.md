@@ -686,9 +686,16 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk && adb shell am start -
 
 ## 📄 Licencia
 
-MIT License - Copyright (c) 2026 Victor Shift Lara - Andalucía, España
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+Copyright © 2026 Victor Shift Lara - GuardianOS Project
+📍 Andalucía, España | https://guardianos.es
 
-Ver el archivo [LICENSE](https://github.com/systemavworks/guardianos-shield/blob/main/LICENSE) para más detalles.
+See the LICENSE file for details.
+⚠️ Aviso de Marca Registrada
+Esta licencia cubre únicamente el código fuente.
+Las marcas comerciales "GuardianOS", "GuardianOS Shield", "guardianos", el logotipo guardianos_shield_logo.png, y cualquier asset visual asociado son propiedad de sus respectivos dueños y NO están cubiertas por esta licencia de código abierto.
+El uso no autorizado de estas marcas, nombres o assets visuales puede constituir una infracción de propiedad industrial. Para solicitar permiso de uso de marca, contacta a: info@guardianos.es
 
 ---
 
