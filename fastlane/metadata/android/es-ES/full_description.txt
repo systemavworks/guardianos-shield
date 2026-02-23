@@ -1,0 +1,29 @@
+Guardianos Shield es una app de control parental de código abierto para Android con filtrado DNS transparente y monitorización de apps. Sin rastreadores, sin anunciantes, sin dependencias propietarias.
+
+<b>Cómo funciona</b>
+La app crea una VPN local que redirige las consultas DNS a los servidores CleanBrowsing Adult Filter (185.228.168.168 / 185.228.169.168). Estos servidores bloquean contenido adulto, redes sociales (TikTok, Instagram, Facebook), juegos de azar, malware y dominios de phishing antes de que lleguen al dispositivo. No se intercepta el contenido de los paquetes — solo se redirige la resolución DNS.
+
+<b>Funcionalidades</b>
+• Filtrado DNS vía CleanBrowsing (contenido adulto, redes sociales, malware, apuestas)
+• Lista de bloqueo local (palabras clave personalizadas y dominios exactos)
+• Monitorización de apps: detecta navegadores y apps sensibles en primer plano y las redirige al Navegador Seguro integrado
+• Navegador Seguro: WebView con capa de validación de URLs propia
+• Horarios parentales: permite internet solo en franjas horarias configurables, con soporte para cruce de medianoche
+• Filtros personalizados de bloqueo/permiso por perfil
+• Bloqueo por PIN parental
+• Pacto Digital Familiar: solicitudes de permiso del hijo al padre dentro del dispositivo
+• Estadísticas de uso e historial de sitios bloqueados
+• Sin anuncios, sin rastreadores, sin analíticas, sin cuentas en la nube
+
+<b>Permisos explicados</b>
+• VPN — necesario para redirigir las consultas DNS localmente
+• PACKAGE_USAGE_STATS — para detectar qué app está en primer plano en la monitorización
+• FOREGROUND_SERVICE — para mantener el túnel VPN y el monitor activos en segundo plano
+• POST_NOTIFICATIONS — para mostrar la notificación persistente de estado (Android 13+)
+• SYSTEM_ALERT_WINDOW — para mostrar la pantalla de bloqueo cuando se detecta una app sensible
+• QUERY_ALL_PACKAGES — para listar las apps instaladas en la configuración de control parental
+
+<b>Privacidad</b>
+Ningún dato sale del dispositivo salvo las consultas DNS a los servidores CleanBrowsing (equivalente a configurarlos como DNS del sistema). Sin cuenta, sin registro, sin telemetría.
+
+Código fuente: https://github.com/systemavworks/guardianos-shield

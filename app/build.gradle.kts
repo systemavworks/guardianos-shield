@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "com.guardianos.shield"
-        minSdk = 24  // Android 7.0 (Nougat) - mínimo realista para apps de seguridad modernas
+        minSdk = 31  // Android 12 (Snow Cone) — mínimo para FOREGROUND_SERVICE_SPECIAL_USE y APIs de accesibilidad estables
         targetSdk = 34 // Android 14
         versionCode = 2
         versionName = "1.1.0"

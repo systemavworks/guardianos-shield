@@ -1,0 +1,8 @@
+• Filtrado DNS transparente vía CleanBrowsing Adult Filter
+• Monitorización de apps en tiempo real con redirección al Navegador Seguro
+• Horarios parentales con soporte para cruce de medianoche
+• Lista de bloqueo de dominios personalizada y filtros de permiso/bloqueo
+• Protección con PIN parental
+• Pacto Digital Familiar (solicitudes de permiso hijo→padre)
+• Estadísticas de uso e historial de sitios bloqueados
+• Sin anuncios, sin rastreadores, código abierto completo (build F-Droid)

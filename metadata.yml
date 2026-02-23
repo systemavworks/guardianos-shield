@@ -4,10 +4,10 @@ Categories:
   - Security
   - Internet
 License: Apache-2.0
-WebSite: https://github.com/guardianos/guardianos-shield
-SourceCode: https://github.com/guardianos/guardianos-shield
-IssueTracker: https://github.com/guardianos/guardianos-shield/issues
-Changelog: https://github.com/guardianos/guardianos-shield/blob/main/release-notes.md
+WebSite: https://github.com/systemavworks/guardianos-shield
+SourceCode: https://github.com/systemavworks/guardianos-shield
+IssueTracker: https://github.com/systemavworks/guardianos-shield/issues
+Changelog: https://github.com/systemavworks/guardianos-shield/blob/main/release-notes.md
 
 AutoUpdateMode: None
 UpdateCheckMode: None

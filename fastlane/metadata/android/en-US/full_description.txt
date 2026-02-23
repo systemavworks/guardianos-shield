@@ -1,0 +1,29 @@
+Guardianos Shield is an open-source parental control app for Android with transparent DNS filtering and app monitoring. No trackers, no advertisers, no proprietary dependencies.
+
+<b>How it works</b>
+The app creates a local VPN that routes DNS queries through CleanBrowsing Adult Filter servers (185.228.168.168 / 185.228.169.168). These servers block adult content, social networks (TikTok, Instagram, Facebook), gambling, malware and phishing domains before they ever reach your device. No packet contents are intercepted — only DNS resolution is redirected.
+
+<b>Features</b>
+• DNS filtering via CleanBrowsing (adult content, social media, malware, gambling)
+• Local domain blocklist (custom keywords and exact domains)
+• App monitoring: detects browsers and sensitive apps in the foreground and redirects them to the built-in Safe Browser
+• Safe Browser: WebView with its own URL validation layer
+• Parental schedules: allow internet only within configurable time windows, with midnight-crossing support
+• Custom block/allow filters per profile
+• Parental PIN lock
+• Family Digital Pact: child-to-parent permission requests
+• Usage statistics and blocked site history
+• No ads, no trackers, no analytics, no cloud accounts required
+
+<b>Permissions explained</b>
+• VPN — required to redirect DNS queries locally
+• PACKAGE_USAGE_STATS — to detect which app is in the foreground for app monitoring
+• FOREGROUND_SERVICE — to keep the VPN tunnel and app monitor active in the background
+• POST_NOTIFICATIONS — to show the persistent VPN/monitor status notification (Android 13+)
+• SYSTEM_ALERT_WINDOW — to display the block overlay when a sensitive app is detected
+• QUERY_ALL_PACKAGES — to list installed apps in the parental control configuration
+
+<b>Privacy</b>
+No data leaves your device except DNS queries to CleanBrowsing servers (identical to configuring them as system DNS). No account, no registration, no telemetry.
+
+Source code: https://github.com/systemavworks/guardianos-shield

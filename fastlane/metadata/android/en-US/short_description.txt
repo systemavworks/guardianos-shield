@@ -1,0 +1,1 @@
+Parental control with DNS filtering. No trackers, no ads, fully open source.

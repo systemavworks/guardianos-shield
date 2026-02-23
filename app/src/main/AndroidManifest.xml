@@ -8,6 +8,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Solicitar exención de optimización de batería — necesario para que AppMonitorService
+         y DnsFilterService permanezcan activos continuamente sin que el sistema los mate.
+         Sin esta exención, Android puede suspender la protección parental en segundo plano.
+         Justificación Play Store: la app de control parental debe monitorizar en tiempo real
+         las 24h; la exención es imprescindible para garantizar la protección del menor. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     
     <!-- 🔴 ANDROID 14+ (API 34): Permisos foreground service connectedDevice -->
@@ -22,10 +27,17 @@
     <!-- Permiso para cerrar apps en segundo plano (control parental) -->
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
 
-    <!-- 🔴 Overlay sobre otras apps — requerido para que el bloqueo VIA WindowManager funcione en Android 10+ -->
+    <!-- 🔴 Overlay sobre otras apps — requerido para mostrar la pantalla de bloqueo parental
+         sobre apps restringidas. AppBlockerAccessibilityService verifica canDrawOverlays()
+         y redirige al usuario a ACTION_MANAGE_OVERLAY_PERMISSION si no está concedido.
+         Justificación Play Store: control parental — bloqueo visual de apps prohibidas para menores. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     
-    <!-- Para detectar apps instaladas (alertas de seguridad) -->
+    <!-- Para detectar apps instaladas por el menor y mostrar lista de selección en el panel
+         parental (SensitiveAppEntity). Sin este permiso, en Android 11+ el sistema oculta
+         apps de otros desarrolladores al listarlas con packageManager.
+         Justificación Play Store: control parental — permite al tutor seleccionar qué apps
+         del dispositivo del menor deben ser monitorizadas o bloqueadas. -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
