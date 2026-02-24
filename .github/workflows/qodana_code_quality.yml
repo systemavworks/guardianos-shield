@@ -2,6 +2,9 @@
 #        Discover additional configuration options in our documentation         #
 #               https://www.jetbrains.com/help/qodana/github.html               #
 #-------------------------------------------------------------------------------#
+# Nota: usa jetbrains/qodana-jvm-community (linter gratuito, sin token).
+# Para análisis Android completo (linter de pago) añade QODANA_TOKEN como secret
+# del repositorio y cambia el linter en qodana.yaml.
 
 name: Qodana
 on:
@@ -26,15 +29,17 @@ jobs:
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2025.3
         env:
+          # Solo necesario con linters de pago (qodana-android, qodana-jvm).
+          # Con qodana-jvm-community esta variable puede estar vacía.
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
         with:
           args: --baseline,qodana.sarif.json
-          # When pr-mode is set to true, Qodana analyzes only the files that have been changed
+          # Cuando pr-mode=true, Qodana analiza solo los ficheros modificados
           pr-mode: false
           use-caches: true
           post-pr-comment: true
           use-annotations: true
-          # Upload Qodana results (SARIF, other artifacts, logs) as an artifact to the job
+          # Subir resultados (SARIF, artefactos, logs) como artefacto del job
           upload-result: false
-          # quick-fixes available in Ultimate and Ultimate Plus plans
+          # quick-fixes disponibles solo en planes Ultimate y Ultimate Plus
           push-fixes: 'none'

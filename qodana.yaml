@@ -1,0 +1,17 @@
+version: "1.0"
+
+# Linter community (gratuito, sin necesidad de token Qodana Cloud)
+# Alternativa con análisis Android completo: jetbrains/qodana-android (requiere QODANA_TOKEN)
+linter: jetbrains/qodana-jvm-community:2025.3
+
+projectJDK: "17"
+
+# Excluir carpetas de build y archivos generados
+exclude:
+  - name: All
+    paths:
+      - app/build
+      - build
+      - .gradle
+      - gradle/wrapper
+      - "**/*.sarif.json"
