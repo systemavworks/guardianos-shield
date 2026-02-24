@@ -180,6 +180,9 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             settingsRepository.isPremium.collect { premium ->
                 isPremium = premium
+                // En builds debug se fuerza premium para testing sin compra real.
+                // BuildConfig.FORCE_PREMIUM = false en release → R8 elimina este bloque.
+                if (BuildConfig.FORCE_PREMIUM) isPremium = true
                 isPremiumLoaded = true  // primer valor recibido → ya podemos mostrar la UI correcta
             }
         }

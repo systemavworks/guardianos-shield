@@ -30,7 +30,7 @@ android {
         }
 
         // Reducir tamaño del APK
-        resConfigs("en", "es") // Solo inglés/español
+        resourceConfigurations += setOf("en", "es") // Solo inglés/español
         setProperty("archivesBaseName", "guardianos-shield-v$versionName")
     }
 
@@ -60,6 +60,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // ✅ Testing premium sin compra real — solo en debug, R8 elimina esto en release
+            buildConfigField("boolean", "FORCE_PREMIUM", "true")
         }
         release {
             isDebuggable = false
@@ -70,6 +72,7 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
+            buildConfigField("boolean", "FORCE_PREMIUM", "false")
         }
     }
 
@@ -109,7 +112,7 @@ android {
 
     // Optimización crítica para tu hardware limitado
     androidResources {
-        noCompress("dat", "bin", "txt") // Evitar compresión innecesaria
+        noCompress += listOf("dat", "bin", "txt") // Evitar compresión innecesaria
     }
 }
 

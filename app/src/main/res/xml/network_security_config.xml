@@ -9,13 +9,8 @@
         </trust-anchors>
     </base-config>
 
-    <!-- Dominios específicos que usamos -->
-    <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">safebrowsing.googleapis.com</domain>
-        <trust-anchors>
-            <certificates src="system" />
-        </trust-anchors>
-    </domain-config>
+    <!-- Dominios DNS externos (CleanBrowsing opera sobre UDP/53, no HTTP — no necesita aquí) -->
+    <!-- Si en el futuro se añade una API REST para actualizar listas negras, añadir aquí el dominio -->
 
     <!-- Solo si usas actualizaciones remotas desde GitHub en el futuro -->
     <!--

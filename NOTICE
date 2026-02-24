@@ -1,33 +1,72 @@
 GuardianOS Shield
-Copyright 2026 Victor Shift Lara
-This product includes software developed for the GuardianOS Project
-(https://guardianos.es).
+Copyright © 2026 Victor Shift Lara. All rights reserved.
+
+This product includes software developed for the GuardianOS Project.
+Web oficial: https://guardianos.es
+Contacto:    info@guardianos.es
+
 =======================================================================
-TRADEMARK NOTICE
-The following are trademarks or registered trademarks of their
-respective owners and may NOT be used without explicit written permission:
-• "GuardianOS"
-• "GuardianOS Shield"
-• "guardianos"
-• "GuardianOS Shield API"
-• The logo file "guardianos_shield_logo.png" and derivative visual assets
-Apache License, Version 2.0 users: You are free to use, modify, and
-distribute the SOURCE CODE under the terms of the Apache 2.0 license,
-but you MAY NOT use the above trademarks to endorse or promote products
-derived from this software without prior written permission.
-For trademark licensing inquiries: info@guardianos.es
+ AVISO DE MARCA COMERCIAL / TRADEMARK NOTICE
 =======================================================================
-THIRD-PARTY COMPONENTS
-This software includes the following third-party libraries, each
-distributed under their respective open-source licenses:
-• Kotlin (Apache 2.0) - https://kotlinlang.org
-• Jetpack Compose (Apache 2.0) - https://developer.android.com/jetpack/compose
-• Retrofit 2 (Apache 2.0) - https://square.github.io/retrofit/
-• OkHttp (Apache 2.0) - https://square.github.io/okhttp/
-• Room (Apache 2.0) - https://developer.android.com/jetpack/androidx/releases/room
-• Lifecycle (Apache 2.0) - https://developer.android.com/jetpack/androidx/releases/lifecycle
-• Coroutines (Apache 2.0) - https://github.com/Kotlin/kotlinx.coroutines
-• WorkManager (Apache 2.0) - https://developer.android.com/jetpack/androidx/releases/work
-• Google Play Billing Library (Apache 2.0) - https://developer.android.com/google/play/billing
-Full license texts for these components are available in their
-respective repositories.
+
+Las siguientes denominaciones son marcas comerciales de Victor Shift Lara,
+registradas en Sevilla, Andalucía, España (febrero de 2026):
+
+  • "GuardianOS"
+  • "GuardianOS Shield"
+  • El logotipo de GuardianOS Shield y sus variantes visuales
+  • El dominio web https://guardianos.es y sus subdominios
+
+The following names are trademarks of Victor Shift Lara,
+registered in Seville, Andalusia, Spain (February 2026):
+
+  • "GuardianOS"
+  • "GuardianOS Shield"
+  • The GuardianOS Shield logo and its visual variants
+  • The website https://guardianos.es and its subdomains
+
+-----------------------------------------------------------------------
+DERECHOS RESERVADOS SOBRE LAS MARCAS / TRADEMARK RIGHTS RESERVED
+
+La licencia Apache 2.0 bajo la que se distribuye el código fuente de
+este proyecto concede derechos de uso, reproducción y distribución del
+SOFTWARE, pero —conforme a la Sección 6 de dicha licencia— NO otorga
+permiso para usar las marcas comerciales, nombres comerciales, marcas de
+servicio ni nombres de producto del titular con fines de endorsement o
+para identificar productos derivados, salvo autorización expresa por
+escrito del titular.
+
+The Apache License 2.0 under which this project's source code is
+distributed grants rights to use, reproduce and distribute the SOFTWARE,
+but —pursuant to Section 6 of that license— does NOT grant permission
+to use the licensor's trade names, trademarks, service marks or product
+names for endorsement purposes or to identify derived products, except
+as required for reasonable and customary use in describing the origin
+of the Work, without prior written permission from the trademark owner.
+
+Para consultas sobre licencias de marca / For trademark licensing enquiries:
+  info@guardianos.es — https://guardianos.es
+
+=======================================================================
+ COMPONENTES DE TERCEROS / THIRD-PARTY COMPONENTS
+=======================================================================
+
+Este software incluye las siguientes bibliotecas de terceros, cada una
+distribuida bajo su propia licencia de código abierto:
+
+  • Kotlin stdlib          (Apache 2.0)  https://kotlinlang.org
+  • Jetpack Compose        (Apache 2.0)  https://developer.android.com/jetpack/compose
+  • AndroidX Room          (Apache 2.0)  https://developer.android.com/jetpack/androidx/releases/room
+  • AndroidX DataStore     (Apache 2.0)  https://developer.android.com/jetpack/androidx/releases/work
+  • AndroidX Lifecycle     (Apache 2.0)  https://developer.android.com/jetpack/androidx/releases/lifecycle
+  • AndroidX WorkManager   (Apache 2.0)  https://developer.android.com/jetpack/androidx/releases/work
+  • AndroidX Security      (Apache 2.0)  https://developer.android.com/jetpack/androidx/releases/security
+  • Kotlin Coroutines      (Apache 2.0)  https://github.com/Kotlin/kotlinx.coroutines
+  • Retrofit 2             (Apache 2.0)  https://square.github.io/retrofit/
+  • OkHttp                 (Apache 2.0)  https://square.github.io/okhttp/
+  • Google Play Billing    (Apache 2.0)  https://developer.android.com/google/play/billing
+  • Material Icons         (Apache 2.0)  https://fonts.google.com/icons
+
+Los textos completos de estas licencias están disponibles en sus
+repositorios oficiales. / Full license texts are available in their
+respective official repositories.

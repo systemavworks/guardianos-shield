@@ -15,10 +15,9 @@
          las 24h; la exención es imprescindible para garantizar la protección del menor. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     
-    <!-- 🔴 ANDROID 14+ (API 34): Permisos foreground service connectedDevice -->
+    <!-- 🔴 ANDROID 14+ (API 34): Permiso requerido por connectedDevice foreground service type -->
+    <!-- Necesario porque DnsFilterService usa android:foregroundServiceType="connectedDevice" -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     
     <!-- 🔴 CRÍTICO: Permiso para UsageStatsMonitor -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" 
@@ -131,6 +130,13 @@
         <!-- ⚠️ RealisticAppBlocker NO es un Service - es una clase utilitaria -->
         <!-- ⚠️ ScheduleManager NO es un Service - es una clase de lógica -->
         <!-- ❌ ELIMINA estas declaraciones si existen como <service> -->
+
+        <!-- Declaración obligatoria Android 14+ (API 34) para foregroundServiceType="specialUse".
+             Play Console y el sistema Android usan este valor para validar el uso legítimo del
+             tipo especial de foreground service. Valor aprobado para apps de control parental. -->
+        <property
+            android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+            android:value="parental-control-app-monitoring" />
 
     </application>
 
