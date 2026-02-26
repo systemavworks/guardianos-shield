@@ -87,6 +87,9 @@ SHA256SUMS.txt
 SECURITY_AUDIT.txt
 SECURITY_FIXES_SUMMARY.txt
 
+# Salida de herramientas de análisis (apktool, jadx, etc.) - bytecode descompilado
+security-report/apktool_out/
+
 # macOS
 .DS_Store
 .AppleDouble

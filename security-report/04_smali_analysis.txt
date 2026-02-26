@@ -1,0 +1,327 @@
+## 4. ANÁLISIS SMALI (bytecode Dalvik decompilado)
+
+=== 4a. Secretos en smali ===
+security-report/apktool_out/smali/com/android/billingclient/api/Purchase.smali:321:    const-string v1, "token"
+security-report/apktool_out/smali/com/android/billingclient/api/BillingClientImpl.smali:1286:    const-string v4, "BUG: empty/null token!"
+security-report/apktool_out/smali/com/android/billingclient/api/BillingClientImpl.smali:1356:    const-string v4, "Continuation token: "
+security-report/apktool_out/smali/com/android/billingclient/api/BillingClientImpl.smali:2191:    const-string v4, "BUG: empty/null token!"
+security-report/apktool_out/smali/com/android/billingclient/api/BillingClientImpl.smali:2261:    const-string v4, "Continuation token: "
+security-report/apktool_out/smali/com/android/billingclient/api/BillingClientImpl.smali:2457:    const-string v0, "Please provide a valid purchase token."
+security-report/apktool_out/smali/com/android/billingclient/api/BillingClientImpl.smali:6220:    const-string v1, "Error consuming purchase with token. Response code: "
+security-report/apktool_out/smali/com/android/billingclient/api/BillingClientImpl.smali:6222:    const-string v2, "Consuming purchase with token: "
+security-report/apktool_out/smali/com/android/billingclient/api/SkuDetails.smali:449:    const-string v0, "offer_id_token"
+security-report/apktool_out/smali/com/android/billingclient/api/ConsumeParams$Builder.smali:60:    const-string v0, "Purchase token must be set"
+security-report/apktool_out/smali/com/android/billingclient/api/PurchaseHistoryRecord.smali:218:    const-string v1, "token"
+security-report/apktool_out/smali/com/android/billingclient/api/AcknowledgePurchaseParams$Builder.smali:60:    const-string v0, "Purchase token must be set"
+security-report/apktool_out/smali/com/android/billingclient/api/zzbk.smali:146:    const-string v2, "Invalid purchase token."
+security-report/apktool_out/smali/com/android/billingclient/api/zzbk.smali:254:    const-string v2, "Client does not support offer_id_token."
+security-report/apktool_out/smali/com/android/billingclient/api/UserChoiceDetails$Product.smali:206:    const-string v0, ", offer token: "
+security-report/apktool_out/smali/com/android/billingclient/api/BillingFlowParams$SubscriptionUpdateParams$Builder.smali:119:    const-string v0, "Please provide Old SKU purchase information(token/id) or original external transaction id, not both."
+security-report/apktool_out/smali/com/android/billingclient/api/BillingFlowParams$SubscriptionUpdateParams$Builder.smali:140:    const-string v0, "Old SKU purchase information(token/id) or original external transaction id must be provided."
+security-report/apktool_out/smali/com/android/billingclient/api/AlternativeChoiceDetails$Product.smali:215:    const-string v0, ", offer token: "
+security-report/apktool_out/smali/com/google/crypto/tink/jwt/JwtFormat.smali:552:    const-string v2, "only tokens in JWS compact serialization format are supported"
+security-report/apktool_out/smali/com/google/crypto/tink/jwt/JwtFormat.smali:1111:    const-string p1, "all tokens with crit headers are rejected"
+
+=== 4b. Referencias a URLs en smali ===
+security-report/apktool_out/smali/Wc.smali:44:    const-string v0, "https://guardianos.es/shield"
+security-report/apktool_out/smali/xL.smali:44:    const-string v1, "https://guardianos.es/politica-privacidad"
+security-report/apktool_out/smali/DP.smali:215:    const-string v1, "https://"
+security-report/apktool_out/smali/If.smali:83:    const-string v0, "http://"
+security-report/apktool_out/smali/If.smali:89:    const-string v0, "https://"
+security-report/apktool_out/smali/JT.smali:44:    const-string v0, "https://github.com/systemavworks/guardianos-shield"
+security-report/apktool_out/smali/yL.smali:44:    const-string v1, "https://guardianos.es/shield/terminos"
+security-report/apktool_out/smali/HT.smali:44:    const-string v0, "https://guardianos.es/shield"
+security-report/apktool_out/smali/androidx/work/impl/utils/ForceStopRunnable.smali:687:    const-string v1, "WorkManager can\'t be accessed from direct boot, because credential encrypted storage isn\'t accessible.\nDon\'t access or initialise WorkManager from directAware components. See https://developer.android.com/training/articles/direct-boot"
+security-report/apktool_out/smali/androidx/compose/runtime/ComposerKt.smali:442:    const-string v2, "). Please report to Google or use https://goo.gle/compose-feedback"
+security-report/apktool_out/smali/androidx/compose/runtime/ComposerKt.smali:460:    const-string v2, "). Please report to Google or use https://goo.gle/compose-feedback"
+security-report/apktool_out/smali/wL.smali:44:    const-string v1, "https://guardianos.es"
+
+=== 4c. Clases de seguridad propias ===
+a$a.smali
+a.smali
+b.smali
+c.smali
+data
+d.smali
+e.smali
+f.smali
+g.smali
+h.smali
+i.smali
+j.smali
+k.smali
+l.smali
+MainActivity$a.smali
+MainActivity$b.smali
+MainActivity$c.smali
+MainActivity$d.smali
+MainActivity$e$a.smali
+MainActivity$e.smali
+MainActivity$f$a.smali
+MainActivity$f.smali
+MainActivity$g.smali
+MainActivity$h.smali
+MainActivity$i.smali
+MainActivity$j$a.smali
+MainActivity$j.smali
+MainActivity$k.smali
+MainActivity$l.smali
+MainActivity$m.smali
+MainActivity$n.smali
+MainActivity$o.smali
+MainActivity$p.smali
+MainActivity$setupVpnReceiver$1.smali
+MainActivity.smali
+m.smali
+n.smali
+o.smali
+p.smali
+q.smali
+r.smali
+security
+service
+ui
+a$a.smali
+a.smali
+b.smali
+c.smali
+data/BlockedSiteDao_Impl$10.smali
+data/BlockedSiteDao_Impl$11.smali
+data/BlockedSiteDao_Impl$1.smali
+data/BlockedSiteDao_Impl$2.smali
+data/BlockedSiteDao_Impl$3.smali
+data/BlockedSiteDao_Impl$4.smali
+data/BlockedSiteDao_Impl$5.smali
+data/BlockedSiteDao_Impl$6.smali
+data/BlockedSiteDao_Impl$7.smali
+data/BlockedSiteDao_Impl$8.smali
+data/BlockedSiteDao_Impl$9.smali
+data/BlockedSiteDao_Impl.smali
+data/BlockedSiteDao.smali
+data/BlockedSiteEntity.smali
+data/CustomFilterDao_Impl$10.smali
+data/CustomFilterDao_Impl$11.smali
+data/CustomFilterDao_Impl$1.smali
+data/CustomFilterDao_Impl$2.smali
+data/CustomFilterDao_Impl$3.smali
+data/CustomFilterDao_Impl$4.smali
+data/CustomFilterDao_Impl$5.smali
+data/CustomFilterDao_Impl$6.smali
+data/CustomFilterDao_Impl$7.smali
+data/CustomFilterDao_Impl$8.smali
+data/CustomFilterDao_Impl$9.smali
+data/CustomFilterDao_Impl.smali
+data/CustomFilterDao.smali
+data/CustomFilterEntity.smali
+data/DnsLogDao_Impl$1.smali
+data/DnsLogDao_Impl$2.smali
+data/DnsLogDao_Impl$3.smali
+data/DnsLogDao_Impl$4.smali
+data/DnsLogDao_Impl$5.smali
+data/DnsLogDao_Impl$6.smali
+data/DnsLogDao_Impl.smali
+data/DnsLogDao.smali
+data/DnsLogEntity.smali
+data/DomainStat.smali
+data/GuardianDatabase$Companion$MIGRATION_4_5$1.smali
+data/GuardianDatabase$Companion$MIGRATION_5_6$1.smali
+data/GuardianDatabase$Companion$MIGRATION_6_7$1.smali
+data/GuardianDatabase$Companion$MIGRATION_7_8$1.smali
+data/GuardianDatabase$Companion$MIGRATION_8_9$1.smali
+data/GuardianDatabase$Companion.smali
+data/GuardianDatabase_Impl$1.smali
+data/GuardianDatabase_Impl.smali
+data/GuardianDatabase.smali
+data/GuardianRepository$addBlockedSite$1.smali
+data/GuardianRepository$adelantarNivel$1.smali
+data/GuardianRepository$cleanOldData$1.smali
+data/GuardianRepository$clearAllData$1.smali
+data/GuardianRepository$consumirMinutoAutonomia$1.smali
+data/GuardianRepository$consumirMinutoGaming$1.smali
+data/GuardianRepository$crearPeticion$1.smali
+data/GuardianRepository$getCurrentTrustLevel$1.smali
+data/GuardianRepository$getMinutosAutonomiaRestantes$1.smali
+data/GuardianRepository$getMinutosGamingExtra$1.smali
+data/GuardianRepository$getTotalBlockedCount$1.smali
+data/GuardianRepository$logDnsQuery$1.smali
+data/GuardianRepository$otorgarTiempoGaming$1.smali
+data/GuardianRepository$registrarDiaLimpio$1.smali
+data/GuardianRepository$resetearGamingExtra$1.smali
+data/GuardianRepository$resetearMinutosAutonomia$1.smali
+data/GuardianRepository$romperRachaIfNeeded$1.smali
+data/GuardianRepository$setActiveProfile$1.smali
+data/GuardianRepository$updateTodayStatistics$1.smali
+data/GuardianRepository$WhenMappings.smali
+data/GuardianRepository.smali
+data/PetitionDao$DefaultImpls.smali
+data/PetitionDao_Impl$10.smali
+data/PetitionDao_Impl$1.smali
+data/PetitionDao_Impl$2.smali
+data/PetitionDao_Impl$3.smali
+data/PetitionDao_Impl$4.smali
+data/PetitionDao_Impl$5.smali
+data/PetitionDao_Impl$6.smali
+data/PetitionDao_Impl$7.smali
+data/PetitionDao_Impl$8.smali
+data/PetitionDao_Impl$9.smali
+data/PetitionDao_Impl.smali
+data/PetitionDao.smali
+data/PetitionEntity.smali
+data/SensitiveAppDao_Impl$1.smali
+data/SensitiveAppDao_Impl$2.smali
+data/SensitiveAppDao_Impl$3.smali
+data/SensitiveAppDao_Impl$4.smali
+data/SensitiveAppDao_Impl$5.smali
+data/SensitiveAppDao_Impl$6.smali
+data/SensitiveAppDao_Impl$7.smali
+data/SensitiveAppDao_Impl$8.smali
+data/SensitiveAppDao_Impl.smali
+data/SensitiveAppDao.smali
+data/SensitiveAppEntity.smali
+data/SettingsDataStoreKt.smali
+data/SettingsKeys.smali
+data/SettingsRepository$Companion.smali
+data/SettingsRepository$getFreeTrialRemainingHours$1.smali
+data/SettingsRepository$getFreeTrialStartTime$1.smali
+data/SettingsRepository$isFreeTrialActive$1.smali
+data/SettingsRepository$resetTrialForTesting$2.smali
+data/SettingsRepository$setFreeTrialStartTimeIfNotSet$1.smali
+data/SettingsRepository$setFreeTrialStartTimeIfNotSet$2.smali
+data/SettingsRepository$setPremium$2.smali
+data/SettingsRepository$simulateTrialExpired$2.smali
+data/SettingsRepository$special$$inlined$map$1$2$1.smali
+data/SettingsRepository$special$$inlined$map$1$2.smali
+data/SettingsRepository$special$$inlined$map$1.smali
+data/SettingsRepository$special$$inlined$map$2$2$1.smali
+data/SettingsRepository$special$$inlined$map$2$2.smali
+data/SettingsRepository$special$$inlined$map$2.smali
+data/SettingsRepository$updateAutoBlockMalware$2.smali
+data/SettingsRepository$updateBlockAdult$2.smali
+data/SettingsRepository$updateBlockSocial$2.smali
+data/SettingsRepository$updateDisableLightweightMonitoring$2.smali
+data/SettingsRepository$updateMonitoringActive$2.smali
+data/SettingsRepository$updateNotifications$2.smali
+data/SettingsRepository$updateProtectionMode$2.smali
+data/SettingsRepository$updateRetentionDays$2.smali
+data/SettingsRepository$updateVpnActive$2.smali
+data/SettingsRepository.smali
+data/ShieldSettings.smali
+data/StatisticDao_Impl$10.smali
+data/StatisticDao_Impl$11.smali
+data/StatisticDao_Impl$1.smali
+data/StatisticDao_Impl$2.smali
+data/StatisticDao_Impl$3.smali
+data/StatisticDao_Impl$4.smali
+data/StatisticDao_Impl$5.smali
+data/StatisticDao_Impl$6.smali
+data/StatisticDao_Impl$7.smali
+data/StatisticDao_Impl$8.smali
+data/StatisticDao_Impl$9.smali
+data/StatisticDao_Impl.smali
+data/StatisticDao.smali
+data/StatisticEntity.smali
+data/TrustLevel.smali
+data/UserProfileDao_Impl$10.smali
+data/UserProfileDao_Impl$11.smali
+data/UserProfileDao_Impl$12.smali
+data/UserProfileDao_Impl$13.smali
+data/UserProfileDao_Impl$14.smali
+data/UserProfileDao_Impl$15.smali
+data/UserProfileDao_Impl$16.smali
+data/UserProfileDao_Impl$17.smali
+data/UserProfileDao_Impl$18.smali
+data/UserProfileDao_Impl$19.smali
+data/UserProfileDao_Impl$1.smali
+data/UserProfileDao_Impl$20.smali
+data/UserProfileDao_Impl$21.smali
+data/UserProfileDao_Impl$22.smali
+data/UserProfileDao_Impl$23.smali
+data/UserProfileDao_Impl$2.smali
+data/UserProfileDao_Impl$3.smali
+data/UserProfileDao_Impl$4.smali
+data/UserProfileDao_Impl$5.smali
+data/UserProfileDao_Impl$6.smali
+data/UserProfileDao_Impl$7.smali
+data/UserProfileDao_Impl$8.smali
+data/UserProfileDao_Impl$9.smali
+data/UserProfileDao_Impl.smali
+data/UserProfileDao.smali
+data/UserProfileEntityKt.smali
+data/UserProfileEntity.smali
+d.smali
+e.smali
+f.smali
+g.smali
+h.smali
+i.smali
+j.smali
+k.smali
+l.smali
+MainActivity$a.smali
+MainActivity$b.smali
+MainActivity$c.smali
+MainActivity$d.smali
+MainActivity$e$a.smali
+MainActivity$e.smali
+MainActivity$f$a.smali
+MainActivity$f.smali
+MainActivity$g.smali
+MainActivity$h.smali
+MainActivity$i.smali
+MainActivity$j$a.smali
+MainActivity$j.smali
+MainActivity$k.smali
+MainActivity$l.smali
+MainActivity$m.smali
+MainActivity$n.smali
+MainActivity$o.smali
+MainActivity$p.smali
+MainActivity$setupVpnReceiver$1.smali
+MainActivity.smali
+m.smali
+n.smali
+o.smali
+p.smali
+q.smali
+r.smali
+security/GuardianDeviceAdminReceiver$a.smali
+security/GuardianDeviceAdminReceiver.smali
+security/SecurityHelper.smali
+service/AppBlockerAccessibilityService$a.smali
+service/AppBlockerAccessibilityService$b.smali
+service/AppBlockerAccessibilityService$c.smali
+service/AppBlockerAccessibilityService$d.smali
+service/AppBlockerAccessibilityService$e.smali
+service/AppBlockerAccessibilityService$f.smali
+service/AppBlockerAccessibilityService.smali
+service/AppMonitorService$a.smali
+service/AppMonitorService.smali
+service/DnsFilterService$a.smali
+service/DnsFilterService.smali
+service/LightweightMonitorService$a.smali
+service/LightweightMonitorService$b.smali
+service/LightweightMonitorService$onStartCommand$2$a.smali
+service/LightweightMonitorService$onStartCommand$2.smali
+service/LightweightMonitorService.smali
+service/LogCleanupWorker$a.smali
+service/LogCleanupWorker.smali
+service/WeeklySummaryWorker$a.smali
+service/WeeklySummaryWorker$b.smali
+service/WeeklySummaryWorker$c.smali
+service/WeeklySummaryWorker.smali
+ui/AppBlockedActivity$a.smali
+ui/AppBlockedActivity.smali
+ui/a.smali
+ui/b.smali
+ui/c.smali
+ui/d.smali
+ui/e.smali
+ui/f.smali
+ui/g.smali
+ui/h.smali
+ui/SafeBrowserActivity$a.smali
+ui/SafeBrowserActivity.smali
+
+=== 4d. Cifrado / algoritmos en smali ===
+security-report/apktool_out/smali/com/guardianos/shield/security/SecurityHelper.smali:99:    invoke-static {p0}, Ljava/security/MessageDigest;->getInstance(Ljava/lang/String;)Ljava/security/MessageDigest;
+security-report/apktool_out/smali/com/guardianos/shield/security/SecurityHelper.smali:113:    invoke-virtual {p0, p1}, Ljava/security/MessageDigest;->digest([B)[B

@@ -17,11 +17,12 @@
     public *;
 }
 
-# Reducir agresivamente todo lo demás
+# Eliminar TODOS los logs en builds release (d/v/i/w; se conserva Log.e para Crashlytics/Play)
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
     public static *** i(...);
+    public static *** w(...);
 }
 
 # Eliminar metadata innecesaria

@@ -14,11 +14,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.guardianos.shield.R
 import com.guardianos.shield.data.UserProfileEntity
 import java.util.*
 
@@ -85,10 +87,10 @@ fun ParentalControlScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Modo Padres") },
+                title = { Text(stringResource(R.string.parental_screen_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.Rounded.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 }
             )
@@ -103,7 +105,7 @@ fun ParentalControlScreen(
         ) {
             item {
                 Text(
-                    text = "Perfil del menor",
+                    text = stringResource(R.string.parental_section_profile),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -141,7 +143,7 @@ fun ParentalControlScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "⏰ Restringir horario de uso",
+                                    text = stringResource(R.string.parental_schedule_title),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -151,7 +153,7 @@ fun ParentalControlScreen(
                                 }
                             }
                             Text(
-                                text = if (profile.scheduleEnabled) "Horarios activos" else "Permitir uso todo el día",
+                                text = if (profile.scheduleEnabled) stringResource(R.string.parental_schedule_enabled) else stringResource(R.string.parental_schedule_disabled),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -175,7 +177,7 @@ fun ParentalControlScreen(
                 if (profile.scheduleEnabled) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         TimeSelector(
-                            label = "Desde las",
+                            label = stringResource(R.string.parental_schedule_from),
                             currentTime = startTime,
                             onTimeSelected = { time ->
                                 startTime = time
@@ -185,7 +187,7 @@ fun ParentalControlScreen(
                         )
                         
                         TimeSelector(
-                            label = "Hasta las",
+                            label = stringResource(R.string.parental_schedule_until),
                             currentTime = endTime,
                             onTimeSelected = { time ->
                                 endTime = time
@@ -210,7 +212,7 @@ fun ParentalControlScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "📅 Horario diferente el fin de semana",
+                                    text = stringResource(R.string.parental_weekend_schedule),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -218,7 +220,7 @@ fun ParentalControlScreen(
                                     text = if (profile.weekendScheduleEnabled)
                                         "Sáb y Dom: ${weekendStartTime/60}:%02d – ${weekendEndTime/60}:%02d".format(
                                             weekendStartTime%60, weekendEndTime%60)
-                                    else "Mismo horario que entre semana",
+                                    else stringResource(R.string.parental_weekend_same),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -234,7 +236,7 @@ fun ParentalControlScreen(
 
                         if (profile.weekendScheduleEnabled) {
                             TimeSelector(
-                                label = "Fin de semana: desde las",
+                                label = stringResource(R.string.parental_weekend_from),
                                 currentTime = weekendStartTime,
                                 onTimeSelected = { time ->
                                     weekendStartTime = time
@@ -243,7 +245,7 @@ fun ParentalControlScreen(
                                 }
                             )
                             TimeSelector(
-                                label = "Fin de semana: hasta las",
+                                label = stringResource(R.string.parental_weekend_until),
                                 currentTime = weekendEndTime,
                                 onTimeSelected = { time ->
                                     weekendEndTime = time
@@ -263,7 +265,7 @@ fun ParentalControlScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "🏫 Bloquear móvil en el colegio (Lun–Vie)",
+                                    text = stringResource(R.string.parental_school_block),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -271,7 +273,7 @@ fun ParentalControlScreen(
                                     text = if (profile.schoolScheduleEnabled)
                                         "Bloqueado de ${schoolStartTime/60}:%02d a ${schoolEndTime/60}:%02d".format(
                                             schoolStartTime%60, schoolEndTime%60)
-                                    else "No se bloquea en horas lectivas",
+                                    else stringResource(R.string.parental_school_no_block),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = if (profile.schoolScheduleEnabled)
                                         MaterialTheme.colorScheme.error
@@ -294,14 +296,14 @@ fun ParentalControlScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
-                                    text = "⚠️ El móvil quedará bloqueado durante estas horas de lunes a viernes, independientemente del horario libre configurado arriba.",
+                                    text = stringResource(R.string.parental_school_warning),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                     modifier = Modifier.padding(10.dp)
                                 )
                             }
                             TimeSelector(
-                                label = "Entrada al cole",
+                                label = stringResource(R.string.parental_school_entry),
                                 currentTime = schoolStartTime,
                                 onTimeSelected = { time ->
                                     schoolStartTime = time
@@ -310,7 +312,7 @@ fun ParentalControlScreen(
                                 }
                             )
                             TimeSelector(
-                                label = "Salida del cole",
+                                label = stringResource(R.string.parental_school_exit),
                                 currentTime = schoolEndTime,
                                 onTimeSelected = { time ->
                                     schoolEndTime = time
@@ -336,7 +338,7 @@ fun ParentalControlScreen(
                             )
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                text = "Los horarios están desactivados (rango menor a 1 hora).\nAjusta el horario para activar restricciones.",
+                                text = stringResource(R.string.parental_schedule_inactive_hint),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color(0xFF6C757D)
                             )
@@ -361,13 +363,13 @@ fun ParentalControlScreen(
                             )
                             Spacer(Modifier.width(10.dp))
                             Text(
-                                text = "Bloqueo por categoría",
+                                text = stringResource(R.string.parental_category_block_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                         Text(
-                            text = "Estas apps se bloquean siempre, independientemente del horario configurado.",
+                            text = stringResource(R.string.parental_category_block_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
@@ -376,8 +378,8 @@ fun ParentalControlScreen(
                         // Contenido adulto
                         CategoryBlockRow(
                             emoji = "🔞",
-                            titulo = "Contenido adulto",
-                            subtitulo = "Apps y webs con contenido para adultos",
+                            titulo = stringResource(R.string.parental_cat_adult_title),
+                            subtitulo = stringResource(R.string.parental_cat_adult_desc),
                             checked = profile.blockAdultContent,
                             onCheckedChange = {
                                 profile = profile.copy(blockAdultContent = it)
@@ -390,8 +392,8 @@ fun ParentalControlScreen(
                         // Apuestas y casino
                         CategoryBlockRow(
                             emoji = "🎰",
-                            titulo = "Apuestas y casino",
-                            subtitulo = "Betway, PokerStars, casinos online…",
+                            titulo = stringResource(R.string.parental_cat_gambling_title),
+                            subtitulo = stringResource(R.string.parental_cat_gambling_desc),
                             checked = profile.blockGambling,
                             onCheckedChange = {
                                 profile = profile.copy(blockGambling = it)
@@ -404,8 +406,8 @@ fun ParentalControlScreen(
                         // Redes sociales
                         CategoryBlockRow(
                             emoji = "📱",
-                            titulo = "Redes sociales y mensajería",
-                            subtitulo = "TikTok, Instagram, WhatsApp, Discord…",
+                            titulo = stringResource(R.string.parental_cat_social_title),
+                            subtitulo = stringResource(R.string.parental_cat_social_desc),
                             checked = profile.blockSocialMedia,
                             onCheckedChange = {
                                 profile = profile.copy(blockSocialMedia = it)
@@ -418,8 +420,8 @@ fun ParentalControlScreen(
                         // Videojuegos
                         CategoryBlockRow(
                             emoji = "🎮",
-                            titulo = "Videojuegos",
-                            subtitulo = "Angry Birds, Fortnite, Roblox, Candy Crush, GTA, PUBG\u2026 No afecta a apps educativas.",
+                            titulo = stringResource(R.string.parental_cat_gaming_title),
+                            subtitulo = stringResource(R.string.parental_cat_gaming_desc),
                             checked = profile.blockGaming,
                             onCheckedChange = {
                                 profile = profile.copy(blockGaming = it)
@@ -435,7 +437,7 @@ fun ParentalControlScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
-                                    text = "🏧 Apps educativas siempre permitidas: Duolingo, Khan Academy, YouTube Kids, Toca Boca, Scratch, DragonBox y otras no se bloquean aunque este ajuste esté activado. Si usas horarios, todas las apps (incluidas las educativas) se pausan fuera del tiempo permitido.",
+                                    text = stringResource(R.string.parental_gaming_edu_note),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer,
                                     modifier = Modifier.padding(10.dp)
@@ -465,7 +467,7 @@ fun ParentalControlScreen(
                             )
                             Spacer(Modifier.width(12.dp))
                             Text(
-                                text = "Importante",
+                                text = stringResource(R.string.parental_important_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFF59E0B)
@@ -473,9 +475,7 @@ fun ParentalControlScreen(
                         }
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            text = "• Los horarios se aplican en tiempo real sin reiniciar la app\n" +
-                                   "• El filtrado DNS actúa a nivel de red (CleanBrowsing Adult Filter) en Modo Recomendado y Avanzado\n" +
-                                   "• El PIN parental protege estos ajustes contra cambios no autorizados",
+                            text = stringResource(R.string.parental_important_body),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -507,7 +507,7 @@ private fun ProfileForm(
                     name = it
                     onProfileUpdate(profile.copy(name = it))
                 },
-                label = { Text("Nombre del menor") },
+                label = { Text(stringResource(R.string.parental_profile_name)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -522,7 +522,7 @@ private fun ProfileForm(
                         onProfileUpdate(profile.copy(age = it.toIntOrNull()))
                     }
                 },
-                label = { Text("Edad (opcional)") },
+                label = { Text(stringResource(R.string.parental_profile_age)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -543,7 +543,7 @@ private fun ProfileForm(
                     },
                     label = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("PIN parental (4 dígitos)")
+                            Text(stringResource(R.string.parental_profile_pin))
                             if (!isPremium) {
                                 Spacer(Modifier.width(6.dp))
                                 PremiumLockBadge()
@@ -610,7 +610,7 @@ private fun TimeSelector(
             Spacer(Modifier.weight(1f))
             Icon(
                 Icons.Rounded.Schedule,
-                contentDescription = "Seleccionar hora",
+                contentDescription = stringResource(R.string.parental_select_hour_icon),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
@@ -625,8 +625,7 @@ private fun TimeSelector(
             title = { Text(label) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text("Selecciona la hora:", style = MaterialTheme.typography.bodyMedium)
-                    
+                    Text(stringResource(R.string.parental_select_time), style = MaterialTheme.typography.bodyMedium)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
@@ -640,7 +639,7 @@ private fun TimeSelector(
                                     .background(Color(0xFFF8F9FA), CircleShape)
                                     .padding(12.dp)
                             )
-                            Text("Hora", style = MaterialTheme.typography.labelSmall)
+                            Text(stringResource(R.string.parental_time_hour), style = MaterialTheme.typography.labelSmall)
                         }
                         
                         Spacer(Modifier.width(24.dp))
@@ -654,7 +653,7 @@ private fun TimeSelector(
                                     .background(Color(0xFFF8F9FA), CircleShape)
                                     .padding(12.dp)
                             )
-                            Text("Min", style = MaterialTheme.typography.labelSmall)
+                            Text(stringResource(R.string.parental_time_min), style = MaterialTheme.typography.labelSmall)
                         }
                     }
                     
@@ -709,12 +708,12 @@ private fun TimeSelector(
                     onTimeSelected(totalMinutes)
                     showDialog = false
                 }) {
-                    Text("Aceptar")
+                    Text(stringResource(R.string.action_accept))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -750,14 +749,14 @@ private fun CurrentScheduleStatus(
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(
-                    text = if (isWithinSchedule) "✅ Acceso permitido ahora" else "❌ Acceso bloqueado ahora",
+                    text = if (isWithinSchedule) stringResource(R.string.parental_access_allowed) else stringResource(R.string.parental_access_blocked),
                     fontWeight = FontWeight.Bold,
                     color = if (isWithinSchedule) Color(0xFF155724) else Color(0xFF842029)
                 )
                 val startText = String.format("%02d:%02d", startTime / 60, startTime % 60)
                 val endText = String.format("%02d:%02d", endTime / 60, endTime % 60)
                 Text(
-                    text = "Horario permitido: $startText - $endText",
+                    text = stringResource(R.string.parental_allowed_schedule, startText, endText),
                     style = MaterialTheme.typography.labelMedium
                 )
             }

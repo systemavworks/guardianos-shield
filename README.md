@@ -3,10 +3,12 @@
 **Filtrado web local para la protección de menores**  
 Sin rastreo • Sin servidores externos • Privacidad total
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Android%2012%2B-green.svg)
 ![Kotlin](https://img.shields.io/badge/kotlin-1.9+-purple.svg)
 ![API](https://img.shields.io/badge/API-31%2B%20(Android%2012)-orange.svg)
+
+🇪🇸 **Español** | 🇬🇧 [English](README.en.md)
 
 ---
 

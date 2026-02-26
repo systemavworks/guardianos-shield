@@ -5,4 +5,4 @@
 • Parental PIN protection
 • Family Digital Pact (child-to-parent permission requests)
 • Usage statistics and blocked site history
-• No ads, no trackers, fully open source (F-Droid build)
+• No ads, no trackers, fully open source

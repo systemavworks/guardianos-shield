@@ -74,8 +74,17 @@ class AppBlockerAccessibilityService : AccessibilityService() {
             val servicios = gestor.getEnabledAccessibilityServiceList(
                 AccessibilityServiceInfo.FEEDBACK_GENERIC
             )
-            val nombrePropio = "${context.packageName}/.service.AppBlockerAccessibilityService"
-            return servicios.any { it.id == nombrePropio }
+            // El ID que devuelve el sistema puede tener dos formas según el build:
+            //   Release: "com.guardianos.shield/.service.AppBlockerAccessibilityService"
+            //     (forma abreviada, porque applicationId y package de la clase coinciden)
+            //   Debug:   "com.guardianos.shield.debug/com.guardianos.shield.service.AppBlockerAccessibilityService"
+            //     (FQN, porque applicationIdSuffix hace que el applicationId NO coincida
+            //      con el package real de la clase Java)
+            val classFqn = AppBlockerAccessibilityService::class.java.name
+            return servicios.any { info ->
+                info.id == "${context.packageName}/$classFqn" ||
+                info.id == "${context.packageName}/.service.AppBlockerAccessibilityService"
+            }
         }
     }
 
@@ -131,10 +140,14 @@ class AppBlockerAccessibilityService : AccessibilityService() {
 
         val paquete = event.packageName?.toString() ?: return
 
-        // Ignorar propio package y sistema
-        if (paquete.startsWith("android") ||
+        // Ignorar propio package y sistema — con excepción explícita para tiendas de apps
+        // com.android.vending (Play Store) debe pasar para poder bloquearse fuera de horario
+        val esAppStore = paquete == "com.android.vending" ||
+            paquete == "com.huawei.appmarket" ||
+            paquete == "com.samsung.android.app.samsungapps"
+        if (!esAppStore && (paquete.startsWith("android") ||
             paquete.startsWith("com.android") ||
-            paquete == this.packageName) return
+            paquete == this.packageName)) return
 
         // Eliminar overlay SOLO si el usuario navegó explícitamente a una app
         // distinta a la bloqueada Y no es un launcher/sistema/popup transitorio.
@@ -180,6 +193,7 @@ class AppBlockerAccessibilityService : AccessibilityService() {
                 "GAMING"       -> perfil.blockGaming
                 "SOCIAL_MEDIA" -> perfil.blockSocialMedia
                 "ADULT"        -> perfil.blockAdultContent
+                "APP_STORE"    -> !perfil.isWithinAllowedTime() // Solo bloquear fuera de horario
                 else           -> false
             }
 

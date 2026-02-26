@@ -4,6 +4,7 @@ package com.guardianos.shield.service
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -29,7 +30,13 @@ class AppMonitorService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("AppMonitorService", "📡 onStartCommand() - Iniciando monitoreo foreground...")
         // ✅ Notificación persistente para evitar que OPPO/Motorola maten el servicio
-        startForeground(NOTIFICATION_ID, createForegroundNotification())
+        // minSdk=31 >= Q, siempre usamos la forma de 3 args con tipo specialUse (coherente con Manifest)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(NOTIFICATION_ID, createForegroundNotification(),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(NOTIFICATION_ID, createForegroundNotification())
+        }
         usageMonitor.startMonitoring()
         Log.i("AppMonitorService", "✅ Monitoreo de apps ACTIVO")
         return START_STICKY

@@ -14,11 +14,7 @@
          Justificación Play Store: la app de control parental debe monitorizar en tiempo real
          las 24h; la exención es imprescindible para garantizar la protección del menor. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    
-    <!-- 🔴 ANDROID 14+ (API 34): Permiso requerido por connectedDevice foreground service type -->
-    <!-- Necesario porque DnsFilterService usa android:foregroundServiceType="connectedDevice" -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
-    
+
     <!-- 🔴 CRÍTICO: Permiso para UsageStatsMonitor -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" 
                      tools:ignore="ProtectedPermissions" />
@@ -74,7 +70,8 @@
             android:name=".ui.AppBlockedActivity"
             android:exported="false"
             android:theme="@style/Theme.GuardianShield"
-            android:showOnLockScreen="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
             android:excludeFromRecents="true"
             android:configChanges="orientation|screenSize" />
 
@@ -82,7 +79,7 @@
         <service
             android:name=".service.DnsFilterService"
             android:permission="android.permission.BIND_VPN_SERVICE"
-            android:foregroundServiceType="connectedDevice"
+            android:foregroundServiceType="specialUse"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.net.VpnService" />

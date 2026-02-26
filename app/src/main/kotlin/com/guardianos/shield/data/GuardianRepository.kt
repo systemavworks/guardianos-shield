@@ -394,6 +394,10 @@ class GuardianRepository(
             p.contains("ultrasurf") || p.contains("psiphon") ||
             (p.contains("vpn") && p.contains("proxy")) -> "BYPASS_TOOL"
 
+            // ── Tiendas de apps (bloqueadas fuera de horario) ──────────────────────
+            p == "com.android.vending" || p == "com.huawei.appmarket" ||
+            p == "com.samsung.android.app.samsungapps" -> "APP_STORE"
+
             // ── Apps educativas (NUNCA se bloquean por toggle de juegos) ────────────
             // Idiomas y lectura
             p == "com.duolingo" || p == "com.duolingo.schools" ||

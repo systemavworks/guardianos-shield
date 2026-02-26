@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import com.guardianos.shield.data.BlockedSiteEntity
 import com.guardianos.shield.data.StatisticEntity
 import com.guardianos.shield.billing.FreeTierLimits
+import androidx.compose.ui.res.stringResource
+import com.guardianos.shield.R
 import java.text.SimpleDateFormat
 import java.util.Locale
 import kotlin.math.max
@@ -85,10 +87,10 @@ fun StatisticsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Estadísticas") },
+                title = { Text(stringResource(R.string.stats_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Filled.ArrowBack, "Volver")
+                        Icon(Icons.Filled.ArrowBack, stringResource(R.string.stats_back))
                     }
                 },
                 actions = {
@@ -98,7 +100,7 @@ fun StatisticsScreen(
                     }) {
                         Icon(
                             Icons.Default.Share,
-                            contentDescription = "Exportar historial",
+                            contentDescription = stringResource(R.string.stats_export_history),
                             tint = if (isPremium)
                                 MaterialTheme.colorScheme.onSurface
                             else
@@ -139,7 +141,7 @@ fun StatisticsScreen(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                text = "⚠️ Plan FREE: solo se muestran las últimas 48h. Actualiza a Premium para 30 días.",
+                                text = stringResource(R.string.stats_free_limit_banner),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = androidx.compose.ui.graphics.Color(0xFFE65100),
                                 modifier = Modifier.weight(1f)
@@ -148,7 +150,7 @@ fun StatisticsScreen(
                                 onClick = { showFreeLimitBanner = false },
                                 modifier = Modifier.size(20.dp)
                             ) {
-                                Icon(Icons.Filled.Close, contentDescription = "Cerrar", modifier = Modifier.size(14.dp))
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.stats_close), modifier = Modifier.size(14.dp))
                             }
                         }
                     }
@@ -173,7 +175,7 @@ fun StatisticsScreen(
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            "Amenazas bloqueadas",
+                            stringResource(R.string.stats_threats_blocked),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -195,18 +197,19 @@ fun StatisticsScreen(
                     malware = malwareBlocked,
                     socialMedia = socialBlocked,
                     gambling = gamblingBlocked,
-                    gaming = gamingBlocked
+                    gaming = gamingBlocked,
+                    realTotal = visibleBlocked.size
                 )
             }
 
             item {
                 Text(
-                    "Apps y sitios bloqueados",
+                    stringResource(R.string.stats_apps_sites_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "Incluye apps de redes sociales y navegación web",
+                    stringResource(R.string.stats_apps_sites_subtitle),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -252,7 +255,7 @@ fun QuickSummaryCard(
         ) {
             StatItem(
                 value = todayBlocked.toString(),
-                label = "Hoy",
+                label = stringResource(R.string.stats_period_today),
                 icon = Icons.Default.Check,
                 color = Color(0xFF4CAF50)
             )
@@ -265,7 +268,7 @@ fun QuickSummaryCard(
             
             StatItem(
                 value = weeklyBlocked.toString(),
-                label = "Esta semana",
+                label = stringResource(R.string.stats_period_this_week),
                 icon = Icons.Default.DateRange,
                 color = Color(0xFF2196F3)
             )
@@ -278,7 +281,7 @@ fun QuickSummaryCard(
             
             StatItem(
                 value = monthlyBlocked.toString(),
-                label = "Este mes",
+                label = stringResource(R.string.stats_period_this_month),
                 icon = Icons.Default.Star,
                 color = Color(0xFFFF9800)
             )
@@ -323,7 +326,12 @@ fun PeriodSelector(
     selectedPeriod: String,
     onPeriodSelected: (String) -> Unit
 ) {
-    val periods = listOf("Hoy", "Semana", "Mes", "Año")
+    val periods = listOf(
+        "Hoy" to stringResource(R.string.stats_chip_today),
+        "Semana" to stringResource(R.string.stats_chip_week),
+        "Mes" to stringResource(R.string.stats_chip_month),
+        "Año" to stringResource(R.string.stats_chip_year)
+    )
     
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -332,12 +340,12 @@ fun PeriodSelector(
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            periods.forEach { period ->
+            periods.forEach { (value, label) ->
                 FilterChip(
-                    selected = selectedPeriod == period,
-                    onClick = { onPeriodSelected(period) },
-                    label = { Text(period) },
-                    leadingIcon = if (selectedPeriod == period) {
+                    selected = selectedPeriod == value,
+                    onClick = { onPeriodSelected(value) },
+                    label = { Text(label) },
+                    leadingIcon = if (selectedPeriod == value) {
                         { Icon(Icons.Default.Check, null, modifier = Modifier.size(18.dp)) }
                     } else null
                 )
@@ -430,14 +438,15 @@ fun CategoryBreakdownCard(
     malware: Int,
     socialMedia: Int,
     gambling: Int = 0,
-    gaming: Int = 0
+    gaming: Int = 0,
+    realTotal: Int = 0
 ) {
-    val total = adultContent + malware + socialMedia + gambling + gaming
+    val total = if (realTotal > 0) realTotal else adultContent + malware + socialMedia + gambling + gaming
     
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "Desglose por categoría",
+                stringResource(R.string.stats_category_breakdown),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -445,32 +454,32 @@ fun CategoryBreakdownCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             CategoryItem(
-                name = "Contenido adulto",
+                name = stringResource(R.string.stats_cat_adult),
                 count = adultContent,
                 total = total,
                 color = Color(0xFFE57373)
             )
             CategoryItem(
-                name = "Malware/Phishing",
+                name = stringResource(R.string.stats_cat_malware),
                 count = malware,
                 total = total,
                 color = Color(0xFF64B5F6)
             )
             CategoryItem(
-                name = "Redes sociales",
+                name = stringResource(R.string.stats_cat_social),
                 count = socialMedia,
                 total = total,
                 color = Color(0xFF81C784)
             )
             CategoryItem(
-                name = "Videojuegos/Gaming",
+                name = stringResource(R.string.stats_cat_gaming),
                 count = gaming,
                 total = total,
                 color = Color(0xFFFFB74D)
             )
             if (gambling > 0) {
                 CategoryItem(
-                    name = "Apuestas/Casino",
+                    name = stringResource(R.string.stats_cat_gambling),
                     count = gambling,
                     total = total,
                     color = Color(0xFFAB47BC)
@@ -553,7 +562,7 @@ fun TopBlockedSiteItem(domain: String, count: Int) {
                 color = MaterialTheme.colorScheme.errorContainer
             ) {
                 Text(
-                    "$count veces",
+                    stringResource(R.string.stats_times_count, count),
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold,
@@ -585,6 +594,14 @@ fun RecommendationsCard(
         (adultBlocked + gamblingBlocked).toFloat() / totalInPeriod
     else 0f
 
+    // Pre-computar mensajes traducíbles antes del bloque when
+    val msgNoBlocks   = stringResource(R.string.stats_insight_no_blocks)
+    val msgSensitive  = stringResource(R.string.stats_insight_sensitive,
+        (sensitivePct * 100).toInt(), adultBlocked + gamblingBlocked, totalInPeriod)
+    val msgHigh       = stringResource(R.string.stats_insight_high, totalInPeriod)
+    val msgModerate   = stringResource(R.string.stats_insight_moderate, totalInPeriod)
+    val msgLow        = stringResource(R.string.stats_insight_low, totalInPeriod)
+
     data class RecoState(
         val icon: androidx.compose.ui.graphics.vector.ImageVector,
         val message: String,
@@ -596,35 +613,35 @@ fun RecommendationsCard(
     val state = when {
         totalInPeriod == 0 -> RecoState(
             icon        = Icons.Default.Check,
-            message     = "Sin bloqueos registrados en este período. Asegúrate de que el filtrado DNS esté activo para garantizar la protección.",
+            message     = msgNoBlocks,
             bgColor     = Color(0xFF1B5E20).copy(alpha = 0.08f),
             iconColor   = Color(0xFF2E7D32),
             borderColor = Color(0xFF2E7D32).copy(alpha = 0.4f)
         )
         sensitivePct >= 0.5f -> RecoState(
             icon        = Icons.Default.Warning,
-            message     = "⚠️ El ${(sensitivePct * 100).toInt()}% de los bloqueos son contenido adulto o apuestas (${adultBlocked + gamblingBlocked} de $totalInPeriod). Verifica que los filtros DNS estén activos.",
+            message     = msgSensitive,
             bgColor     = Color(0xFFB71C1C).copy(alpha = 0.08f),
             iconColor   = Color(0xFFC62828),
             borderColor = Color(0xFFC62828).copy(alpha = 0.4f)
         )
         totalInPeriod > highThreshold -> RecoState(
             icon        = Icons.Default.Warning,
-            message     = "Actividad elevada: $totalInPeriod intentos bloqueados en el período. Revisa qué apps o dominios generan más intentos en el desglose.",
+            message     = msgHigh,
             bgColor     = Color(0xFFB71C1C).copy(alpha = 0.08f),
             iconColor   = Color(0xFFC62828),
             borderColor = Color(0xFFC62828).copy(alpha = 0.4f)
         )
         totalInPeriod > moderateThreshold -> RecoState(
             icon        = Icons.Default.Info,
-            message     = "Actividad moderada: $totalInPeriod bloqueos en el período. El sistema protege correctamente. Revisa el desglose si alguna categoría destaca.",
+            message     = msgModerate,
             bgColor     = Color(0xFFE65100).copy(alpha = 0.08f),
             iconColor   = Color(0xFFE65100),
             borderColor = Color(0xFFE65100).copy(alpha = 0.4f)
         )
         else -> RecoState(
             icon        = Icons.Default.Check,
-            message     = "Actividad baja: $totalInPeriod bloqueos en el período. La protección funciona con normalidad.",
+            message     = msgLow,
             bgColor     = Color(0xFF1B5E20).copy(alpha = 0.08f),
             iconColor   = Color(0xFF2E7D32),
             borderColor = Color(0xFF2E7D32).copy(alpha = 0.4f)
@@ -655,7 +672,7 @@ fun RecommendationsCard(
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    text       = "Recomendación",
+                    text       = stringResource(R.string.stats_recommendation),
                     style      = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color      = MaterialTheme.colorScheme.onSurface

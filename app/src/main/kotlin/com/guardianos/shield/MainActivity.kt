@@ -54,6 +54,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -69,6 +70,7 @@ import androidx.compose.ui.layout.ContentScale
 
 // App
 import com.guardianos.shield.BuildConfig
+import com.guardianos.shield.R
 import com.guardianos.shield.data.*
 import com.guardianos.shield.security.SecurityHelper
 import com.guardianos.shield.service.*
@@ -448,7 +450,7 @@ class MainActivity : ComponentActivity() {
                     Log.w("MainActivity", "⚠️ No hay perfil activo - Creando perfil por defecto...")
                     // Crear perfil por defecto si no existe
                     repository.createProfile(
-                        name = "Perfil Principal",
+                        name = getString(R.string.default_profile_name),
                         age = null,
                         restrictionLevel = "MEDIUM",
                         parentalPin = null
@@ -765,7 +767,30 @@ fun GuardianShieldApp(
 ) {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home") {
+    // ── Protección PIN para secciones sensibles ────────────────────────────
+    // "parental" y "filters" requieren PIN cuando hay uno configurado.
+    // "pacto" nunca requiere PIN (acceso libre para el menor).
+    var pendingProtectedRoute by remember { mutableStateOf<String?>(null) }
+    var showPinForRoute by remember { mutableStateOf(false) }
+
+    /** Determina si la ruta requiere verificación PIN antes de navegar */
+    val protectedRoutes = setOf("parental", "filters")
+
+    val onNavigateGuarded: (String) -> Unit = { route ->
+        if (route in protectedRoutes) {
+            // Siempre se muestra el PinLockScreen para rutas protegidas:
+            // - Con PIN configurado → requiere verificación real
+            // - Sin PIN → muestra aviso "PIN no configurado" con acceso directo
+            //   (para que el tutor sepa que debe configurar uno)
+            pendingProtectedRoute = route
+            showPinForRoute = true
+        } else {
+            navController.navigate(route)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        NavHost(navController = navController, startDestination = "home") {
         composable("home") {
             HomeScreen(
                 protectionMode = protectionMode,
@@ -780,7 +805,7 @@ fun GuardianShieldApp(
                 hasUsageStatsPermission = hasUsageStatsPermission,
                 onRequestUsagePermission = onRequestUsagePermission,
                 onToggleMonitoring = onToggleMonitoring,
-                onNavigate = { route -> navController.navigate(route) },
+                onNavigate = onNavigateGuarded,
                 onShowPremium = onShowPremium,
                 isPremium = isPremium,
                 isFreeTrialActive = isFreeTrialActive,
@@ -888,7 +913,27 @@ fun GuardianShieldApp(
                     currentProfile.name !in listOf("Niño/a", "Perfil sin nombre")
             )
         }
-    }
+    } // end NavHost
+
+        // ── Overlay de verificación PIN ─────────────────────────────────────
+        // Se muestra sobre el NavHost cuando el usuario intenta acceder a
+        // "Control Parental" o "Filtros" y hay un PIN configurado.
+        if (showPinForRoute) {
+            PinLockScreen(
+                requiredPin = currentProfile?.parentalPin,
+                profileId = currentProfile?.id,
+                onPinVerified = {
+                    showPinForRoute = false
+                    pendingProtectedRoute?.let { navController.navigate(it) }
+                    pendingProtectedRoute = null
+                },
+                onBack = {
+                    showPinForRoute = false
+                    pendingProtectedRoute = null
+                }
+            )
+        }
+    } // end Box
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1033,7 +1078,7 @@ fun HomeScreen(
             // Acciones rápidas
             item {
                 Text(
-                    "Acciones Rápidas",
+                    stringResource(R.string.home_quick_actions),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -1046,24 +1091,24 @@ fun HomeScreen(
                 ) {
                     FeatureButton(
                         modifier = Modifier.weight(1f),
-                        title = "Control",
-                        subtitle = "Parental",
+                        title = stringResource(R.string.home_btn_parental_title),
+                        subtitle = stringResource(R.string.home_btn_parental_subtitle),
                         icon = Icons.Rounded.FamilyRestroom,
                         color = Color(0xFF4CAF50),
                         onClick = { onNavigate("parental") }
                     )
                     FeatureButton(
                         modifier = Modifier.weight(1f),
-                        title = "Filtros",
-                        subtitle = "Custom",
+                        title = stringResource(R.string.home_btn_filters_title),
+                        subtitle = stringResource(R.string.home_btn_filters_subtitle),
                         icon = Icons.Rounded.FilterAlt,
                         color = Color(0xFF2196F3),
                         onClick = { onNavigate("filters") }
                     )
                     FeatureButton(
                         modifier = Modifier.weight(1f),
-                        title = "Pacto",
-                        subtitle = "Digital 🤝",
+                        title = stringResource(R.string.home_btn_pact_title),
+                        subtitle = stringResource(R.string.home_btn_pact_subtitle),
                         icon = Icons.Rounded.Handshake,
                         color = Color(0xFF00ACC1),
                         onClick = { onNavigate("pacto") }
@@ -1080,7 +1125,7 @@ fun HomeScreen(
                         FeatureButton(
                             modifier = Modifier.weight(1f),
                             title = "Premium",
-                            subtitle = "14,99 € único",
+                            subtitle = stringResource(R.string.home_btn_premium_subtitle_free),
                             icon = Icons.Rounded.Star,
                             color = Color(0xFFFFC107),
                             onClick = { onShowPremium() }
@@ -1089,7 +1134,7 @@ fun HomeScreen(
                         FeatureButton(
                             modifier = Modifier.weight(1f),
                             title = "Premium",
-                            subtitle = "Activo ✓",
+                            subtitle = stringResource(R.string.home_btn_premium_subtitle_active),
                             icon = Icons.Rounded.Star,
                             color = Color(0xFF4CAF50),
                             onClick = { }
@@ -1108,7 +1153,7 @@ fun HomeScreen(
                 ) {
                     Icon(Icons.Rounded.Language, null)
                     Spacer(Modifier.width(8.dp))
-                    Text("Abrir Navegador Seguro")
+                    Text(stringResource(R.string.home_open_safe_browser))
                 }
             }
 
@@ -1116,7 +1161,7 @@ fun HomeScreen(
             if (recentBlocked.isNotEmpty()) {
                 item {
                     Text(
-                        "Bloqueados Recientemente",
+                        stringResource(R.string.home_recent_blocked),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -1144,7 +1189,7 @@ fun ProtectionModeSelector(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "Modo de Protección",
+                stringResource(R.string.home_mode_protection_title),
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.height(12.dp))
@@ -1155,19 +1200,19 @@ fun ProtectionModeSelector(
             ) {
                 ModeChip(
                     modifier = Modifier.weight(1f),
-                    label = "Recomendado",
+                    label = stringResource(R.string.home_mode_recommended),
                     isSelected = selectedMode == ProtectionMode.Recommended,
                     onClick = { onModeSelected(ProtectionMode.Recommended) }
                 )
                 ModeChip(
                     modifier = Modifier.weight(1f),
-                    label = "Avanzado",
+                    label = stringResource(R.string.home_mode_advanced),
                     isSelected = selectedMode == ProtectionMode.Advanced,
                     onClick = { onModeSelected(ProtectionMode.Advanced) }
                 )
                 ModeChip(
                     modifier = Modifier.weight(1f),
-                    label = "Manual",
+                    label = stringResource(R.string.home_mode_manual),
                     isSelected = selectedMode == ProtectionMode.CustomStats,
                     onClick = { onModeSelected(ProtectionMode.CustomStats) }
                 )
@@ -1176,10 +1221,15 @@ fun ProtectionModeSelector(
             Spacer(Modifier.height(8.dp))
 
             // Descripción del modo seleccionado
-            val (modoIcono, modoDescripcion) = when (selectedMode) {
-                ProtectionMode.Recommended -> "🛡️" to "DNS CleanBrowsing activado automáticamente. Bloquea adultos, apuestas y malware sin configuración."
-                ProtectionMode.Advanced -> "🔒" to "VPN + DNS CleanBrowsing + monitoreo de apps. Máximo control y visibilidad de actividad."
-                ProtectionMode.CustomStats -> "⚙️" to "Sin protección DNS activa. Úsalo solo si configuras manualmente restricciones en el router."
+            val modoIcono = when (selectedMode) {
+                ProtectionMode.Recommended -> "🛡️"
+                ProtectionMode.Advanced -> "🔒"
+                ProtectionMode.CustomStats -> "⚙️"
+            }
+            val modoDescripcion = when (selectedMode) {
+                ProtectionMode.Recommended -> stringResource(R.string.home_mode_recommended_desc)
+                ProtectionMode.Advanced -> stringResource(R.string.home_mode_advanced_desc)
+                ProtectionMode.CustomStats -> stringResource(R.string.home_mode_manual_desc)
             }
             Row(
                 verticalAlignment = Alignment.Top,
@@ -1251,7 +1301,7 @@ fun ProfileIndicator(profile: UserProfileEntity?) {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "Perfil: ${profile.ageGroup}",
+                        stringResource(R.string.home_profile_label, profile.ageGroup),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1303,15 +1353,15 @@ fun StatusCard(
                 Spacer(Modifier.width(16.dp))
                 Column {
                     Text(
-                        if (isActive) "Protección Activa" else "Protección Inactiva",
+                        if (isActive) stringResource(R.string.home_status_active) else stringResource(R.string.home_status_inactive),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         when (mode) {
-                            ProtectionMode.Recommended -> if (isActive) "DNS CleanBrowsing activo" else "DNS filtrado desactivado"
-                            ProtectionMode.Advanced -> if (isActive) "VPN + monitoreo activo" else "VPN desactivada"
-                            ProtectionMode.CustomStats -> "Sin protección DNS"
+                            ProtectionMode.Recommended -> if (isActive) stringResource(R.string.home_status_dns_active) else stringResource(R.string.home_status_dns_inactive)
+                            ProtectionMode.Advanced -> if (isActive) stringResource(R.string.home_status_vpn_active) else stringResource(R.string.home_status_vpn_inactive)
+                            ProtectionMode.CustomStats -> stringResource(R.string.home_status_no_dns)
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1358,18 +1408,18 @@ fun MonitoringCard(
                     Spacer(Modifier.width(12.dp))
                     Column {
                         Text(
-                            "Monitoreo de Apps",
+                            stringResource(R.string.home_monitoring_title),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            if (isActive) "Activo" else "Inactivo",
+                            if (isActive) stringResource(R.string.home_monitoring_active) else stringResource(R.string.home_monitoring_inactive),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         if (!isPremium) {
                             Text(
-                                "⏰ FREE — datos últimas 48h · 14 días con Premium",
+                                stringResource(R.string.home_monitoring_free_hint),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color(0xFFFF9800)
                             )
@@ -1391,7 +1441,7 @@ fun MonitoringCard(
                     onClick = onRequestPermission,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Conceder Permiso")
+                    Text(stringResource(R.string.home_monitoring_grant_permission))
                 }
             }
         }
@@ -1417,18 +1467,18 @@ fun QuickStatsCard(count: Int, onClick: () -> Unit, isPremium: Boolean = false) 
         ) {
             Column {
                 Text(
-                    "Amenazas Bloqueadas",
+                    stringResource(R.string.home_threats_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "Hoy",
+                    stringResource(R.string.home_threats_today),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (!isPremium) {
                     Text(
-                        "⏰ FREE — datos últimas 48h",
+                        stringResource(R.string.home_threats_free_hint),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color(0xFFFF9800)
                     )
@@ -1634,17 +1684,19 @@ fun TrustLevelBadge(
                         )
                     )
                     Text(
-                        text = "Con ${rachaActual} días de racha podrías estar en " +
-                            if (rachaActual >= 30) "Zona de Confianza 🟢"
-                            else if (rachaActual >= 7) "Modo Precaución 🟡"
-                            else "camino al Explorador 🟡",
+                        text = stringResource(R.string.trust_free_preview, rachaActual,
+                            when {
+                                rachaActual >= 30 -> stringResource(R.string.trust_zone_trusted)
+                                rachaActual >= 7  -> stringResource(R.string.trust_zone_caution)
+                                else              -> stringResource(R.string.trust_zone_locked_path)
+                            }),
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.70f)
                         )
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "PREMIUM — Toca para desbloquear",
+                        text = stringResource(R.string.trust_free_upgrade),
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -1668,22 +1720,22 @@ fun TrustLevelBadge(
             fondo       = Color(0xFF1B5E20).copy(alpha = 0.20f),
             texto       = Color(0xFF66BB6A),
             icono       = "🟢",
-            titulo      = "Zona de Confianza",
-            descripcion = "Llevas $rachaActual días de racha. Acceso flexible registrado."
+            titulo      = stringResource(R.string.trust_trusted_title),
+            descripcion = stringResource(R.string.trust_trusted_desc, rachaActual)
         )
         com.guardianos.shield.data.TrustLevel.CAUTION -> TrustLevelStyle(
             fondo       = Color(0xFFF57F17).copy(alpha = 0.18f),
             texto       = Color(0xFFFFC107),
             icono       = "🟡",
-            titulo      = "Modo Precaución",
-            descripcion = "Llevas $rachaActual días. 7 más para ganar acceso flexible."
+            titulo      = stringResource(R.string.trust_caution_title),
+            descripcion = stringResource(R.string.trust_caution_desc, rachaActual)
         )
         com.guardianos.shield.data.TrustLevel.LOCKED -> TrustLevelStyle(
             fondo       = Color(0xFFB71C1C).copy(alpha = 0.15f),
             texto       = Color(0xFFEF5350),
             icono       = "🔴",
-            titulo      = "Modo Restringido",
-            descripcion = "Mantén ${7 - rachaActual} días más sin infracciones para subir de nivel."
+            titulo      = stringResource(R.string.trust_locked_title),
+            descripcion = stringResource(R.string.trust_locked_desc, 7 - rachaActual)
         )
     }
 
@@ -1733,9 +1785,9 @@ fun TrustLevelBadge(
             )
             Text(
                 text = if (nivel == com.guardianos.shield.data.TrustLevel.CAUTION)
-                    "${30 - rachaActual} días para Zona de Confianza 🟢"
+                    stringResource(R.string.trust_days_to_trusted, 30 - rachaActual)
                 else
-                    "${7 - rachaActual} días para Modo Precaución 🟡",
+                    stringResource(R.string.trust_days_to_caution, 7 - rachaActual),
                 style = MaterialTheme.typography.labelSmall,
                 color = colorTexto.copy(alpha = 0.70f),
                 modifier = Modifier

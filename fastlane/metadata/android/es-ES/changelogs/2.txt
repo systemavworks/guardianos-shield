@@ -5,4 +5,4 @@
 • Protección con PIN parental
 • Pacto Digital Familiar (solicitudes de permiso hijo→padre)
 • Estadísticas de uso e historial de sitios bloqueados
-• Sin anuncios, sin rastreadores, código abierto completo (build F-Droid)
+• Sin anuncios, sin rastreadores, código abierto completo

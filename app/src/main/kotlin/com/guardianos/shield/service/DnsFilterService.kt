@@ -69,12 +69,15 @@ class DnsFilterService : VpnService() {
 
         val notification = createNotification()
         
-        // Iniciar como servicio foreground (configuración original que funciona)
+        // Iniciar como servicio foreground con tipo specialUse (control parental)
+        // specialUse es el tipo correcto para VPN de control parental y coincide con
+        // la propiedad PROPERTY_SPECIAL_USE_FGS_SUBTYPE declarada en el Manifest.
+        // minSdk=31, por lo que el bloque SDK >= Q siempre se ejecuta.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
                 NOTIFICATION_ID,
                 notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
             )
         } else {
             startForeground(NOTIFICATION_ID, notification)

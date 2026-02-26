@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    English string resources — langEn product flavor
+    This file overrides ALL strings from src/main/res/values/strings.xml
+    for the English build variant (com.guardianos.shield.en).
+-->
+<resources>
+    <string name="app_name">GuardianOS Shield</string>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Generic actions
+         ══════════════════════════════════════════════════════════ -->
+    <string name="action_cancel">Cancel</string>
+    <string name="action_accept">Accept</string>
+    <string name="action_back">Back</string>
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_add">Add</string>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PIN screen (PinLockScreen)
+         ══════════════════════════════════════════════════════════ -->
+    <string name="pin_screen_title">Parental Verification</string>
+    <string name="pin_screen_heading">Parental Controls Active</string>
+    <string name="pin_screen_enter_prompt">Enter your parental PIN to continue</string>
+    <string name="pin_screen_no_pin_prompt">Parent access. Set a PIN in Parental Controls to protect against unauthorized changes.</string>
+    <string name="pin_field_label">PIN (4 digits)</string>
+    <string name="pin_error_wrong">Incorrect PIN</string>
+    <string name="pin_verify_button">Verify</string>
+    <string name="pin_continue_no_pin">Continue without PIN</string>
+    <string name="pin_no_pin_warning_title">⚠️ No PIN set</string>
+    <string name="pin_no_pin_warning_body">Set a PIN in Parental Controls to protect the app from unauthorized access by children.</string>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Home screen (HomeScreen)
+         ══════════════════════════════════════════════════════════ -->
+    <string name="home_quick_actions">Quick Actions</string>
+    <string name="home_btn_parental_title">Parental</string>
+    <string name="home_btn_parental_subtitle">Controls</string>
+    <string name="home_btn_filters_title">Custom</string>
+    <string name="home_btn_filters_subtitle">Filters</string>
+    <string name="home_btn_pact_title">Digital</string>
+    <string name="home_btn_pact_subtitle">Pact 🤝</string>
+    <string name="home_btn_premium_subtitle_free">$14.99 one-time</string>
+    <string name="home_btn_premium_subtitle_active">Active ✓</string>
+    <string name="home_open_safe_browser">Open Safe Browser</string>
+    <string name="home_recent_blocked">Recently Blocked</string>
+    <string name="home_protection_mode">Protection Mode</string>
+    <!-- Protection modes -->
+    <string name="mode_recommended">Recommended</string>
+    <string name="mode_advanced">Advanced</string>
+    <string name="mode_custom">Custom</string>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Parental Controls (ParentalControlScreen)
+         ══════════════════════════════════════════════════════════ -->
+    <string name="parental_screen_title">Parent Mode</string>
+    <string name="parental_section_profile">Child profile</string>
+    <string name="parental_profile_name">Child\'s name</string>
+    <string name="parental_profile_age">Age (optional)</string>
+    <string name="parental_profile_pin">Parental PIN (4 digits)</string>
+    <string name="parental_schedule_title">⏰ Restrict usage hours</string>
+    <string name="parental_schedule_enabled">Schedules active</string>
+    <string name="parental_schedule_disabled">Allow all-day use</string>
+    <string name="parental_schedule_from">From</string>
+    <string name="parental_schedule_until">Until</string>
+    <string name="parental_select_time">Select time:</string>
+    <string name="parental_time_hour">Hour</string>
+    <string name="parental_time_min">Min</string>
+    <string name="parental_weekend_schedule">📅 Different schedule on weekends</string>
+    <string name="parental_weekend_same">Same schedule as weekdays</string>
+    <string name="parental_weekend_from">Weekend: from</string>
+    <string name="parental_weekend_until">Weekend: until</string>
+    <string name="parental_school_block">🏫 Block phone during school hours (Mon–Fri)</string>
+    <string name="parental_school_no_block">Not blocked during school hours</string>
+    <string name="parental_school_entry">School start</string>
+    <string name="parental_school_exit">School end</string>
+    <string name="parental_school_warning">⚠️ The phone will be locked during these hours Monday to Friday, regardless of the free-time schedule above.</string>
+    <string name="parental_schedule_inactive_hint">Schedules are disabled (range less than 1 hour).\nAdjust the schedule to enable restrictions.</string>
+    <string name="parental_category_block_title">Block by category</string>
+    <string name="parental_category_block_subtitle">These apps are always blocked, regardless of the configured schedule.</string>
+    <string name="parental_cat_adult_title">Adult content</string>
+    <string name="parental_cat_adult_desc">Apps and websites with adult content</string>
+    <string name="parental_cat_gambling_title">Gambling &amp; casino</string>
+    <string name="parental_cat_gambling_desc">Betway, PokerStars, online casinos…</string>
+    <string name="parental_cat_social_title">Social media &amp; messaging</string>
+    <string name="parental_cat_social_desc">TikTok, Instagram, WhatsApp, Discord…</string>
+    <string name="parental_cat_gaming_title">Video games</string>
+    <string name="parental_cat_gaming_desc">Angry Birds, Fortnite, Roblox, Candy Crush, GTA, PUBG… Does not affect educational apps.</string>
+    <string name="parental_gaming_edu_note">🏧 Educational apps always allowed: Duolingo, Khan Academy, YouTube Kids, Toca Boca, Scratch, DragonBox and others are never blocked even if this setting is on. If you use schedules, all apps (including educational ones) are paused outside allowed time.</string>
+    <string name="parental_important_title">Important</string>
+    <string name="parental_important_body">• Schedules apply in real time without restarting the app\n• DNS filtering works at network level (CleanBrowsing Adult Filter) in Recommended and Advanced modes\n• The parental PIN protects these settings from unauthorized changes</string>
+    <string name="parental_access_allowed">✅ Access allowed now</string>
+    <string name="parental_access_blocked">❌ Access blocked now</string>
+    <string name="parental_allowed_schedule">Allowed schedule: %1$s – %2$s</string>
+    <string name="parental_select_hour_icon">Select time</string>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Custom Filters (CustomFiltersScreen)
+         ══════════════════════════════════════════════════════════ -->
+    <string name="filters_screen_title">Custom Filters</string>
+    <string name="filters_add_domain_title">Add new domain</string>
+    <string name="filters_domain_label">Domain (e.g.: instagram.com)</string>
+    <string name="filters_domain_placeholder">instagram.com, tiktok.com…</string>
+    <string name="filters_add_icon_desc">Add</string>
+    <string name="filters_tip">💡 Tip: Blocking \'instagram.com\' will automatically block all subdomains (www.instagram.com, api.instagram.com, etc.)</string>
+    <string name="filters_blocked_header">Blocked domains (%1$d)</string>
+    <string name="filters_allowed_header">Allowed domains (%1$d)</string>
+    <string name="filters_no_blocked_title">No blocked domains</string>
+    <string name="filters_no_blocked_msg">Add domains to block unwanted content</string>
+    <string name="filters_no_allowed_title">No allowed domains</string>
+    <string name="filters_no_allowed_msg">Add domains that should always be accessible</string>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Settings (SettingsScreen)
+         ══════════════════════════════════════════════════════════ -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_notifications">Notifications</string>
+    <string name="settings_notif_blocking">Blocking notifications</string>
+    <string name="settings_notif_blocking_desc">Alerts when a site is blocked</string>
+    <string name="settings_section_protection">Protection</string>
+    <string name="settings_malware_block">Automatic malware blocking</string>
+    <string name="settings_malware_block_desc_premium">Use Google Safe Browsing API</string>
+    <string name="settings_adult_block">Block adult content</string>
+    <string name="settings_adult_block_desc_premium">Filter 18+ sites</string>
+    <string name="settings_social_block">Block social media</string>
+    <string name="settings_social_block_desc_premium">Facebook, Instagram, TikTok, etc.</string>
+    <string name="settings_section_data">Data &amp; Privacy</string>
+    <string name="settings_data_retention">Data retention</string>
+    <string name="settings_data_retention_desc">Days of history: %1$d</string>
+    <string name="settings_export">Export statistics</string>
+    <string name="settings_export_desc">Save data as CSV or JSON</string>
+    <string name="settings_clear_history">Clear history</string>
+    <string name="settings_clear_history_desc">Delete all records</string>
+    <string name="settings_section_info">Information</string>
+    <string name="settings_usage_guide">Usage guide</string>
+    <string name="settings_usage_guide_desc">Getting started and FAQs for parents</string>
+    <string name="settings_about">About GuardianOS Shield</string>
+    <string name="settings_about_desc">Version 1.1.0 • Build 20260220</string>
+    <string name="settings_privacy">Privacy policy</string>
+    <string name="settings_privacy_desc">How we protect your data</string>
+    <string name="settings_source_code">Source code</string>
+    <string name="settings_source_code_desc">Open source project on GitHub</string>
+    <string name="settings_section_security_adv">Advanced Security</string>
+    <string name="settings_app_blocking">Real app blocking 🔒</string>
+    <string name="settings_app_blocking_acc_active">Accessibility service active</string>
+    <string name="settings_app_blocking_acc_inactive">Tap to enable in System Settings</string>
+    <string name="settings_app_blocking_premium">PREMIUM — blocks sensitive apps in real time</string>
+    <string name="settings_anti_uninstall">Anti-uninstall 🛡️</string>
+    <string name="settings_anti_uninstall_active">Device administrator active</string>
+    <string name="settings_anti_uninstall_inactive">Enable to prevent the child from uninstalling the app</string>
+    <string name="settings_anti_uninstall_premium">PREMIUM — prevents unauthorized uninstall</string>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Legacy strings (SettingsScreen)
+         ══════════════════════════════════════════════════════════ -->
+    <string name="notifications_blocked">Blocking notifications</string>
+    <string name="auto_malware_block">Automatic malware blocking</string>
+    <string name="block_adult_content">Block adult content</string>
+    <string name="block_social_media">Block social media</string>
+    <string name="data_retention">Data retention</string>
+    <string name="export_statistics">Export statistics</string>
+    <string name="clear_history">Clear history</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="source_code">Source code</string>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Legacy strings (ParentalControlScreen)
+         ══════════════════════════════════════════════════════════ -->
+    <string name="parental_pin">Parental PIN</string>
+    <string name="create_pin">Create PIN</string>
+    <string name="verify_pin">Verify PIN</string>
+    <string name="profile_info">Profile Information</string>
+    <string name="restriction_level">Restriction Level</string>
+    <string name="usage_schedule">Allowed Usage Schedule</string>
+
+    <!-- ══════════════════════════════════════════════════════════
+         Legacy strings (StatisticsScreen)
+         ══════════════════════════════════════════════════════════ -->
+    <string name="today">Today</string>
+    <string name="this_week">This week</string>
+    <string name="this_month">This month</string>
+    <string name="blocked_sites">Blocked sites</string>
+    <string name="category_breakdown">Category breakdown</string>
+    <string name="top_blocked_sites">Most blocked sites</string>
+
+    <!-- ══════════════════════════════════════════════════════════
+         TrustFlow Engine
+         ══════════════════════════════════════════════════════════ -->
+    <string name="trust_cadete">Cadet</string>
+    <string name="trust_explorador">Explorer</string>
+    <string name="trust_guardian">Guardian</string>
+    <string name="autonomy_minutes_remaining">%d min remaining today</string>
+    <string name="soft_block_warning">⚠️ This will be recorded in your weekly report</string>
+    <string name="hard_block_message">🔒 Limit reached. Maintain your streak to earn more autonomy.</string>
+    <string name="trust_progress_label">%d days to unlock Autonomy Mode</string>
+    <string name="trust_reset_button">⚠️ Manually reset trust</string>
+    <string name="accessibility_service_description">GuardianOS Shield — Real-time app blocking</string>
+
+    <!-- ══════════════════════════════════════════════════════════
+         HelpScreen — Usage guide for parents
+         ══════════════════════════════════════════════════════════ -->
+    <!-- TopBar -->
+    <string name="help_title">Usage Guide</string>
+    <string name="help_subtitle">For Parents</string>
+    <string name="help_back_desc">Back</string>
+
+    <!-- Hero card -->
+    <string name="help_hero_title">GuardianOS Shield protects your child\'s phone</string>
+    <string name="help_hero_body">The app acts as an invisible filter: it blocks dangerous websites, controls which apps your child can use and when, and alerts you when they try to bypass restrictions.</string>
+    <string name="help_pill_network">Filters the web</string>
+    <string name="help_pill_apps">Blocks apps</string>
+    <string name="help_pill_schedules">Controls schedules</string>
+
+    <!-- Section titles -->
+    <string name="help_sec_setup_title">Initial Setup</string>
+    <string name="help_sec_setup_subtitle">Follow these steps just once</string>
+    <string name="help_sec_features_title">What does each feature do?</string>
+    <string name="help_sec_features_subtitle">Tap to see the explanation</string>
+    <string name="help_sec_faq_title">Frequently Asked Questions</string>
+    <string name="help_sec_faq_subtitle">The most common questions</string>
+    <string name="help_sec_tips_title">Security Tips</string>
+    <string name="help_sec_tips_subtitle">Recommendations to keep it working well</string>
+
+    <!-- Setup card progress -->
+    <string name="help_steps_progress">%1$d of %2$d steps completed</string>
+    <string name="help_steps_all_done">✓ All done</string>
+    <string name="help_step_done_desc">Completed</string>
+
+    <!-- Setup steps -->
+    <string name="help_step1_title">Activate the network filter (VPN)</string>
+    <string name="help_step1_desc">Tap the large button on the main panel to turn on protection. The first time, the system will ask for permission — accept it.</string>
+    <string name="help_step1_where">Main screen → central button</string>
+
+    <string name="help_step2_title">Create a 4-digit parental PIN</string>
+    <string name="help_step2_desc">The PIN protects access to the Parental Controls and Filters sections, preventing your child from changing the settings. Choose one only you know.</string>
+    <string name="help_step2_where">Parental Controls → Child profile → Parental PIN</string>
+
+    <string name="help_step3_title">Activate app monitoring</string>
+    <string name="help_step3_desc">Allows the app to know which applications your child uses. If the system requests a special Usage Statistics permission, accept it.</string>
+    <string name="help_step3_where">Main screen → Monitoring section</string>
+
+    <string name="help_step4_title">Activate app blocking (Accessibility)</string>
+    <string name="help_step4_desc">Go to phone Settings → Accessibility → General → Downloaded Apps → GuardianOS Shield and enable it. You only need to do this once.</string>
+    <string name="help_step4_where">Phone Settings → Accessibility → General → Downloaded Apps</string>
+
+    <string name="help_step5_title">Set up your child\'s profile</string>
+    <string name="help_step5_desc">Enter the child\'s name and age and set the hours when they can use the phone.</string>
+    <string name="help_step5_where">Parental Controls → Profile</string>
+
+    <!-- Features -->
+    <string name="help_feat1_title">DNS Filter (network protection)</string>
+    <string name="help_feat1_summary">Automatically blocks dangerous websites</string>
+    <string name="help_feat1_detail">When your child browses the internet, all websites first pass through a specialized filter (CleanBrowsing). If the site contains adult content, violence, gambling, malware or social media, the filter blocks it before it loads. It works in any browser on the phone, not just GuardianOS\'s own browser.</string>
+
+    <string name="help_feat2_title">Built-in safe browser</string>
+    <string name="help_feat2_summary">A browser with extra protection for your child</string>
+    <string name="help_feat2_detail">GuardianOS includes its own web browser with an extra layer of security. It automatically activates strict SafeSearch on Google and Bing, and Restricted Mode on YouTube. If a dangerous site is opened, a block screen explains why it cannot be accessed. It\'s the safest place for your child to browse.</string>
+
+    <string name="help_feat3_title">App blocking</string>
+    <string name="help_feat3_summary">Automatically closes disallowed apps</string>
+    <string name="help_feat3_detail">When your child opens a blocked app (Instagram, TikTok, WhatsApp, games, gambling, etc.), GuardianOS closes it instantly and shows a screen explaining why it\'s blocked. It also detects VPN and proxy bypass attempts and blocks them without exception. For this to work, you need to enable the accessibility permission once (step 4 of setup).</string>
+
+    <string name="help_feat4_title">Schedule control</string>
+    <string name="help_feat4_summary">Define when they can use the phone</string>
+    <string name="help_feat4_detail">Set a time window (for example, 4:00 PM to 8:00 PM) during which your child can use the phone normally. Outside that window, blocked apps close automatically and the web filter becomes stricter. Schedules that cross midnight are also supported.</string>
+
+    <string name="help_feat5_title">Statistics &amp; history</string>
+    <string name="help_feat5_summary">See what your child tried to open</string>
+    <string name="help_feat5_detail">The Statistics section shows a summary of all blocked websites and apps, organized by day, week or month. You can see how many times they tried to access social media, which websites were blocked and in which categories. Premium users have access to 30 days of history.</string>
+
+    <string name="help_feat6_title">Streak system (TrustFlow)</string>
+    <string name="help_feat6_summary">Rewards good behavior</string>
+    <string name="help_feat6_detail">If your child does not try to bypass restrictions for several days in a row, the system gradually gives them more autonomy. With a 7-day streak they enter Explorer Mode (a warning is shown before blocking). With 30 days they become a Guardian and get 60 minutes of free access per day. This encourages compliance without conflict.</string>
+
+    <string name="help_feat7_title">Block by category</string>
+    <string name="help_feat7_summary">Choose what type of content to block</string>
+    <string name="help_feat7_detail">In Parental Controls you can enable or disable blocks by category: adult content, gambling and casino, social media and video games. Educational apps (Duolingo, Khan Academy, YouTube Kids, Toca Boca, etc.) are whitelisted and never blocked even if the games toggle is on.</string>
+
+    <string name="help_feat8_title">Play Store outside allowed hours</string>
+    <string name="help_feat8_summary">Prevents unauthorized installs</string>
+    <string name="help_feat8_detail">GuardianOS detects when your child opens the Google Play Store outside allowed hours and blocks it automatically. This prevents them from installing new apps when they shouldn\'t be using the phone.</string>
+
+    <string name="help_feat9_title">Anti-bypass VPN blocking</string>
+    <string name="help_feat9_summary">Closes VPNs and proxies trying to bypass the filter</string>
+    <string name="help_feat9_detail">GuardianOS automatically detects and blocks the main bypass attempts: Psiphon, Turbo VPN, Orbot/Tor, ProtonVPN, Hotspot Shield, Cloudflare Warp and others. When your child tries to open one of these apps, it closes instantly, is recorded in the history and you receive an urgent alert. Blocking is unconditional.</string>
+
+    <string name="help_feat10_title">Weekly parent summary</string>
+    <string name="help_feat10_summary">Automatic report every Sunday</string>
+    <string name="help_feat10_detail">Without opening the app, you receive a weekly notification with an activity summary: how many websites were blocked, attempts to open social media, games, and whether there were any VPN bypass attempts. It\'s the report that gives you peace of mind knowing everything is working.</string>
+
+    <string name="help_feat11_title">Family Digital Pact</string>
+    <string name="help_feat11_summary">Your child can request permissions from you</string>
+    <string name="help_feat11_detail">Instead of bypassing restrictions, your child can send a request for you to approve or reject: more screen time or access to a specific website. You respond with your PIN. This encourages communication rather than conflict.</string>
+
+    <!-- FAQs -->
+    <string name="help_faq1_q">Does the app need internet to work?</string>
+    <string name="help_faq1_a">The network filter does require an internet connection (it is based on external DNS servers that block content). However, app blocking and schedule control work offline, directly on the phone.</string>
+
+    <string name="help_faq2_q">My child turned off WiFi and kept browsing — why?</string>
+    <string name="help_faq2_a">The DNS filter only works when the GuardianOS VPN is active and connected (WiFi or mobile data). If your child activates airplane mode or turns off data, the network filter cannot act. To prevent this, also enable app blocking (accessibility service) and add system settings to blocked apps.</string>
+
+    <string name="help_faq3_q">Can my child uninstall GuardianOS?</string>
+    <string name="help_faq3_a">If you activate Device Administrator mode (in Settings → Advanced Security → Anti-uninstall), your child will not be able to uninstall the app without entering the parental PIN. It is an extra protection layer that is recommended.</string>
+
+    <string name="help_faq4_q">The app blocked something it shouldn\'t — what do I do?</string>
+    <string name="help_faq4_a">You can add that domain to the whitelist in Custom Filters → Allowed list. You can also review the active categories in Parental Controls to adjust what types of content are blocked.</string>
+
+    <string name="help_faq5_q">Why does it need the Accessibility permission?</string>
+    <string name="help_faq5_a">The accessibility permission is the only way to close other applications on Android without root. GuardianOS uses it exclusively to block the apps you configure. It does not read screen content or access passwords.</string>
+
+    <string name="help_faq6_q">Does it work with Netflix, YouTube or Spotify?</string>
+    <string name="help_faq6_a">GuardianOS controls screen time through schedules. The accessibility service detects if any app is active outside allowed hours and returns the child to the home screen, which also applies to Netflix, YouTube, Spotify and similar apps. The DNS filter does not act on these apps because they use encrypted protocols, but the schedule-based block does apply.</string>
+
+    <string name="help_faq7_q">What if my child has more than one phone?</string>
+    <string name="help_faq7_a">GuardianOS must be installed on each device you want to protect. Configuration and statistics are independent per device. The Premium license (one-time payment) is valid for a single device.</string>
+
+    <string name="help_faq8_q">Does the app drain the battery?</string>
+    <string name="help_faq8_a">The battery impact is minimal. To prevent the system from stopping the service, go to phone Settings → Battery → Battery optimization → GuardianOS Shield → Unrestricted. This is especially important on OPPO, Xiaomi and Huawei phones.</string>
+
+    <string name="help_faq9_q">Can my child use a VPN to bypass the filter?</string>
+    <string name="help_faq9_a">GuardianOS automatically detects and blocks the main VPN and bypass apps: Psiphon, Turbo VPN, Orbot/Tor, Hotspot Shield, ProtonVPN, Cloudflare Warp and others. If your child tries to open any of them, it is blocked instantly and logged with an urgent alert for you.</string>
+
+    <!-- Tips -->
+    <string name="help_tip1_title">Exclude GuardianOS from battery optimization</string>
+    <string name="help_tip1_desc">Go to phone Settings → Battery → Battery optimization. Find GuardianOS Shield and select Unrestricted or Don\'t optimize. If you don\'t, the system may automatically shut down the monitoring service.</string>
+
+    <string name="help_tip2_title">Set a strong PIN — don\'t share it with your child</string>
+    <string name="help_tip2_desc">Avoid birthdays or other easy combinations. The PIN protects access to Parental Controls and Filters. Without it, your child can change settings freely.</string>
+
+    <string name="help_tip3_title">On OPPO, Xiaomi and Huawei: enable restricted settings</string>
+    <string name="help_tip3_desc">On these phones, go to Settings → Apps → GuardianOS Shield → three dots (⋮) → Allow restricted settings. Without this step, app blocking may not work correctly.</string>
+
+    <string name="help_tip4_title">The network filter doesn\'t work without a connection</string>
+    <string name="help_tip4_desc">GuardianOS\'s VPN requires active data (WiFi or mobile data) to filter websites. Complement with app blocking for more complete protection when there is no network.</string>
+
+    <string name="help_tip5_title">Talk to your child about the rules</string>
+    <string name="help_tip5_desc">Technology helps, but conversation is essential. Explain why the restrictions exist and establish clear usage rules. The Family Digital Pact in the app is a great tool to do it together.</string>
+
+    <!-- ======= HOME SCREEN — ProtectionModeSelector ======= -->
+    <string name="home_mode_protection_title">Protection Mode</string>
+    <string name="home_mode_recommended">Recommended</string>
+    <string name="home_mode_advanced">Advanced</string>
+    <string name="home_mode_manual">Manual</string>
+    <string name="home_mode_recommended_desc">CleanBrowsing DNS enabled automatically. Blocks adult content, gambling and malware without extra setup.</string>
+    <string name="home_mode_advanced_desc">VPN + CleanBrowsing DNS + app monitoring. Maximum control and activity visibility.</string>
+    <string name="home_mode_manual_desc">No active DNS protection. Use only if you manually configure restrictions on your router.</string>
+
+    <!-- HOME SCREEN — StatusCard -->
+    <string name="home_status_active">Protection Active</string>
+    <string name="home_status_inactive">Protection Inactive</string>
+    <string name="home_status_dns_active">CleanBrowsing DNS active</string>
+    <string name="home_status_dns_inactive">DNS filtering disabled</string>
+    <string name="home_status_vpn_active">VPN + monitoring active</string>
+    <string name="home_status_vpn_inactive">VPN disabled</string>
+    <string name="home_status_no_dns">No DNS protection</string>
+
+    <!-- HOME SCREEN — MonitoringCard -->
+    <string name="home_monitoring_title">App Monitoring</string>
+    <string name="home_monitoring_active">Active</string>
+    <string name="home_monitoring_inactive">Inactive</string>
+    <string name="home_monitoring_free_hint">⏰ FREE — last 48h data · 14 days with Premium</string>
+    <string name="home_monitoring_grant_permission">Grant Permission</string>
+
+    <!-- HOME SCREEN — QuickStatsCard -->
+    <string name="home_threats_title">Blocked Threats</string>
+    <string name="home_threats_today">Today</string>
+    <string name="home_threats_free_hint">⏰ FREE — last 48h data</string>
+
+    <!-- HOME SCREEN — ProfileIndicator -->
+    <string name="home_profile_label">Profile: %s</string>
+
+    <!-- ======= STATISTICS SCREEN ======= -->
+    <string name="stats_title">Statistics</string>
+    <string name="stats_back">Back</string>
+    <string name="stats_export_history">Export history</string>
+    <string name="stats_free_limit_banner">⚠️ FREE Plan: only the last 48h are shown. Upgrade to Premium for 30 days.</string>
+    <string name="stats_close">Close</string>
+    <string name="stats_threats_blocked">Blocked threats</string>
+    <string name="stats_apps_sites_title">Blocked apps &amp; sites</string>
+    <string name="stats_apps_sites_subtitle">Includes social network apps and web browsing</string>
+
+    <!-- Stats — QuickSummaryCard labels -->
+    <string name="stats_period_today">Today</string>
+    <string name="stats_period_this_week">This week</string>
+    <string name="stats_period_this_month">This month</string>
+
+    <!-- Stats — PeriodSelector chips -->
+    <string name="stats_chip_today">Today</string>
+    <string name="stats_chip_week">Week</string>
+    <string name="stats_chip_month">Month</string>
+    <string name="stats_chip_year">Year</string>
+
+    <!-- Stats — CategoryBreakdownCard -->
+    <string name="stats_category_breakdown">Category breakdown</string>
+    <string name="stats_cat_adult">Adult content</string>
+    <string name="stats_cat_malware">Malware/Phishing</string>
+    <string name="stats_cat_social">Social networks</string>
+    <string name="stats_cat_gaming">Gaming</string>
+    <string name="stats_cat_gambling">Gambling/Casino</string>
+
+    <!-- Stats — RecommendationsCard -->
+    <string name="stats_recommendation">Recommendation</string>
+
+    <!-- Stats — TopBlockedSiteItem -->
+    <string name="stats_times_count">%d times</string>
+
+    <!-- ======= PACT SCREEN ======= -->
+    <string name="pact_title">Family Digital Pact</string>
+    <string name="pact_subtitle">Communicate with your parent without leaving the device</string>
+    <string name="pact_back">Back</string>
+    <string name="pact_tab_mailbox">My inbox</string>
+    <string name="pact_tab_parent_locked">Parent panel 🔒</string>
+    <string name="pact_tab_parent_unlocked">Parent panel ✓</string>
+    <string name="pact_verifying_pin">Verifying PIN…</string>
+
+    <!-- Pact — BuzonHijo -->
+    <string name="pact_request_prompt">Want to ask for something?</string>
+    <string name="pact_request_prompt_subtitle">More time, unlock an app or a website</string>
+    <string name="pact_btn_ask">Ask</string>
+    <string name="pact_no_petitions_sent">You haven\'t sent any request yet</string>
+    <string name="pact_petition_history">Request history</string>
+
+    <!-- Pact — petition states -->
+    <string name="pact_status_approved">✅ Approved</string>
+    <string name="pact_status_rejected">❌ Rejected</string>
+    <string name="pact_status_pending">⏳ Pending</string>
+
+    <!-- Pact — PanelPadre -->
+    <string name="pact_no_petitions_yet">No requests at the moment</string>
+    <string name="pact_pending_responses">Awaiting response (%d)</string>
+    <string name="pact_history_responded">Responded history</string>
+    <string name="pact_btn_respond">Respond</string>
+
+    <!-- Pact — DialogoNuevaPeticion -->
+    <string name="pact_dialog_new_title">New request</string>
+    <string name="pact_dialog_what_ask">What do you want to ask for?</string>
+    <string name="pact_option_more_time">⏱️ More screen time</string>
+    <string name="pact_option_unlock_site">🌐 Unlock a website</string>
+    <string name="pact_field_minutes_extra">How many extra minutes?</string>
+    <string name="pact_field_what_site">Which website?</string>
+    <string name="pact_field_reason">Why do you need it? (optional)</string>
+    <string name="pact_field_reason_hint">E.g.: I finished my homework</string>
+    <string name="pact_btn_send_petition">Send request</string>
+    <string name="pact_cancel">Cancel</string>
+
+    <!-- Pact — DialogoResponder -->
+    <string name="pact_dialog_respond_title">Respond to the request</string>
+    <string name="pact_field_minutes_granted">Extra minutes granted</string>
+    <string name="pact_field_message_optional">Message (optional)</string>
+    <string name="pact_field_rejection_reason">Reason for rejection</string>
+    <string name="pact_btn_approve">✅ Approve</string>
+    <string name="pact_btn_reject">❌ Reject</string>
+    <string name="pact_btn_approve_confirm">Approve</string>
+    <string name="pact_btn_reject_confirm">Reject</string>
+
+    <!-- Pact — DialogoPinPadre -->
+    <string name="pact_pin_dialog_title">Parent access</string>
+    <string name="pact_pin_dialog_desc">Enter the parental PIN to view and respond to requests.</string>
+    <string name="pact_pin_label">Parental PIN</string>
+    <string name="pact_pin_wrong">Incorrect PIN</string>
+    <string name="pact_btn_access">Access</string>
+
+    <!-- Pact — TrustLevelCard -->
+    <string name="pact_trust_racha_days">Current streak: %d days</string>
+    <string name="pact_trust_next_level_explorer">Next level: Explorer</string>
+    <string name="pact_trust_next_level_guardian">Next level: Guardian</string>
+    <string name="pact_trust_days_remaining">%d days remaining</string>
+    <string name="pact_trust_autonomy_today">Autonomy minutes today</string>
+    <string name="pact_trust_autonomy_value">%d / 60 min</string>
+    <string name="pact_gaming_bonus_title">Gaming bonus active today</string>
+    <string name="pact_gaming_bonus_desc">%d min available — spent minute by minute</string>
+    <string name="pact_parent_actions">Parent actions</string>
+    <string name="pact_trust_btn_reset_minutes">Reset today\'s minutes</string>
+    <string name="pact_trust_btn_give_gaming">🎮 Give gaming time today</string>
+    <string name="pact_trust_btn_extend_gaming">🎮 Extend gaming time (%d min active)</string>
+    <string name="pact_trust_btn_level_up">🏅 Promote to %s (advance level)</string>
+    <string name="pact_level_name_explorer">Explorer 🟡</string>
+    <string name="pact_level_name_guardian">Guardian 🟢</string>
+    <string name="pact_gaming_dialog_title">Give gaming time</string>
+    <string name="pact_gaming_dialog_desc">Select how many extra gaming minutes to grant today. How much time do you want to give?</string>
+    <string name="pact_gaming_dialog_already_has">Already has %d min active. They will be added (max. 120 min/day).</string>
+    <string name="pact_gaming_dialog_confirm">Grant %d min</string>
+    <string name="pact_level_up_dialog_effort">You are recognising the effort of %d days well done.</string>
+    <string name="pact_level_up_dialog_info">ℹ️ This only raises ONE level. The streak will keep growing normally.</string>
+    <string name="pact_level_up_btn_confirm">⬆ Promote to %s</string>
+
+    <!-- ======= STREAK WIDGET ======= -->
+    <string name="streak_day_singular">day</string>
+    <string name="streak_day_plural">days</string>
+    <string name="streak_title_active">Active streak</string>
+    <string name="streak_msg_zero">No violations today = start your streak</string>
+    <string name="streak_msg_day1">First day! Keep it up 🌱</string>
+    <string name="streak_msg_few">Nice! %d days in a row</string>
+    <string name="streak_msg_week">Full week! Impressive 🔥</string>
+    <string name="streak_msg_ongoing">%d days! You\'re on a roll 🚀</string>
+    <string name="streak_msg_legendary">One month record! LEGENDARY 👑</string>
+    <string name="streak_record">Record: %d days</string>
+
+    <!-- ======= TRUST LEVEL BADGE (dashboard) ======= -->
+    <string name="trust_locked_title">Restricted Mode</string>
+    <string name="trust_locked_desc">Keep %d more days without violations to level up.</string>
+    <string name="trust_caution_title">Caution Mode</string>
+    <string name="trust_caution_desc">You\'ve had %d days. 7 more to gain flexible access.</string>
+    <string name="trust_trusted_title">Trust Zone</string>
+    <string name="trust_trusted_desc">You\'ve had %d streak days. Flexible access registered.</string>
+    <string name="trust_days_to_trusted">%d days to Trust Zone 🟢</string>
+    <string name="trust_days_to_caution">%d days to Caution Mode 🟡</string>
+    <string name="trust_free_preview">With %d streak days you could be in %s</string>
+    <string name="trust_free_upgrade">PREMIUM — Tap to unlock</string>
+    <string name="trust_zone_trusted">Trust Zone 🟢</string>
+    <string name="trust_zone_caution">Caution Mode 🟡</string>
+    <string name="trust_zone_locked_path">on the way to Explorer 🟡</string>
+
+    <!-- ======= TRUST LEVEL labels para UI ======= -->
+    <string name="trust_label_locked">Cadet</string>
+    <string name="trust_label_caution">Explorer</string>
+    <string name="trust_label_trusted">Guardian</string>
+    <string name="trust_name_locked">Full Lockdown</string>
+    <string name="trust_name_caution">Caution Mode</string>
+    <string name="trust_name_trusted">Trust Zone</string>
+    <string name="trust_dest_explorer">Explorer 🟡</string>
+    <string name="trust_dest_guardian">Guardian 🟢</string>
+
+    <!-- ======= TRUST LEVEL CARD (PactScreen) ======= -->
+    <string name="pact_trust_desc_locked">Full lockdown active — the minor must request permission for any sensitive app.</string>
+    <string name="pact_trust_desc_caution">15 s reflection before opening apps. The minor sees their days at risk.</string>
+    <string name="pact_trust_desc_trusted">Free access with %d min remaining today. The system records usage.</string>
+    <string name="pact_level_up_effect_locked">The minor will move to Caution Mode: will see a 15 s countdown before opening apps. No longer a hard block.</string>
+    <string name="pact_level_up_effect_caution">The minor will move to Trust Zone: free access with registration (60 min/day). The system keeps monitoring.</string>
+    <string name="pact_level_up_dialog_title">Advance to %s</string>
+
+    <!-- Perfil por defecto -->
+    <string name="default_profile_name">Main Profile</string>
+
+    <!-- SettingsScreen — Premium and plan -->
+    <string name="settings_restore_snackbar">Purchases checked — if you have an active purchase it will be automatically restored</string>
+    <string name="settings_free_data_limit">FREE plan — protection data recorded for the last %dh. Upgrade to Premium for full access.</string>
+    <string name="settings_free_data_desc">Active — last 48h data (FREE)</string>
+    <string name="settings_plan_premium_active">Active Premium plan</string>
+    <string name="settings_plan_free">Free plan</string>
+    <string name="settings_plan_premium_benefits">Lifetime access to all features</string>
+    <string name="settings_plan_free_cta">Unlock everything for €14.99 (one-time payment)</string>
+    <string name="settings_restore_purchases_title">Restore purchases</string>
+    <string name="settings_restore_purchases_desc">Recover premium access after reinstalling or changing device</string>
+    <string name="settings_history_cleared">History cleared successfully</string>
+    <string name="settings_history_error">Error clearing history</string>
+
+    <!-- About dialog -->
+    <string name="about_tagline">Smart parental control for Android. Filters content, blocks apps and protects browsing without root.</string>
+    <string name="about_section_features">KEY FEATURES</string>
+    <string name="about_feat1_title">DNS Filter (CleanBrowsing)</string>
+    <string name="about_feat1_subtitle">Automatically blocks adult content, social media, games and malware at network level.</string>
+    <string name="about_feat2_title">Safe browser + Triple SafeSearch</string>
+    <string name="about_feat2_subtitle">WebView with URL validation. SafeSearch automatically enabled on Google, Bing and YouTube.</string>
+    <string name="about_feat3_title">App blocking · Premium</string>
+    <string name="about_feat3_subtitle">Prevents opening Instagram, TikTok, etc. outside allowed hours using accessibility.</string>
+    <string name="about_feat4_title">Category-based blocking</string>
+    <string name="about_feat4_subtitle">Control by category: adult content, gambling, social networks and video games. Educational apps (Duolingo, Khan Academy, etc.) are never blocked.</string>
+    <string name="about_feat5_title">Play Store outside hours</string>
+    <string name="about_feat5_subtitle">Blocks access to Google Play Store outside allowed hours to prevent unauthorised installations.</string>
+    <string name="about_feat6_title">Automatic VPN anti-evasion</string>
+    <string name="about_feat6_subtitle">Instantly detects and blocks VPN and proxy apps (Psiphon, Turbo VPN, Orbot, Hotspot Shield…) and alerts the parent.</string>
+    <string name="about_feat7_title">Schedules and streaks</string>
+    <string name="about_feat7_subtitle">Define usage time slots. The TrustFlow system rewards compliance with progressive autonomy.</string>
+    <string name="about_feat8_title">Statistics and history</string>
+    <string name="about_feat8_subtitle">View which domains and apps have been blocked, with complete activity log.</string>
+    <string name="about_feat9_title">Weekly summary for parents</string>
+    <string name="about_feat9_subtitle">Every Sunday at 20:00 you receive a report with the weekly breakdown of blocks: websites, apps, evasion attempts.</string>
+    <string name="about_footer_thanks">Thank you for using GuardianOS Shield responsibly.\nYour trust is our greatest responsibility.</string>
+    <string name="about_footer_no_tracking">No trackers · No ads · No data selling</string>
+    <string name="about_footer_origin">Developed in Andalusia, Spain 🇪🇸 · Open source project</string>
+
+    <!-- ClearHistoryDialog -->
+    <string name="clear_history_dialog_title">Clear history</string>
+    <string name="clear_history_dialog_text">Are you sure you want to delete all the blocked sites history? This action cannot be undone.</string>
+    <string name="clear_history_btn_confirm">Delete</string>
+    <string name="dialog_cancel">Cancel</string>
+
+    <!-- ExportDataDialog -->
+    <string name="export_dialog_title">Export data</string>
+    <string name="export_dialog_select_format">Select the export format:</string>
+    <string name="export_dialog_btn_confirm">Export</string>
+
+    <!-- CustomFiltersScreen -->
+    <string name="filter_type_block">Block</string>
+    <string name="filter_type_allow">Allow</string>
+    <string name="filter_status_blocked">Blocked</string>
+    <string name="filter_status_allowed">Always allowed</string>
+    <string name="filter_action_remove">Remove</string>
+
+    <!-- Statistics insights -->
+    <string name="stats_insight_no_blocks">No blocks recorded in this period. Make sure DNS filtering is active to ensure protection.</string>
+    <string name="stats_insight_sensitive">⚠️ %1$d%% of blocks are adult content or gambling (%2$d of %3$d). Make sure DNS filters are active.</string>
+    <string name="stats_insight_high">High activity: %d blocked attempts in the period. Check which apps or domains generate the most attempts in the breakdown.</string>
+    <string name="stats_insight_moderate">Moderate activity: %d blocks in the period. The system is protecting correctly. Check the breakdown if any category stands out.</string>
+    <string name="stats_insight_low">Low activity: %d blocks in the period. Protection is working normally.</string>
+
+</resources>

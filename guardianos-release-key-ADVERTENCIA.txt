@@ -1,0 +1,25 @@
+⚠️  ESTE KEYSTORE NO ESTÁ EN USO — NO LO USES PARA FIRMAR RELEASES
+
+Archivo: guardianos-release-key.jks  (en la raíz del proyecto)
+Creado:  25-feb-2026
+SHA-256: 62:8C:06:27:A2:A3:EC:C5:DB:FB:79:A2:94:F2:54:8B:69:B3:02:73:AF:03:50:AC:44:02:B2:A2:DC:5B:FA:8C
+
+❌ PROBLEMA:
+Este keystore fue creado el 25-feb-2026 y tiene una huella SHA-256 DISTINTA
+al keystore que firmó el AAB v1.1.0 subido a Play Store.
+
+✅ KEYSTORE CORRECTO (el que firmó el AAB v1.1.0):
+Archivo: app/guardianos-release-key.jks
+Creado:  18-feb-2026
+SHA-256: 24:21:51:9E:EB:71:49:B2:AD:4C:76:9F:7D:4A:99:F5:77:AC:60:14:F8:50:CB:2A:65:38:FA:85:6B:75:C7:78
+
+⚠️  CONSECUENCIA DE USAR EL KEYSTORE INCORRECTO:
+Google Play Store RECHAZARÁ cualquier actualización firmada con una clave
+diferente a la que se usó en la primera subida. La app quedaría bloqueada y
+habría que crear una nueva ficha desde cero.
+
+📋  CONFIGURACIÓN ACTUAL (local.properties):
+KEYSTORE_FILE=/home/victor/guardianos-shield/app/guardianos-release-key.jks  ← CORRECTO
+
+Puedes guardar este archivo de la raíz como backup fuera del proyecto
+o eliminarlo para evitar confusión.

@@ -1,0 +1,60 @@
+================================================================
+  GUARDIANOS SHIELD v1.1.0 — ANÁLISIS DE SEGURIDAD
+  Fecha: mar 24 feb 2026 17:33:22 CET
+================================================================
+
+## 1. VERIFICACIÓN DE FIRMA (APK Release)
+---
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::loadLibrary has been called by org.conscrypt.NativeLibraryUtil in an unnamed module (file:/home/victor/Android/Sdk/build-tools/34.0.0/lib/apksigner.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+
+## 1b. CERTIFICADO RELEASE
+---
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::loadLibrary has been called by org.conscrypt.NativeLibraryUtil in an unnamed module (file:/home/victor/Android/Sdk/build-tools/34.0.0/lib/apksigner.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=Guardianos, OU=Shield, O=Guardianos, L=Sevilla, ST=Andalucia, C=ES
+Signer #1 certificate SHA-256 digest: 2421519eeb7149b2ad4c769f7d4a99f577ac6014f850cb2a6538fa856b75c778
+Signer #1 certificate SHA-1 digest: 17fac17843eb3df5bd098bac4dcdffa4bce99222
+Signer #1 certificate MD5 digest: 1a45d1f80ea314a70dfff71292f2f06e
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 2048
+Signer #1 public key SHA-256 digest: b66bd96117f4258d3d4550e31542b04a59321818678e6039cfef26dd70be5f98
+Signer #1 public key SHA-1 digest: dc9b78405206ed59984e9386004bf3bc95747733
+Signer #1 public key MD5 digest: 775f25f7abcaee19e9365f048856a3fb
+
+## 1c. APK DEBUG (no debe usarse en producción)
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::loadLibrary has been called by org.conscrypt.NativeLibraryUtil in an unnamed module (file:/home/victor/Android/Sdk/build-tools/34.0.0/lib/apksigner.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1

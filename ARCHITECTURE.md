@@ -5,6 +5,8 @@
 > 👨‍💻 Autor: Victor Shift Lara | ✉️ info@guardianos.es  
 > 📅 Última actualización: Febrero 2026
 
+🇪🇸 **Español** | 🇬🇧 [English](ARCHITECTURE.en.md)
+
 ---
 
 ## 📋 Tabla de Contenidos

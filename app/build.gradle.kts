@@ -17,8 +17,21 @@ android {
     namespace = "com.guardianos.shield"
     compileSdk = 34
 
+    // ── Dimensiones de flavors ────────────────────────────────────────────────
+    // "idioma": langEs (español) y langEn (inglés) → APKs/AABs completamente
+    // independientes, cada uno con sus strings y applicationId propio.
+    //
+    // Comandos de build:
+    //   ./gradlew assembleLangEsDebug        → APK debug   (ES)
+    //   ./gradlew assembleLangEnDebug        → APK debug   (EN)
+    //   ./gradlew bundleLangEsRelease        → AAB release (ES) → Play Store
+    //   ./gradlew bundleLangEnRelease        → AAB release (EN) → Play Store
+    //   ./gradlew assembleLangEsRelease      → APK release (ES)
+    //   ./gradlew assembleLangEnRelease      → APK release (EN)
+    flavorDimensions += "idioma"
+
     defaultConfig {
-        applicationId = "com.guardianos.shield"
+        // applicationId base — los flavors lo sobreescriben/añaden
         minSdk = 31  // Android 12 (Snow Cone) — mínimo para FOREGROUND_SERVICE_SPECIAL_USE y APIs de accesibilidad estables
         targetSdk = 34 // Android 14
         versionCode = 2
@@ -29,9 +42,31 @@ android {
             useSupportLibrary = true
         }
 
-        // Reducir tamaño del APK
-        resourceConfigurations += setOf("en", "es") // Solo inglés/español
-        setProperty("archivesBaseName", "guardianos-shield-v$versionName")
+        // archivesBaseName se establece por flavor más abajo
+        // resourceConfigurations se establece por flavor para optimizar tamaño del APK
+    }
+
+    productFlavors {
+        // ── Versión en Español ───────────────────────────────────────────────
+        create("langEs") {
+            dimension  = "idioma"
+            applicationId          = "com.guardianos.shield"
+            versionNameSuffix      = "-es"
+            // BuildConfig accessible desde Kotlin: BuildConfig.FLAVOR ("langEs")
+            // Strings específicos ES vienen de src/main/res/values/strings.xml (base)
+            resourceConfigurations += setOf("es") // Solo recursos en español en el APK
+            setProperty("archivesBaseName", "guardianos-shield-v1.1.0-es")
+        }
+
+        // ── Versión en Inglés ────────────────────────────────────────────────
+        create("langEn") {
+            dimension  = "idioma"
+            applicationId          = "com.guardianos.shield.en"
+            versionNameSuffix      = "-en"
+            // Strings EN vienen de src/langEn/res/values/strings.xml (override de main)
+            resourceConfigurations += setOf("en") // Solo recursos en inglés en el APK
+            setProperty("archivesBaseName", "guardianos-shield-v1.1.0-en")
+        }
     }
 
     signingConfigs {
@@ -46,6 +81,12 @@ android {
                 storePassword = keystorePassword
                 this.keyAlias      = keyAlias
                 this.keyPassword   = keyPassword
+                // Firma v3 (Android 9+): permite rotación de clave sin cambiar certificado
+                // Firma v4 (Android 11+): mejora compatibilidad con ADB incremental
+                enableV1Signing = false  // no necesario con minSdk=31
+                enableV2Signing = true
+                enableV3Signing = true
+                enableV4Signing = true
             }
         }
     }

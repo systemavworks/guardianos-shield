@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.guardianos.shield.data.UserProfileEntity
+import androidx.compose.ui.res.stringResource
+import com.guardianos.shield.R
 
 /**
  * StreakWidget — Widget de racha diaria para el dashboard.
@@ -121,7 +123,7 @@ fun StreakWidget(
                                 lineHeight = 28.sp
                             )
                             Text(
-                                text = if (racha == 1) "día" else "días",
+                                text = if (racha == 1) stringResource(R.string.streak_day_singular) else stringResource(R.string.streak_day_plural),
                                 fontSize = 9.sp,
                                 color = colorTexto.copy(alpha = 0.8f),
                                 lineHeight = 10.sp
@@ -133,26 +135,26 @@ fun StreakWidget(
 
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
-                            text = "$emojiBadge Racha activa",
+                            text = "$emojiBadge ${stringResource(R.string.streak_title_active)}",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = colorTexto
                         )
                         Text(
                             text = when {
-                                racha == 0 -> "Sin infracciones hoy = empieza la racha"
-                                racha == 1 -> "¡Primer día! Sigue así 🌱"
-                                racha < 7 -> "¡Bien! Lleva $racha días seguidos"
-                                racha < 14 -> "¡Semana completa! Impresionante 🔥"
-                                racha < 30 -> "¡$racha días! Estás en racha 🚀"
-                                else -> "¡Un mes de record! LEGENDARIO 👑"
+                                racha == 0 -> stringResource(R.string.streak_msg_zero)
+                                racha == 1 -> stringResource(R.string.streak_msg_day1)
+                                racha < 7  -> stringResource(R.string.streak_msg_few, racha)
+                                racha < 14 -> stringResource(R.string.streak_msg_week)
+                                racha < 30 -> stringResource(R.string.streak_msg_ongoing, racha)
+                                else       -> stringResource(R.string.streak_msg_legendary)
                             },
                             fontSize = 12.sp,
                             color = colorTexto.copy(alpha = 0.85f)
                         )
                         if (rachaMax > 0) {
                             Text(
-                                text = "Récord: $rachaMax días",
+                                text = stringResource(R.string.streak_record, rachaMax),
                                 fontSize = 11.sp,
                                 color = colorTexto.copy(alpha = 0.6f)
                             )

@@ -1,0 +1,147 @@
+## 3. ANÁLISIS ESTÁTICO DEL CÓDIGO FUENTE
+
+=== 3a. POSIBLES SECRETOS / CLAVES HARDCODED ===
+
+=== 3b. WEBVIEW — CONFIGURACIÓN DE SEGURIDAD ===
+app/src/main/kotlin/com/guardianos/shield/ui/SafeBrowserActivity.kt:301:            webViewClient = object : WebViewClient() {
+app/src/main/kotlin/com/guardianos/shield/ui/SafeBrowserActivity.kt:302:                override fun shouldOverrideUrlLoading(
+
+=== 3c. SSL/TLS — POSIBLES VULNERABILIDADES ===
+
+=== 3d. INTENTS IMPLÍCITOS ENVIANDO DATOS SENSIBLES ===
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:38: *   3. startActivity (AppBlockedActivity) — fallback si el overlay falla por error OEM.
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:253:     *      Si falla (error OEM inesperado) → fallback a startActivity
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:429:            startActivity(intent)
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:492:       startActivity(intent)
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:511:  ❌ "Fallback startActivity también falló"         → falta excepción batería o restricción OEM
+app/src/main/kotlin/com/guardianos/shield/service/ScheduleManager.kt:85:                context.startService(intent)
+app/src/main/kotlin/com/guardianos/shield/service/ScheduleManager.kt:229:            startActivity(intent)
+app/src/main/kotlin/com/guardianos/shield/service/AppMonitorService.kt:89:                context.startService(intent)
+app/src/main/kotlin/com/guardianos/shield/service/SafeBrowsingService.kt:15:        startActivity(browserIntent)
+app/src/main/kotlin/com/guardianos/shield/service/RealisticAppBlocker.kt:71:                context.startService(intent)
+app/src/main/kotlin/com/guardianos/shield/service/RealisticAppBlocker.kt:169:        startActivity(intent)
+app/src/main/kotlin/com/guardianos/shield/service/RealisticAppBlocker.kt:212:        startActivity(intent)
+app/src/main/kotlin/com/guardianos/shield/service/RealisticAppBlocker.kt:249:        startActivity(intent)
+app/src/main/kotlin/com/guardianos/shield/service/DnsFilterService.kt:86:            sendBroadcast(Intent(ACTION_VPN_STARTED))
+app/src/main/kotlin/com/guardianos/shield/service/DnsFilterService.kt:89:            sendBroadcast(Intent(ACTION_VPN_ERROR))
+app/src/main/kotlin/com/guardianos/shield/service/DnsFilterService.kt:163:        sendBroadcast(Intent(ACTION_VPN_STOPPED))
+app/src/main/kotlin/com/guardianos/shield/service/UsageStatsMonitor.kt:210:        context.startActivity(intent)
+app/src/main/kotlin/com/guardianos/shield/service/UsageStatsMonitor.kt:458:                context.applicationContext.startActivity(intent)
+app/src/main/kotlin/com/guardianos/shield/ui/AppBlockedActivity.kt:99:                            startActivity(launcher)
+app/src/main/kotlin/com/guardianos/shield/ui/AppBlockedActivity.kt:124:                            startActivity(launcher)
+
+=== 3e. ALMACENAMIENTO INSEGURO (logs, ficheros externos) ===
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:70:            Log.d(TAG, "BillingClient conectado correctamente")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:75:            Log.e(TAG, "Error al conectar BillingClient: ${billingResult.debugMessage} (código ${billingResult.responseCode})")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:81:        Log.w(TAG, "BillingClient desconectado — se reconectará en el próximo startConnection()")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:93:        Log.d(TAG, "BillingClient desconectado por endConnection()")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:105:            Log.w(TAG, "launchPurchaseFlow: BillingClient no está listo")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:136:                Log.e(TAG, "Producto '$premiumProductId' no encontrado en Play Console: ${billingResult.debugMessage}")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:159:                Log.d(TAG, "queryPurchases: no se encontró compra premium activa")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:170:            Log.w(TAG, "restorePurchases: BillingClient no está listo — reconectando...")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:174:        Log.i(TAG, "Iniciando restauración de compras...")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:196:                    Log.i(TAG, "Compra premium reconocida correctamente")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:199:                    Log.e(TAG, "Error al reconocer compra: ${result.debugMessage}")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:205:            Log.d(TAG, "Compra ya reconocida — premium activado")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:218:                Log.d(TAG, "Compra cancelada por el usuario")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:222:                Log.i(TAG, "Producto ya comprado — restaurando estado premium")
+app/src/main/kotlin/com/guardianos/shield/billing/BillingManager.kt:226:                Log.e(TAG, "Error en onPurchasesUpdated: ${billingResult.debugMessage} (código ${billingResult.responseCode})")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:103:        Log.i(TAG, "✅ Servicio de bloqueo conectado (overlay-first mode)")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:107:        Log.w(TAG, "⚠️ Servicio interrumpido")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:152:                Log.d(TAG, "Usuario navegó a $paquete — eliminando overlay de $overlayPaquete")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:197:                    Log.i(TAG, "🎮 Bonus gaming activo ($gamingExtra min restantes) — permitiendo: $paquete")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:216:            Log.i(TAG, "🛡️ TrustLevel=$trustLevel | categoria=$categoria | paquete=$paquete")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:228:            Log.e(TAG, "Error evaluando bloqueo: ${e.message}", e)
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:235:            Log.i(TAG, "🟢 TRUSTED — acceso concedido ($minutosRestantes min): $paquete")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:239:            Log.i(TAG, "🔴 TRUSTED sin minutos — bloqueando: $paquete")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:256:        Log.i(TAG, "⛔ Activando bloqueo [$modo]: $paquete")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:325:            Log.i(TAG, "✅ Overlay activo (TYPE_ACCESSIBILITY_OVERLAY) sobre: $paquete")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:328:            Log.e(TAG, "Error creando overlay: ${e.message} — usando fallback Activity", e)
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:378:        Log.d(TAG, "Overlay configurado para $paquete [modo=$modo, app=$nombreApp]")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:387:                    Log.d(TAG, "Overlay eliminado (era de $overlayPaquete)")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:389:                    Log.w(TAG, "Error eliminando overlay: ${e.message}")
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:430:            Log.i(TAG, "📱 AppBlockedActivity lanzada (fallback) para $paquete")
+
+=== 3f. CRYPTO — CLAVES/ALGORITMOS DÉBILES ===
+app/src/main/kotlin/com/guardianos/shield/service/AppBlockerAccessibilityService.kt:304:            val tipoOverlay = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1)
+app/src/main/kotlin/com/guardianos/shield/service/WeeklySummaryWorker.kt:121:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+app/src/main/kotlin/com/guardianos/shield/service/ScheduleManager.kt:82:            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+app/src/main/kotlin/com/guardianos/shield/service/ScheduleManager.kt:139:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+app/src/main/kotlin/com/guardianos/shield/service/ScheduleManager.kt:298:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+app/src/main/kotlin/com/guardianos/shield/service/AppMonitorService.kt:44:            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+app/src/main/kotlin/com/guardianos/shield/service/AppMonitorService.kt:47:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+app/src/main/kotlin/com/guardianos/shield/service/AppMonitorService.kt:86:            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+app/src/main/kotlin/com/guardianos/shield/service/RealisticAppBlocker.kt:68:            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+app/src/main/kotlin/com/guardianos/shield/service/RealisticAppBlocker.kt:276:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+app/src/main/kotlin/com/guardianos/shield/service/DnsFilterService.kt:73:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+app/src/main/kotlin/com/guardianos/shield/service/DnsFilterService.kt:198:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+app/src/main/kotlin/com/guardianos/shield/service/LightweightMonitorService.kt:36:            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+app/src/main/kotlin/com/guardianos/shield/service/LightweightMonitorService.kt:83:            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+app/src/main/kotlin/com/guardianos/shield/service/LightweightMonitorService.kt:128:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+app/src/main/kotlin/com/guardianos/shield/service/UsageStatsMonitor.kt:628:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+app/src/main/kotlin/com/guardianos/shield/ui/SafeBrowserActivity.kt:646:            // BLOQUEO DE REDES SOCIALES (FORZADO)
+app/src/main/kotlin/com/guardianos/shield/ui/SafeBrowserActivity.kt:731:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+app/src/main/kotlin/com/guardianos/shield/MainActivity.kt:169:        // Iniciar billing DESPUÉS de initializeApp() para que settingsRepository esté listo
+app/src/main/kotlin/com/guardianos/shield/MainActivity.kt:414:        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+
+=== 3g. MODO DEBUG EN CÓDIGO ===
+app/src/main/kotlin/com/guardianos/shield/ui/SettingsScreen.kt:414:            if (BuildConfig.DEBUG) {
+app/src/main/kotlin/com/guardianos/shield/MainActivity.kt:431:                    if (BuildConfig.DEBUG) {
+app/src/main/kotlin/com/guardianos/shield/MainActivity.kt:437:                    if (profile.scheduleEnabled && BuildConfig.DEBUG) {
+app/src/main/kotlin/com/guardianos/shield/data/SettingsDataStore.kt:151:        if (!BuildConfig.DEBUG) return
+app/src/main/kotlin/com/guardianos/shield/data/SettingsDataStore.kt:164:        if (!BuildConfig.DEBUG) return
+
+=== 3h. NETWORK SECURITY CONFIG ===
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Configuración base: solo tráfico cifrado, sin cleartext -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <!-- Opcional: quitar user si no usas certificados personalizados -->
+            <!-- <certificates src="user" /> -->
+        </trust-anchors>
+    </base-config>
+
+    <!-- Dominios DNS externos (CleanBrowsing opera sobre UDP/53, no HTTP — no necesita aquí) -->
+    <!-- Si en el futuro se añade una API REST para actualizar listas negras, añadir aquí el dominio -->
+
+    <!-- Solo si usas actualizaciones remotas desde GitHub en el futuro -->
+    <!--
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">raw.githubusercontent.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+    -->
+
+</network-security-config>
+=== 3b-EXTRA. WEBVIEW SETTINGS COMPLETO ===
+152:                IconButton(onClick = { if (canGoBack) webView.goBack() else finish() }) {
+164:                onClick = { if (canGoBack) webView.goBack() },
+170:                onClick = { if (canGoForward) webView.goForward() },
+176:                onClick = { webView.reload() },
+273:        webView.apply {
+398:                    webView.loadUrl(finalUrl)
+583:            webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
+694:        if (webView.canGoBack()) {
+695:            webView.goBack()
+
+=== 3d-EXTRA. BROADCASTS NO PROTEGIDOS ===
+app/src/main/kotlin/com/guardianos/shield/service/DnsFilterService.kt:86:            sendBroadcast(Intent(ACTION_VPN_STARTED))
+app/src/main/kotlin/com/guardianos/shield/service/DnsFilterService.kt:89:            sendBroadcast(Intent(ACTION_VPN_ERROR))
+app/src/main/kotlin/com/guardianos/shield/service/DnsFilterService.kt:163:        sendBroadcast(Intent(ACTION_VPN_STOPPED))
+app/src/main/kotlin/com/guardianos/shield/service/LightweightMonitorService.kt:84:                registerReceiver(packageReceiver, filter, RECEIVER_NOT_EXPORTED)
+app/src/main/kotlin/com/guardianos/shield/service/LightweightMonitorService.kt:86:                registerReceiver(packageReceiver, filter)
+app/src/main/kotlin/com/guardianos/shield/service/LightweightMonitorService.kt:151:            packageReceiver?.let { unregisterReceiver(it) }
+app/src/main/kotlin/com/guardianos/shield/MainActivity.kt:415:            registerReceiver(vpnStateReceiver, filter, RECEIVER_NOT_EXPORTED)
+app/src/main/kotlin/com/guardianos/shield/MainActivity.kt:417:            registerReceiver(vpnStateReceiver, filter)
+app/src/main/kotlin/com/guardianos/shield/MainActivity.kt:738:            unregisterReceiver(vpnStateReceiver)
+
+=== BILLING — verificación server-side ===
+191:                .setPurchaseToken(purchase.purchaseToken)
+194:            billingClient.acknowledgePurchase(ackParams) { result ->
+
+=== MINSDKVERSION REAL ===
+        minSdk = 31  // Android 12 (Snow Cone) — mínimo para FOREGROUND_SERVICE_SPECIAL_USE y APIs de accesibilidad estables

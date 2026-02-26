@@ -16,9 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.guardianos.shield.R
 import com.guardianos.shield.data.CustomFilterEntity
 import com.guardianos.shield.billing.FreeTierLimits
 
@@ -50,10 +52,10 @@ fun CustomFiltersScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Filtros Personalizados") },
+                title = { Text(stringResource(R.string.filters_screen_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.Rounded.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 }
             )
@@ -73,7 +75,7 @@ fun CustomFiltersScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Agregar nuevo dominio",
+                            text = stringResource(R.string.filters_add_domain_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 8.dp)
@@ -89,8 +91,8 @@ fun CustomFiltersScreen(
                                         .removePrefix("www.")
                                         .removeSuffix("/")
                                 },
-                                label = { Text("Dominio (ej: instagram.com)") },
-                                placeholder = { Text("instagram.com, tiktok.com...") },
+                                label = { Text(stringResource(R.string.filters_domain_label)) },
+                                placeholder = { Text(stringResource(R.string.filters_domain_placeholder)) },
                                 singleLine = true,
                                 modifier = Modifier.weight(1f)
                             )
@@ -111,7 +113,7 @@ fun CustomFiltersScreen(
                             ) {
                                 Icon(
                                     Icons.Rounded.Add,
-                                    contentDescription = "Agregar",
+                                    contentDescription = stringResource(R.string.filters_add_icon_desc),
                                     tint = if (newDomain.isNotEmpty()) MaterialTheme.colorScheme.primary else Color.Gray
                                 )
                             }
@@ -129,7 +131,7 @@ fun CustomFiltersScreen(
                         Spacer(Modifier.height(12.dp))
                         
                         Text(
-                            text = "💡 Consejo: Al bloquear 'instagram.com' se bloquearán automáticamente todos los subdominios (www.instagram.com, api.instagram.com, etc.)",
+                            text = stringResource(R.string.filters_tip),
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFF6C757D)
                         )
@@ -139,7 +141,7 @@ fun CustomFiltersScreen(
 
             item {
                 Text(
-                    text = "Dominios bloqueados (${blacklist.size})",
+                    text = stringResource(R.string.filters_blocked_header, blacklist.size),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 8.dp)
@@ -158,15 +160,15 @@ fun CustomFiltersScreen(
                 item {
                     EmptyState(
                         icon = Icons.Rounded.Block,
-                        title = "Sin dominios bloqueados",
-                        message = "Agrega dominios para bloquear contenido no deseado"
+                        title = stringResource(R.string.filters_no_blocked_title),
+                        message = stringResource(R.string.filters_no_blocked_msg)
                     )
                 }
             }
 
             item {
                 Text(
-                    text = "Dominios permitidos (${whitelist.size})",
+                    text = stringResource(R.string.filters_allowed_header, whitelist.size),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
@@ -185,8 +187,8 @@ fun CustomFiltersScreen(
                 item {
                     EmptyState(
                         icon = Icons.Rounded.CheckCircle,
-                        title = "Sin dominios permitidos",
-                        message = "Agrega dominios que siempre deben estar accesibles"
+                        title = stringResource(R.string.filters_no_allowed_title),
+                        message = stringResource(R.string.filters_no_allowed_msg)
                     )
                 }
             }
@@ -213,7 +215,7 @@ private fun FilterTypeToggle(
         FilterChip(
             selected = currentType == FilterType.BLACKLIST,
             onClick = { onTypeChange(FilterType.BLACKLIST) },
-            label = "Bloquear",
+            label = stringResource(R.string.filter_type_block),
             icon = Icons.Rounded.Block,
             color = Color(0xFFE57373)
         )
@@ -223,7 +225,7 @@ private fun FilterTypeToggle(
         FilterChip(
             selected = currentType == FilterType.WHITELIST,
             onClick = { onTypeChange(FilterType.WHITELIST) },
-            label = "Permitir",
+            label = stringResource(R.string.filter_type_allow),
             icon = Icons.Rounded.CheckCircle,
             color = Color(0xFF81C784)
         )
@@ -301,14 +303,14 @@ private fun FilterItem(
                     color = if (isBlacklist) Color(0xFFC62828) else Color(0xFF2E7D32)
                 )
                 Text(
-                    text = if (isBlacklist) "Bloqueado" else "Siempre permitido",
+                    text = if (isBlacklist) stringResource(R.string.filter_status_blocked) else stringResource(R.string.filter_status_allowed),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (isBlacklist) Color(0xFFEF5350) else Color(0xFF4CAF50)
                 )
             }
             
             IconButton(onClick = onRemove) {
-                Icon(Icons.Rounded.Close, contentDescription = "Eliminar")
+                Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.filter_action_remove))
             }
         }
     }

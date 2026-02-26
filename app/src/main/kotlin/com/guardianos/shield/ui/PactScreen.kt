@@ -28,6 +28,8 @@ import com.guardianos.shield.data.TrustLevel
 import com.guardianos.shield.data.GuardianDatabase
 import com.guardianos.shield.data.GuardianRepository
 import com.guardianos.shield.security.SecurityHelper
+import androidx.compose.ui.res.stringResource
+import com.guardianos.shield.R
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -94,7 +96,7 @@ fun PactScreen(
                     ) {
                         Icon(
                             Icons.Rounded.ArrowBack,
-                            contentDescription = "Volver",
+                            contentDescription = stringResource(R.string.pact_back),
                             tint = Color.White
                         )
                     }
@@ -107,14 +109,14 @@ fun PactScreen(
                     )
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        "Pacto Digital Familiar",
+                        stringResource(R.string.pact_title),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                 }
                 Text(
-                    "Comunícate con tu padre/madre sin salir del dispositivo",
+                    stringResource(R.string.pact_subtitle),
                     fontSize = 12.sp,
                     color = Color.White.copy(alpha = 0.8f)
                 )
@@ -126,7 +128,7 @@ fun PactScreen(
             Tab(
                 selected = tabSeleccionado == 0,
                 onClick = { tabSeleccionado = 0 },
-                text = { Text("Mi buzón") },
+                text = { Text(stringResource(R.string.pact_tab_mailbox)) },
                 icon = { Icon(Icons.Rounded.Inbox, contentDescription = null) }
             )
             Tab(
@@ -147,7 +149,7 @@ fun PactScreen(
                         Icon(Icons.Rounded.AdminPanelSettings, contentDescription = null)
                     }
                 },
-                text = { Text(if (padreDesbloqueado) "Panel padre ✓" else "Panel padre 🔒") }
+                text = { Text(if (padreDesbloqueado) stringResource(R.string.pact_tab_parent_unlocked) else stringResource(R.string.pact_tab_parent_locked)) }
             )
         }
 
@@ -185,7 +187,7 @@ fun PactScreen(
                     }
                 } else {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Verificando PIN...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.pact_verifying_pin), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -257,12 +259,12 @@ private fun BuzonHijo(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "¿Quieres pedir algo?",
+                        stringResource(R.string.pact_request_prompt),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        "Más tiempo, desbloquear una app o un sitio web",
+                        stringResource(R.string.pact_request_prompt_subtitle),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                     )
@@ -271,7 +273,7 @@ private fun BuzonHijo(
                 Button(onClick = onNuevaPeticion) {
                     Icon(Icons.Rounded.Send, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Pedir")
+                    Text(stringResource(R.string.pact_btn_ask))
                 }
             }
         }
@@ -292,7 +294,7 @@ private fun BuzonHijo(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                     )
                     Text(
-                        "Aún no has enviado ninguna petición",
+                        stringResource(R.string.pact_no_petitions_sent),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
@@ -306,7 +308,7 @@ private fun BuzonHijo(
             ) {
                 item {
                     Text(
-                        "Historial de peticiones",
+                        stringResource(R.string.pact_petition_history),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(vertical = 4.dp)
@@ -323,9 +325,9 @@ private fun BuzonHijo(
 @Composable
 private fun TarjetaPeticionHijo(peticion: PetitionEntity) {
     val (iconoEstado, colorEstado, textoEstado) = when (peticion.estado) {
-        "APPROVED" -> Triple(Icons.Rounded.CheckCircle, Color(0xFF43A047), "✅ Aprobada")
-        "REJECTED" -> Triple(Icons.Rounded.Cancel, Color(0xFFE53935), "❌ Rechazada")
-        else -> Triple(Icons.Rounded.HourglassTop, Color(0xFFFF8F00), "⏳ Pendiente")
+        "APPROVED" -> Triple(Icons.Rounded.CheckCircle, Color(0xFF43A047), stringResource(R.string.pact_status_approved))
+        "REJECTED" -> Triple(Icons.Rounded.Cancel, Color(0xFFE53935), stringResource(R.string.pact_status_rejected))
+        else -> Triple(Icons.Rounded.HourglassTop, Color(0xFFFF8F00), stringResource(R.string.pact_status_pending))
     }
 
     Card(
@@ -404,7 +406,7 @@ private fun PanelPadre(
                     modifier = Modifier.size(56.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                 )
-                Text("No hay peticiones de momento", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.pact_no_petitions_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         return
@@ -418,7 +420,7 @@ private fun PanelPadre(
         if (pendientes.isNotEmpty()) {
             item {
                 Text(
-                    "Pendientes de respuesta (${pendientes.size})",
+                    stringResource(R.string.pact_pending_responses, pendientes.size),
                     style = MaterialTheme.typography.titleSmall,
                     color = Color(0xFFFF8F00),
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -433,7 +435,7 @@ private fun PanelPadre(
             item {
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Historial respondido",
+                    stringResource(R.string.pact_history_responded),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -496,7 +498,7 @@ private fun TarjetaPeticionPadre(
             ) {
                 Icon(Icons.Rounded.Reply, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("Responder")
+                Text(stringResource(R.string.pact_btn_respond))
             }
         }
     }
@@ -518,15 +520,15 @@ private fun DialogoNuevaPeticion(
     AlertDialog(
         onDismissRequest = onCancelar,
         icon = { Icon(Icons.Rounded.Send, contentDescription = null) },
-        title = { Text("Nueva petición") },
+        title = { Text(stringResource(R.string.pact_dialog_new_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("¿Qué quieres pedir?", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.pact_dialog_what_ask), style = MaterialTheme.typography.bodyMedium)
 
                 // Selector de tipo
                 listOf(
-                    "TIME_EXTENSION" to "⏱️ Más tiempo de pantalla",
-                    "SITE_UNLOCK" to "🌐 Desbloquear un sitio web"
+                    "TIME_EXTENSION" to stringResource(R.string.pact_option_more_time),
+                    "SITE_UNLOCK" to stringResource(R.string.pact_option_unlock_site)
                 ).forEach { (tipo, etiqueta) ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -542,8 +544,8 @@ private fun DialogoNuevaPeticion(
                 }
 
                 val labelValor = when (tipoSeleccionado) {
-                    "TIME_EXTENSION" -> "¿Cuántos minutos extra?"
-                    else -> "¿Qué sitio web?"
+                    "TIME_EXTENSION" -> stringResource(R.string.pact_field_minutes_extra)
+                    else -> stringResource(R.string.pact_field_what_site)
                 }
 
                 OutlinedTextField(
@@ -557,10 +559,10 @@ private fun DialogoNuevaPeticion(
                 OutlinedTextField(
                     value = razonTexto,
                     onValueChange = { razonTexto = it },
-                    label = { Text("¿Por qué lo necesitas? (opcional)") },
+                    label = { Text(stringResource(R.string.pact_field_reason)) },
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 3,
-                    placeholder = { Text("Ej: He terminado los deberes") }
+                    placeholder = { Text(stringResource(R.string.pact_field_reason_hint)) }
                 )
             }
         },
@@ -568,10 +570,10 @@ private fun DialogoNuevaPeticion(
             Button(
                 onClick = { onConfirmar(tipoSeleccionado, valorTexto.trim(), razonTexto.trim()) },
                 enabled = valorTexto.isNotBlank()
-            ) { Text("Enviar petición") }
+            ) { Text(stringResource(R.string.pact_btn_send_petition)) }
         },
         dismissButton = {
-            TextButton(onClick = onCancelar) { Text("Cancelar") }
+            TextButton(onClick = onCancelar) { Text(stringResource(R.string.pact_cancel)) }
         }
     )
 }
@@ -595,7 +597,7 @@ private fun DialogoResponder(
                 tint = if (aprobar) Color(0xFF43A047) else Color(0xFFE53935)
             )
         },
-        title = { Text("Responder a la petición") },
+        title = { Text(stringResource(R.string.pact_dialog_respond_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(
@@ -618,12 +620,12 @@ private fun DialogoResponder(
                     FilterChip(
                         selected = aprobar,
                         onClick = { aprobar = true },
-                        label = { Text("✅ Aprobar") }
+                        label = { Text(stringResource(R.string.pact_btn_approve)) }
                     )
                     FilterChip(
                         selected = !aprobar,
                         onClick = { aprobar = false },
-                        label = { Text("❌ Rechazar") }
+                        label = { Text(stringResource(R.string.pact_btn_reject)) }
                     )
                 }
 
@@ -631,7 +633,7 @@ private fun DialogoResponder(
                     OutlinedTextField(
                         value = minutosExtra,
                         onValueChange = { minutosExtra = it.filter { c -> c.isDigit() } },
-                        label = { Text("Minutos extra concedidos") },
+                        label = { Text(stringResource(R.string.pact_field_minutes_granted)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
@@ -640,7 +642,7 @@ private fun DialogoResponder(
                 OutlinedTextField(
                     value = nota,
                     onValueChange = { nota = it },
-                    label = { Text(if (aprobar) "Mensaje (opcional)" else "Motivo del rechazo") },
+                    label = { Text(if (aprobar) stringResource(R.string.pact_field_message_optional) else stringResource(R.string.pact_field_rejection_reason)) },
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 3
                 )
@@ -658,10 +660,10 @@ private fun DialogoResponder(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (aprobar) Color(0xFF43A047) else Color(0xFFE53935)
                 )
-            ) { Text(if (aprobar) "Aprobar" else "Rechazar") }
+            ) { Text(if (aprobar) stringResource(R.string.pact_btn_approve_confirm) else stringResource(R.string.pact_btn_reject_confirm)) }
         },
         dismissButton = {
-            TextButton(onClick = onCancelar) { Text("Cancelar") }
+            TextButton(onClick = onCancelar) { Text(stringResource(R.string.pact_cancel)) }
         }
     )
 }
@@ -679,10 +681,10 @@ private fun DialogoPinPadre(
     AlertDialog(
         onDismissRequest = onCancelar,
         icon = { Icon(Icons.Rounded.AdminPanelSettings, contentDescription = null) },
-        title = { Text("Acceso del padre/madre") },
+        title = { Text(stringResource(R.string.pact_pin_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Introduce el PIN parental para ver y responder peticiones.")
+                Text(stringResource(R.string.pact_pin_dialog_desc))
                 OutlinedTextField(
                     value = pinIntroducido,
                     onValueChange = {
@@ -691,9 +693,9 @@ private fun DialogoPinPadre(
                             errorPin = false
                         }
                     },
-                    label = { Text("PIN parental") },
+                    label = { Text(stringResource(R.string.pact_pin_label)) },
                     isError = errorPin,
-                    supportingText = if (errorPin) ({ Text("PIN incorrecto", color = MaterialTheme.colorScheme.error) }) else null,
+                    supportingText = if (errorPin) ({ Text(stringResource(R.string.pact_pin_wrong), color = MaterialTheme.colorScheme.error) }) else null,
                     visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
                         keyboardType = androidx.compose.ui.text.input.KeyboardType.NumberPassword
@@ -717,10 +719,10 @@ private fun DialogoPinPadre(
                     errorPin = true
                     pinIntroducido = ""
                 }
-            }) { Text("Acceder") }
+            }) { Text(stringResource(R.string.pact_btn_access)) }
         },
         dismissButton = {
-            TextButton(onClick = onCancelar) { Text("Cancelar") }
+            TextButton(onClick = onCancelar) { Text(stringResource(R.string.pact_cancel)) }
         }
     )
 }
@@ -738,7 +740,7 @@ private fun etiquetaTipo(tipo: String): String = when (tipo) {
 }
 
 private fun formatearFecha(timestamp: Long): String {
-    val fmt = SimpleDateFormat("dd MMM, HH:mm", Locale("es", "ES"))
+    val fmt = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
     return fmt.format(Date(timestamp))
 }
 
@@ -762,10 +764,15 @@ internal fun TrustLevelCard(
     onAdelantar: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val (colorNivel, descripcion) = when (trustLevel) {
-        TrustLevel.LOCKED  -> Color(0xFFD32F2F) to "Bloqueo total activo — el menor debe pedir permiso para cualquier app sensible."
-        TrustLevel.CAUTION -> Color(0xFFFBC02D) to "Reflexión de 15 s antes de abrir apps. El menor ve sus días en riesgo."
-        TrustLevel.TRUSTED -> Color(0xFF388E3C) to "Acceso libre con $minutosRestantes min restantes hoy. El sistema registra el uso."
+    val colorNivel = when (trustLevel) {
+        TrustLevel.LOCKED  -> Color(0xFFD32F2F)
+        TrustLevel.CAUTION -> Color(0xFFFBC02D)
+        TrustLevel.TRUSTED -> Color(0xFF388E3C)
+    }
+    val descripcion = when (trustLevel) {
+        TrustLevel.LOCKED  -> stringResource(R.string.pact_trust_desc_locked)
+        TrustLevel.CAUTION -> stringResource(R.string.pact_trust_desc_caution)
+        TrustLevel.TRUSTED -> stringResource(R.string.pact_trust_desc_trusted, minutosRestantes)
     }
 
     val diasSiguienteNivel = when (trustLevel) {
@@ -797,14 +804,24 @@ internal fun TrustLevelCard(
                 Text(trustLevel.emoji, fontSize = 28.sp)
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
+                    val etiquetaLocal = when (trustLevel) {
+                        TrustLevel.LOCKED  -> stringResource(R.string.trust_label_locked)
+                        TrustLevel.CAUTION -> stringResource(R.string.trust_label_caution)
+                        TrustLevel.TRUSTED -> stringResource(R.string.trust_label_trusted)
+                    }
+                    val nombreLocal = when (trustLevel) {
+                        TrustLevel.LOCKED  -> stringResource(R.string.trust_name_locked)
+                        TrustLevel.CAUTION -> stringResource(R.string.trust_name_caution)
+                        TrustLevel.TRUSTED -> stringResource(R.string.trust_name_trusted)
+                    }
                     Text(
-                        "${trustLevel.etiqueta} — ${trustLevel.nombreMostrar}",
+                        "$etiquetaLocal — $nombreLocal",
                         fontWeight = FontWeight.Bold,
                         color = colorNivel,
                         fontSize = 15.sp
                     )
                     Text(
-                        "Racha actual: $rachaActual días",
+                        stringResource(R.string.pact_trust_racha_days, rachaActual),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -825,11 +842,11 @@ internal fun TrustLevelCard(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            "Próximo nivel: ${if (trustLevel == TrustLevel.LOCKED) "Explorador" else "Guardián"}",
+                            if (trustLevel == TrustLevel.LOCKED) stringResource(R.string.pact_trust_next_level_explorer) else stringResource(R.string.pact_trust_next_level_guardian),
                             fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            "$diasSiguienteNivel días restantes",
+                            stringResource(R.string.pact_trust_days_remaining, diasSiguienteNivel),
                             fontSize = 11.sp, color = colorNivel, fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -846,8 +863,8 @@ internal fun TrustLevelCard(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Minutos de autonomía hoy", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("$minutosRestantes / 60 min", fontSize = 11.sp, color = colorNivel, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.pact_trust_autonomy_today), fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.pact_trust_autonomy_value, minutosRestantes), fontSize = 11.sp, color = colorNivel, fontWeight = FontWeight.SemiBold)
                     }
                     LinearProgressIndicator(
                         progress = (minutosRestantes / 60f).coerceIn(0f, 1f),
@@ -875,13 +892,13 @@ internal fun TrustLevelCard(
                         Spacer(Modifier.width(8.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Bonus gaming activo hoy",
+                                stringResource(R.string.pact_gaming_bonus_title),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF1565C0)
                             )
                             Text(
-                                "$minutosGamingExtra min disponibles — se gastan minuto a minuto",
+                                stringResource(R.string.pact_gaming_bonus_desc, minutosGamingExtra),
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -894,7 +911,7 @@ internal fun TrustLevelCard(
 
             // ── Botones de acción del padre ─────────────────────────────
             Text(
-                "Acciones del padre",
+                stringResource(R.string.pact_parent_actions),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -911,15 +928,18 @@ internal fun TrustLevelCard(
                 Icon(Icons.Rounded.SportsEsports, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    if (minutosGamingExtra > 0) "🎮 Ampliar tiempo de gaming ($minutosGamingExtra min activos)"
-                    else "🎮 Dar tiempo de gaming hoy",
+                    if (minutosGamingExtra > 0) stringResource(R.string.pact_trust_btn_extend_gaming, minutosGamingExtra)
+                    else stringResource(R.string.pact_trust_btn_give_gaming),
                     fontSize = 13.sp
                 )
             }
 
             // Botón: adelantar nivel (solo si no es TRUSTED)
             if (trustLevel != TrustLevel.TRUSTED) {
-                val nivelDestino = if (trustLevel == TrustLevel.LOCKED) "Explorador 🟡" else "Guardián 🟢"
+                val nivelDestino = if (trustLevel == TrustLevel.LOCKED)
+                    stringResource(R.string.pact_level_name_explorer)
+                else
+                    stringResource(R.string.pact_level_name_guardian)
                 OutlinedButton(
                     onClick = { mostrarDialogoNivel = true },
                     modifier = Modifier.fillMaxWidth(),
@@ -929,7 +949,7 @@ internal fun TrustLevelCard(
                 ) {
                     Icon(Icons.Rounded.EmojiEvents, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("🏅 Ascender a $nivelDestino (adelantar nivel)", fontSize = 13.sp)
+                    Text(stringResource(R.string.pact_trust_btn_level_up, nivelDestino), fontSize = 13.sp)
                 }
             }
 
@@ -943,7 +963,7 @@ internal fun TrustLevelCard(
             ) {
                 Icon(Icons.Rounded.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("Resetear minutos de hoy", fontSize = 13.sp)
+                Text(stringResource(R.string.pact_trust_btn_reset_minutes), fontSize = 13.sp)
             }
         }
     }
@@ -954,11 +974,11 @@ internal fun TrustLevelCard(
         AlertDialog(
             onDismissRequest = { mostrarDialogoGaming = false },
             icon = { Text("🎮", fontSize = 28.sp) },
-            title = { Text("Dar tiempo de gaming", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.pact_gaming_dialog_title), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        "Selecciona cuántos minutos de gaming extra concedes hoy. ¿Cuánto tiempo quieres dar?",
+                        stringResource(R.string.pact_gaming_dialog_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -986,7 +1006,7 @@ internal fun TrustLevelCard(
                     }
                     if (minutosGamingExtra > 0) {
                         Text(
-                            "Ya tiene $minutosGamingExtra min activos. Se sumarán (máx. 120 min/día).",
+                            stringResource(R.string.pact_gaming_dialog_already_has, minutosGamingExtra),
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFF1565C0)
                         )
@@ -998,31 +1018,32 @@ internal fun TrustLevelCard(
                     onOtorgarGaming(minutosSeleccionados)
                     mostrarDialogoGaming = false
                 }) {
-                    Text("Conceder $minutosSeleccionados min")
+                    Text(stringResource(R.string.pact_gaming_dialog_confirm, minutosSeleccionados))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { mostrarDialogoGaming = false }) { Text("Cancelar") }
+                TextButton(onClick = { mostrarDialogoGaming = false }) { Text(stringResource(R.string.pact_cancel)) }
             }
         )
     }
 
     // ── Diálogo: adelantar nivel ──────────────────────────────────
     if (mostrarDialogoNivel) {
-        val nivelActual = trustLevel.etiqueta
-        val nivelDestino = if (trustLevel == TrustLevel.LOCKED) "Explorador" else "Guardián"
-        val efectos = if (trustLevel == TrustLevel.LOCKED)
-            "El menor pasará a Modo Precaución: verá una cuenta atrás de 15 s antes de abrir apps. Ya no es bloqueo duro."
-        else
-            "El menor pasará a Zona de Confianza: acceso libre con registro (60 min/día). El sistema sigue monitorizando."
+        val nivelDestino = if (trustLevel == TrustLevel.LOCKED)
+            stringResource(R.string.trust_dest_explorer)
+        else stringResource(R.string.trust_dest_guardian)
+        val efectos = stringResource(
+            if (trustLevel == TrustLevel.LOCKED) R.string.pact_level_up_effect_locked
+            else R.string.pact_level_up_effect_caution
+        )
         AlertDialog(
             onDismissRequest = { mostrarDialogoNivel = false },
             icon = { Text("🏅", fontSize = 28.sp) },
-            title = { Text("Ascender a $nivelDestino", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.pact_level_up_dialog_title, nivelDestino), fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "Estás reconociendo el esfuerzo de $rachaActual días bien hechos.",
+                        stringResource(R.string.pact_level_up_dialog_effort, rachaActual),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -1037,7 +1058,7 @@ internal fun TrustLevelCard(
                         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E7D32).copy(alpha = 0.3f))
                     ) {
                         Text(
-                            "ℹ️ Esto sólo sube UN nivel. La racha seguirá creciendo con normalidad.",
+                            stringResource(R.string.pact_level_up_dialog_info),
                             modifier = Modifier.padding(10.dp),
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFF2E7D32)
@@ -1055,11 +1076,11 @@ internal fun TrustLevelCard(
                         containerColor = if (trustLevel == TrustLevel.LOCKED) Color(0xFFFBC02D) else Color(0xFF388E3C)
                     )
                 ) {
-                    Text("⬆️ Ascender a $nivelDestino")
+                    Text(stringResource(R.string.pact_level_up_btn_confirm, nivelDestino))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { mostrarDialogoNivel = false }) { Text("Cancelar") }
+                TextButton(onClick = { mostrarDialogoNivel = false }) { Text(stringResource(R.string.pact_cancel)) }
             }
         )
     }
