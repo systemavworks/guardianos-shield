@@ -132,7 +132,7 @@ class MainActivity : ComponentActivity() {
         if (result.resultCode == RESULT_OK) {
             startVpnService()
         } else {
-            Toast.makeText(this, "Permiso VPN requerido", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Se requiere permiso VPN", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -234,7 +234,13 @@ class MainActivity : ComponentActivity() {
                                 lifecycleScope.launch { settingsRepository.setPremium(true) }
                             },
                             activity = this@MainActivity,
-                            onDismiss = { showPremiumScreen = false }
+                            onDismiss = {
+                                showPremiumScreen = false
+                                // Si el trial ha expirado y no se compró, restaurar el bloqueo
+                                if (!isPremium && !isFreeTrialActive) {
+                                    showFreeTrialExpiredDialog = true
+                                }
+                            }
                         )
                     }
                     // Diálogo de trial expirado — bloquea la app (sin dismiss libre)
@@ -389,9 +395,16 @@ class MainActivity : ComponentActivity() {
                     }
                     DnsFilterService.ACTION_VPN_STOPPED -> {
                         isServiceRunning = false
+                        // Sincronizar DataStore para que el Flow no revierta el estado
+                        lifecycleScope.launch {
+                            settingsRepository.updateVpnActive(false)
+                        }
                     }
                     DnsFilterService.ACTION_VPN_ERROR -> {
                         isServiceRunning = false
+                        lifecycleScope.launch {
+                            settingsRepository.updateVpnActive(false)
+                        }
                         val errorMsg = when {
                             Build.VERSION.SDK_INT >= 35 -> 
                                 "Error VPN en Android 15+. Revoca y vuelve a conceder permiso VPN en Ajustes"
@@ -723,12 +736,34 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         hasUsageStatsPermission = usageMonitor.hasPermission()
+        // Sincronizar estado real de VPN al volver a primer plano
+        // (evita desincronía cuando Android revoca la VPN externamente)
+        val realVpnRunning = isDnsFilterServiceRunning()
+        if (isServiceRunning != realVpnRunning) {
+            isServiceRunning = realVpnRunning
+            lifecycleScope.launch {
+                settingsRepository.updateVpnActive(realVpnRunning)
+            }
+        }
         loadStatistics()
         // Reconectar Billing si se desconectó en background y re-verificar compras existentes
         billingManager.startConnection()
         // Re-verificar estado del trial por si la app estuvo en background un largo periodo
         if (!isPremium) {
             lifecycleScope.launch { updateFreeTrialStatus() }
+        }
+    }
+
+    /** Comprueba si DnsFilterService está en ejecución consultando los servicios del proceso propio. */
+    private fun isDnsFilterServiceRunning(): Boolean {
+        return try {
+            val manager = getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager
+            @Suppress("DEPRECATION")
+            manager.getRunningServices(Int.MAX_VALUE)
+                .any { it.service.className == DnsFilterService::class.java.name }
+        } catch (e: Exception) {
+            Log.w("MainActivity", "No se pudo verificar estado real de VPN: ${e.message}")
+            isServiceRunning // Conservar estado actual si falla la comprobación
         }
     }
 
@@ -812,19 +847,53 @@ fun GuardianShieldApp(
                 freeTrialRemainingHours = freeTrialRemainingHours
             )
         }
-        composable("parental") { 
+        composable("parental") {
+            val mainActivity = navController.context as MainActivity
+
+            // Observar todos los perfiles en tiempo real
+            val allProfiles by mainActivity.repository.allProfilesFlow
+                .collectAsState(initial = emptyList())
+
             ParentalControlScreen(
-                currentProfile = currentProfile ?: UserProfileEntity(),
-                onProfileUpdate = { profile -> 
-                    (navController.context as MainActivity).lifecycleScope.launch {
-                        (navController.context as MainActivity).repository.updateProfile(profile)
-                        (navController.context as MainActivity).currentProfile = profile
+                allProfiles = allProfiles,
+                isFreeTrialActive = isFreeTrialActive,
+                onProfileUpdate = { profile ->
+                    mainActivity.lifecycleScope.launch {
+                        mainActivity.repository.updateProfile(profile)
+                        mainActivity.currentProfile = mainActivity.repository.getActiveProfile()
+                    }
+                },
+                onCreateProfile = { name, age ->
+                    mainActivity.lifecycleScope.launch {
+                        mainActivity.repository.createProfile(name = name, age = age)
+                        // El nuevo perfil queda activo tras la creación
+                        mainActivity.currentProfile = mainActivity.repository.getActiveProfile()
+                    }
+                },
+                onDeleteProfile = { profileId ->
+                    mainActivity.lifecycleScope.launch {
+                        // Si se borra el perfil activo, activar el primero restante
+                        val wasActive = mainActivity.currentProfile?.id == profileId
+                        mainActivity.repository.deleteProfile(profileId)
+                        if (wasActive) {
+                            val remaining = mainActivity.repository.getAllProfiles()
+                            remaining.firstOrNull()?.let { first ->
+                                mainActivity.repository.setActiveProfile(first.id)
+                            }
+                        }
+                        mainActivity.currentProfile = mainActivity.repository.getActiveProfile()
+                    }
+                },
+                onSetActiveProfile = { profileId ->
+                    mainActivity.lifecycleScope.launch {
+                        mainActivity.repository.setActiveProfile(profileId)
+                        mainActivity.currentProfile = mainActivity.repository.getActiveProfile()
                     }
                 },
                 onBack = { navController.popBackStack() },
                 isPremium = isPremium,
                 onShowPremium = onShowPremium
-            ) 
+            )
         }
         composable("filters") { 
             val mainActivity = navController.context as MainActivity
@@ -853,6 +922,7 @@ fun GuardianShieldApp(
                 },
                 onBack = { navController.popBackStack() },
                 isPremium = isPremium,
+                isFreeTrialActive = isFreeTrialActive,
                 onShowPremium = onShowPremium
             ) 
         }
@@ -979,6 +1049,27 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    // Badge de modo: FREE TRIAL / FREE / ✓ PREMIUM
+                    val (badgeText, badgeColor, badgeTextColor) = when {
+                        isPremium -> Triple("✓ PREMIUM", Color(0xFF4CAF50), Color.White)
+                        isFreeTrialActive -> Triple("FREE TRIAL", Color(0xFFFFC107), Color(0xFF4A3800))
+                        else -> Triple("FREE", Color(0xFF9E9E9E), Color.White)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .background(badgeColor, RoundedCornerShape(20.dp))
+                            .clickable(enabled = !isPremium) { onShowPremium() }
+                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                    ) {
+                        Text(
+                            text = badgeText,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = badgeTextColor,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
                     IconButton(onClick = { onNavigate("settings") }) {
                         Icon(Icons.Rounded.Settings, "Configuración")
                     }

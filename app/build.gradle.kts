@@ -15,7 +15,7 @@ val localProperties = Properties().apply {
 
 android {
     namespace = "com.guardianos.shield"
-    compileSdk = 34
+    compileSdk = 35
 
     // ── Dimensiones de flavors ────────────────────────────────────────────────
     // "idioma": langEs (español) y langEn (inglés) → APKs/AABs completamente
@@ -33,8 +33,8 @@ android {
     defaultConfig {
         // applicationId base — los flavors lo sobreescriben/añaden
         minSdk = 31  // Android 12 (Snow Cone) — mínimo para FOREGROUND_SERVICE_SPECIAL_USE y APIs de accesibilidad estables
-        targetSdk = 34 // Android 14
-        versionCode = 2
+        targetSdk = 35 // Android 15
+        versionCode = 4
         versionName = "1.1.0"
 
         // Optimización RAM para tu Aspire E5-571G
@@ -42,8 +42,6 @@ android {
             useSupportLibrary = true
         }
 
-        // archivesBaseName se establece por flavor más abajo
-        // resourceConfigurations se establece por flavor para optimizar tamaño del APK
     }
 
     productFlavors {
@@ -54,8 +52,6 @@ android {
             versionNameSuffix      = "-es"
             // BuildConfig accessible desde Kotlin: BuildConfig.FLAVOR ("langEs")
             // Strings específicos ES vienen de src/main/res/values/strings.xml (base)
-            resourceConfigurations += setOf("es") // Solo recursos en español en el APK
-            setProperty("archivesBaseName", "guardianos-shield-v1.1.0-es")
         }
 
         // ── Versión en Inglés ────────────────────────────────────────────────
@@ -64,8 +60,6 @@ android {
             applicationId          = "com.guardianos.shield.en"
             versionNameSuffix      = "-en"
             // Strings EN vienen de src/langEn/res/values/strings.xml (override de main)
-            resourceConfigurations += setOf("en") // Solo recursos en inglés en el APK
-            setProperty("archivesBaseName", "guardianos-shield-v1.1.0-en")
         }
     }
 
@@ -155,6 +149,19 @@ android {
     androidResources {
         noCompress += listOf("dat", "bin", "txt") // Evitar compresión innecesaria
     }
+
+    // ── Nombrar APKs por flavor correctamente ────────────────────────────────
+    // setProperty("archivesBaseName") no funciona por flavor en Kotlin DSL;
+    // se usa applicationVariants para renombrar los outputs.
+    applicationVariants.all {
+        val variant = this
+        val flavorSuffix = if (variant.flavorName.contains("langEn")) "en" else "es"
+        outputs.all {
+            val output = this as? com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            output?.outputFileName =
+                "guardianos-shield-v1.1.0-${flavorSuffix}-${variant.buildType.name}.apk"
+        }
+    }
 }
 
 dependencies {
@@ -209,8 +216,9 @@ dependencies {
     // Security - EncryptedSharedPreferences
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    // Google Play Billing Library para compras in-app
-    implementation("com.android.billingclient:billing-ktx:6.1.0")
+    // Google Play Billing Library para compras in-app (v7+ requerido por Play Console desde ago 2025)
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
+
 }
 
 // ✅ Tarea optimizada para tu hardware (SIN flags inválidos)

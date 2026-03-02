@@ -9,6 +9,10 @@ interface UserProfileDao {
     @Query("SELECT * FROM user_profiles WHERE isActive = 1 LIMIT 1")
     fun getActiveProfile(): Flow<UserProfileEntity?>
 
+    /** Observa todos los perfiles ordenados por id — usado para el selector multi-perfil */
+    @Query("SELECT * FROM user_profiles ORDER BY id ASC")
+    fun getAllProfiles(): Flow<List<UserProfileEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(profile: UserProfileEntity): Long
 

@@ -462,7 +462,7 @@ fun SettingsScreen(
                                 },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Resetear trial (nueva instalación)")
+                                Text("Reset trial (fresh install)")
                             }
                         }
                     }

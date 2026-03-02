@@ -3,8 +3,10 @@ package com.guardianos.shield.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,48 +23,67 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.guardianos.shield.R
+import com.guardianos.shield.billing.FreeTierLimits
 import com.guardianos.shield.data.UserProfileEntity
 import java.util.*
 
 @Composable
 fun ParentalControlScreen(
-    currentProfile: UserProfileEntity?,
+    allProfiles: List<UserProfileEntity>,
     onProfileUpdate: (UserProfileEntity) -> Unit,
+    onCreateProfile: (name: String, age: Int?) -> Unit = { _, _ -> },
+    onDeleteProfile: (Int) -> Unit = {},
+    onSetActiveProfile: (Int) -> Unit = {},
     onBack: () -> Unit,
     navController: NavController? = null,
     isPremium: Boolean = false,
+    isFreeTrialActive: Boolean = false,
     onShowPremium: () -> Unit = {}
 ) {
-    // Plan FREE: pantalla completamente bloqueada
-    if (!isPremium) {
-        FreePremiumGateScreen(
-            feature = PremiumFeature.MULTIPLES_PERFILES,
-            onUpgrade = onShowPremium,
-            onBack = onBack
-        )
-        return
+    // During the 48-h free trial ALL features are accessible
+    val effectivelyPremium = isPremium || isFreeTrialActive
+    val maxProfiles = if (isPremium) FreeTierLimits.MAX_PROFILES_PREMIUM else FreeTierLimits.MAX_PROFILES_FREE
+
+    // Perfil activo por defecto (o el primero de la lista)
+    val defaultId = (allProfiles.firstOrNull { it.isActive } ?: allProfiles.firstOrNull())?.id ?: 0
+    var selectedProfileId by remember { mutableStateOf(defaultId) }
+
+    // Cuando la lista cambia (creación/eliminación), ajustar el id seleccionado
+    LaunchedEffect(allProfiles) {
+        if (allProfiles.isNotEmpty() && allProfiles.none { it.id == selectedProfileId }) {
+            selectedProfileId = (allProfiles.firstOrNull { it.isActive } ?: allProfiles.last()).id
+        }
     }
 
-    var profile by remember { 
-        mutableStateOf(currentProfile ?: UserProfileEntity(
-            id = 0,
-            name = "Niño/a",
-            age = 10,
-            parentalPin = "",
-            restrictionLevel = "MEDIUM",
-            isActive = true,
-            startTimeMinutes = 900,  // 15:00 — llegan del colegio
-            endTimeMinutes = 1260,   // 21:00 — hora de dormir
+    // Perfil actualmente seleccionado para edición
+    val currentProfile = allProfiles.firstOrNull { it.id == selectedProfileId }
+        ?: allProfiles.firstOrNull()
+        ?: UserProfileEntity(
+            id = 0, name = "Niño/a", age = 10, isActive = true,
+            startTimeMinutes = 900, endTimeMinutes = 1260,
             createdAt = System.currentTimeMillis()
-        )) 
+        )
+
+    // El estado `profile` se reinicializa cada vez que cambia el perfil seleccionado
+    var profile by remember(selectedProfileId, allProfiles.size) {
+        mutableStateOf(currentProfile)
     }
-    
-    var startTime by remember { mutableStateOf(profile.startTimeMinutes) }
-    var endTime by remember { mutableStateOf(profile.endTimeMinutes) }
-    var weekendStartTime by remember { mutableStateOf(profile.weekendStartTimeMinutes) }
-    var weekendEndTime by remember { mutableStateOf(profile.weekendEndTimeMinutes) }
-    var schoolStartTime by remember { mutableStateOf(profile.schoolStartTimeMinutes) }
-    var schoolEndTime by remember { mutableStateOf(profile.schoolEndTimeMinutes) }
+    // También sincronizar cuando la lista se actualiza para ese mismo perfil
+    LaunchedEffect(selectedProfileId) {
+        val p = allProfiles.firstOrNull { it.id == selectedProfileId } ?: return@LaunchedEffect
+        profile = p
+    }
+
+    var startTime by remember(selectedProfileId) { mutableStateOf(profile.startTimeMinutes) }
+    var endTime by remember(selectedProfileId) { mutableStateOf(profile.endTimeMinutes) }
+    var weekendStartTime by remember(selectedProfileId) { mutableStateOf(profile.weekendStartTimeMinutes) }
+    var weekendEndTime by remember(selectedProfileId) { mutableStateOf(profile.weekendEndTimeMinutes) }
+    var schoolStartTime by remember(selectedProfileId) { mutableStateOf(profile.schoolStartTimeMinutes) }
+    var schoolEndTime by remember(selectedProfileId) { mutableStateOf(profile.schoolEndTimeMinutes) }
+
+    // ── Estados para diálogos multi-perfil ────────────────────────────────
+    var showAddProfileDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     // ── Dialogs premium gate ───────────────────────────────────────────────
     var showScheduleGate by remember { mutableStateOf(false) }
@@ -75,11 +96,99 @@ fun ParentalControlScreen(
             onDismiss = { showScheduleGate = false }
         )
     }
+    // Trial: gates are never shown — everything is accessible
     if (showPinGate) {
         PremiumGateDialog(
             feature = PremiumFeature.PIN_PARENTAL,
             onUpgrade = { showPinGate = false; onShowPremium() },
             onDismiss = { showPinGate = false }
+        )
+    }
+
+    // ── Diálogo: Añadir nuevo perfil ─────────────────────────────────────
+    if (showAddProfileDialog) {
+        var newName by remember { mutableStateOf("") }
+        var newAge by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showAddProfileDialog = false },
+            title = { Text("Nuevo perfil") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        "Añade un perfil para tu hijo/a.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    OutlinedTextField(
+                        value = newName,
+                        onValueChange = { newName = it },
+                        label = { Text("Nombre del hijo/a") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = newAge,
+                        onValueChange = {
+                            if (it.isEmpty() || (it.all { c -> c.isDigit() } &&
+                                    it.toIntOrNull()?.let { n -> n <= 99 } == true))
+                                newAge = it
+                        },
+                        label = { Text("Edad (opcional)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val name = newName.trim().ifEmpty { "Niño/a" }
+                        onCreateProfile(name, newAge.toIntOrNull())
+                        showAddProfileDialog = false
+                    }
+                ) { Text(stringResource(R.string.action_accept)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddProfileDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
+    }
+
+    // ── Diálogo: Confirmar eliminación de perfil ──────────────────────────
+    if (showDeleteConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmDialog = false },
+            icon = {
+                Icon(
+                    Icons.Rounded.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = { Text("¿Eliminar perfil?") },
+            text = {
+                Text(
+                    "Se eliminará el perfil de \"${profile.name}\" y toda su configuración. Esta acción no se puede deshacer.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDeleteProfile(profile.id)
+                        showDeleteConfirmDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) { Text("Eliminar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
         )
     }
 
@@ -103,6 +212,24 @@ fun ParentalControlScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // ── Selector multi-perfil ──────────────────────────────────────────
+            item {
+                MultiProfileSelectorRow(
+                    allProfiles = allProfiles,
+                    selectedProfileId = selectedProfileId,
+                    maxProfiles = maxProfiles,
+                    isPremium = isPremium,
+                    onSelectProfile = { id ->
+                        selectedProfileId = id
+                        onSetActiveProfile(id)
+                    },
+                    onAddProfile = {
+                        if (isPremium) showAddProfileDialog = true
+                        else onShowPremium()
+                    }
+                )
+            }
+
             item {
                 Text(
                     text = stringResource(R.string.parental_section_profile),
@@ -114,11 +241,35 @@ fun ParentalControlScreen(
             item {
                 ProfileForm(
                     profile = profile,
-                    isPremium = isPremium,
+                    isPremium = effectivelyPremium,
                     onShowPremiumGate = { showPinGate = true }
                 ) { updatedProfile ->
                     profile = updatedProfile
                     onProfileUpdate(updatedProfile)
+                }
+            }
+
+            // Botón Eliminar perfil (solo cuando hay más de uno)
+            if (allProfiles.size > 1) {
+                item {
+                    OutlinedButton(
+                        onClick = { showDeleteConfirmDialog = true },
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp, MaterialTheme.colorScheme.error
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            Icons.Rounded.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text("Eliminar perfil \"${profile.name}\"")
+                    }
                 }
             }
 
@@ -147,7 +298,7 @@ fun ParentalControlScreen(
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
-                                if (!isPremium) {
+                                if (!effectivelyPremium) {
                                     Spacer(Modifier.width(8.dp))
                                     PremiumLockBadge()
                                 }
@@ -161,7 +312,7 @@ fun ParentalControlScreen(
                         Switch(
                             checked = profile.scheduleEnabled,
                             onCheckedChange = { enabled ->
-                                if (!isPremium && enabled) {
+                                if (!effectivelyPremium && enabled) {
                                     showScheduleGate = true
                                 } else {
                                     profile = profile.copy(scheduleEnabled = enabled)
@@ -481,6 +632,130 @@ fun ParentalControlScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Fila horizontal con chips de perfiles + botón "Añadir".
+ * FREE: muestra el único perfil + chip bloqueado para añadir más.
+ * PREMIUM: muestra hasta 3 perfiles + botón "Añadir" si hay hueco.
+ */
+@Composable
+private fun MultiProfileSelectorRow(
+    allProfiles: List<UserProfileEntity>,
+    selectedProfileId: Int,
+    maxProfiles: Int,
+    isPremium: Boolean,
+    onSelectProfile: (Int) -> Unit,
+    onAddProfile: () -> Unit
+) {
+    val profileEmojis = listOf("👦", "👧", "🧒")
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Cabecera
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    Icons.Rounded.People,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "Perfiles (${allProfiles.size}/$maxProfiles)",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                if (!isPremium) {
+                    Spacer(Modifier.width(8.dp))
+                    PremiumLockBadge()
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            // Chips de perfiles
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+            ) {
+                allProfiles.forEachIndexed { index, p ->
+                    val isSelected = p.id == selectedProfileId
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { onSelectProfile(p.id) },
+                        label = {
+                            Text(
+                                text = "${profileEmojis.getOrElse(index) { "👤" }} ${p.name}",
+                                maxLines = 1
+                            )
+                        },
+                        leadingIcon = if (p.isActive) {
+                            {
+                                Icon(
+                                    Icons.Rounded.Check,
+                                    contentDescription = "Activo",
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                        } else null
+                    )
+                }
+
+                // Botón "Añadir perfil"
+                if (allProfiles.size < maxProfiles) {
+                    // Con hueco disponible (siempre Premium aquí porque maxProfiles=1 para free)
+                    AssistChip(
+                        onClick = onAddProfile,
+                        label = { Text("Añadir") },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Rounded.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    )
+                } else if (!isPremium) {
+                    // Plan FREE: mostrar chip de upgrade
+                    AssistChip(
+                        onClick = onAddProfile,
+                        label = { Text("+ Más perfiles") },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Rounded.Lock,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    )
+                }
+                // PREMIUM con 3 perfiles: no se muestra el botón añadir
+            }
+
+            // Nota informativa según plan
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = if (isPremium)
+                    "Tap a profile to edit or set it as active. Up to $maxProfiles profiles."
+                else
+                    "Free plan: 1 profile. Upgrade to Premium to manage up to ${FreeTierLimits.MAX_PROFILES_PREMIUM} children.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

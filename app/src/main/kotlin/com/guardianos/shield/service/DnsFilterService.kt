@@ -190,7 +190,7 @@ class DnsFilterService : VpnService() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("GuardianOS Shield")
-            .setContentText("Navegación segura activada")
+            .setContentText("Navegación segura activa")
             .setSmallIcon(android.R.drawable.ic_secure)
             .setContentIntent(pendingIntent)
             .setOngoing(true)

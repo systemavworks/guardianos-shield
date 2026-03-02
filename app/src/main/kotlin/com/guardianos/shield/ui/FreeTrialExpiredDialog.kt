@@ -71,7 +71,7 @@ fun FreeTrialExpiredDialog(
 
                 // Título
                 Text(
-                    text = "¡Tu modo Free ha terminado!",
+                    text = "¡Tu prueba gratuita ha terminado!",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -80,9 +80,9 @@ fun FreeTrialExpiredDialog(
 
                 Spacer(Modifier.height(8.dp))
 
-                // Subtítulo
+                // Subtitle
                 Text(
-                    text = "Has disfrutado de 48 horas gratuitas de protección. Actualiza a Premium para seguir protegiendo tu familia.",
+                    text = "Has disfrutado 48 horas de protección gratuita. Mejora a Premium para seguir protegiendo a tu familia.",
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -100,7 +100,7 @@ fun FreeTrialExpiredDialog(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Estado actual (modo Free expirado):",
+                            text = "Estado actual (plan gratuito expirado):",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -111,7 +111,7 @@ fun FreeTrialExpiredDialog(
                         _StatusRow(icon = "❌", text = "Horarios avanzados no disponibles")
                         _StatusRow(icon = "❌", text = "Filtros de dominios no disponibles")
                         _StatusRow(icon = "❌", text = "Historial — sin acceso")
-                        _StatusRow(icon = "❌", text = "Monitoreo de apps — sin acceso")
+                        _StatusRow(icon = "❌", text = "Monitorización de apps — sin acceso")
                     }
                 }
 
@@ -142,12 +142,12 @@ fun FreeTrialExpiredDialog(
                             )
                         }
                         Spacer(Modifier.height(10.dp))
-                        _StatusRow(icon = "✅", text = "VPN y protección DNS 24/7")
+                        _StatusRow(icon = "✅", text = "Protección VPN y DNS 24/7")
                         _StatusRow(icon = "✅", text = "Control Parental completo")
                         _StatusRow(icon = "✅", text = "Horarios avanzados por día")
                         _StatusRow(icon = "✅", text = "Filtros personalizados ilimitados")
-                        _StatusRow(icon = "✅", text = "Historial y estadísticas 30 días")
-                        _StatusRow(icon = "✅", text = "Monitoreo de apps en tiempo real")
+                        _StatusRow(icon = "✅", text = "Historial y estadísticas de 30 días")
+                        _StatusRow(icon = "✅", text = "Monitorización de apps en tiempo real")
                     }
                 }
 
@@ -176,7 +176,6 @@ fun FreeTrialExpiredDialog(
 
                 Spacer(Modifier.height(12.dp))
 
-                // Botón secundario — Salir
                 TextButton(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth()

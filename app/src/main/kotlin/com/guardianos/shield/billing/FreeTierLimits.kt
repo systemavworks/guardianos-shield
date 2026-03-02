@@ -1,92 +1,105 @@
 package com.guardianos.shield.billing
 
 /**
- * FreeTierLimits — Límites y restricciones del plan gratuito de GuardianOS Shield.
+ * FreeTierLimits — Limits and restrictions for GuardianOS Shield plans.
  *
- * Reglas FREE exactas:
- *   • HISTORIAL: limitado a últimas 48 horas en todos los módulos
- *   • DNS: filtrado activo (sin límite de tiempo — VPN no se toca)
- *   • MODO PARENTAL: NO disponible → PremiumGateDialog
- *   • HORARIOS: NO disponibles → PremiumGateDialog
- *   • FILTROS / BLOQUEO DE DOMINIOS: NO disponibles → PremiumGateDialog
- *   • MONITOREO DE APPS y AMENAZAS: datos limitados a 48h
- *   • NAVEGADOR SEGURO: historial limitado a 48h / 10 URLs
- *   • PROTECCIÓN (malware + adulto + redes sociales): datos mostrados 48h
+ * Plan rules:
+ *   • FREE TRIAL (48h): FULL ACCESS to every feature, including parental controls,
+ *     schedules, custom filters, app blocking, Pact, statistics, safe browser.
+ *     One child profile allowed.
+ *   • FREE EXPIRED (after 48h, no purchase): ALL premium features locked.
+ *     VPN/DNS protection stays technical-active but UI is fully gated.
+ *   • PREMIUM (€14.99 one-time, lifetime): ALL features unlocked forever.
+ *     Up to 3 child profiles, full 30-day history.
  *
- * Precio: 14,99 € — pago único vitalicio, sin suscripciones.
- * Contacto: info@guardianos.es — https://guardianos.es/shield
+ * Price: €14.99 — single lifetime payment, no subscriptions.
+ * Contact: info@guardianos.es — https://guardianos.es/shield
  */
 object FreeTierLimits {
 
-    // ────────────────────── HISTORIAL (48h — todos los módulos) ─────
+    // ─────────────────────── HISTORY (48 h — all modules) ───────────────────
 
-    /**
-     * Horas máximas de historial visible en FREE para TODOS los módulos:
-     * estadísticas, monitoreo, navegador seguro y protección.
-     */
+    /** Maximum visible history hours in FREE for ALL modules */
     const val MAX_HISTORY_HOURS = 48
 
-    // ─────────────────────────── ESTADÍSTICAS ──────────────────────────────
+    // ────────────────────────── STATISTICS ──────────────────────────────────
 
-    /** Días de estadísticas visibles en FREE (2 días = 48 horas) */
+    /** Days of statistics visible in FREE (2 days = 48 hours) */
     const val MAX_STATS_DAYS_FREE = 2
 
-    /** Días de estadísticas visibles en PREMIUM */
+    /** Days of statistics visible in PREMIUM */
     const val MAX_STATS_DAYS_PREMIUM = 30
 
-    // ─────────────────────────── NAVEGADOR ──────────────────────────────────
+    // ───────────────────────────── BROWSER ──────────────────────────────────
 
-    /** Máximo de entradas en el historial del Navegador Seguro en FREE */
+    /** Max Safe Browser history entries in FREE */
     const val MAX_BROWSER_HISTORY_FREE = 10
 
-    /** Máximo de entradas en el historial del Navegador Seguro en PREMIUM */
+    /** Max Safe Browser history entries in PREMIUM */
     const val MAX_BROWSER_HISTORY_PREMIUM = 200
 
-    // ── FEATURES BLOQUEADAS TOTALMENTE EN FREE ─────────────────────────────
+    // ────────────────────────────── PROFILES ────────────────────────────────
 
-    /**
-     * Funcionalidades NO disponibles en FREE — muestran PremiumGateDialog.
-     */
-    fun canUseParentalMode(isPremium: Boolean) = isPremium
-    fun canUseSchedules(isPremium: Boolean) = isPremium
-    fun canUseCustomFilters(isPremium: Boolean) = isPremium
-    fun canExportHistory(isPremium: Boolean) = isPremium
+    /** Max child profiles in FREE plan (trial or expired): 1 child */
+    const val MAX_PROFILES_FREE = 1
+
+    /** Max child profiles in PREMIUM: up to 3 children in the same family */
+    const val MAX_PROFILES_PREMIUM = 3
+
+    // ── ACCESS RULES ────────────────────────────────────────────────────────
+    //
+    // All helpers follow the same pattern:
+    //   true  → feature accessible
+    //   false → show PremiumGateDialog
+    //
+    // During the 48-hour free trial EVERYTHING is accessible (isPremium OR
+    // isFreeTrialActive). After expiry, features are locked until purchase.
+
+    fun canUseParentalMode(isPremium: Boolean, isFreeTrialActive: Boolean = false) =
+        isPremium || isFreeTrialActive
+
+    fun canUseSchedules(isPremium: Boolean, isFreeTrialActive: Boolean = false) =
+        isPremium || isFreeTrialActive
+
+    fun canUseCustomFilters(isPremium: Boolean, isFreeTrialActive: Boolean = false) =
+        isPremium || isFreeTrialActive
+
+    fun canExportHistory(isPremium: Boolean, isFreeTrialActive: Boolean = false) =
+        isPremium || isFreeTrialActive
+
+    /** Multiple profiles: only Premium (trial stays at 1 profile) */
     fun canUseMultipleProfiles(isPremium: Boolean) = isPremium
-    fun canUsePushAlerts(isPremium: Boolean) = isPremium
 
-    // ── Features nuevas — accesibles durante trial y en Premium ───────────────
+    fun canUsePushAlerts(isPremium: Boolean, isFreeTrialActive: Boolean = false) =
+        isPremium || isFreeTrialActive
 
-    /** Pacto Digital Familiar: peticiones hijo→padre dentro del dispositivo */
-    fun canUsePactoDigital(isPremium: Boolean) = isPremium
+    fun canUsePactoDigital(isPremium: Boolean, isFreeTrialActive: Boolean = false) =
+        isPremium || isFreeTrialActive
 
-    /** Bloqueo real de apps instaladas vía AccessibilityService */
-    fun canUseAppBlocker(isPremium: Boolean) = isPremium
+    fun canUseAppBlocker(isPremium: Boolean, isFreeTrialActive: Boolean = false) =
+        isPremium || isFreeTrialActive
 
-    /** Anti-tampering: Device Admin para proteger contra desinstalación */
-    fun canUseAntiTampering(isPremium: Boolean) = isPremium
+    fun canUseAntiTampering(isPremium: Boolean, isFreeTrialActive: Boolean = false) =
+        isPremium || isFreeTrialActive
 
-    /** TrustFlow Engine: niveles CAUTION y TRUSTED son funcionalidades premium.
-     *  En FREE (sin trial), el servicio de accesibilidad siempre usa modo LOCKED. */
-    fun canUseTrustFlow(isPremium: Boolean, isFreeTrialActive: Boolean) =
+    fun canUseTrustFlow(isPremium: Boolean, isFreeTrialActive: Boolean = false) =
         isPremium || isFreeTrialActive
 
     /**
-     * Devuelve true si el usuario puede acceder a una feature premium
-     * teniendo en cuenta el trial activo.
-     * Usar este helper en las UIs nuevas en lugar de solo isPremium.
+     * Generic helper: returns true if the user can access a premium feature,
+     * taking the active trial into account.
+     * Preferred over checking isPremium alone in new UI code.
      */
     fun canAccessPremiumFeature(isPremium: Boolean, isFreeTrialActive: Boolean) =
         isPremium || isFreeTrialActive
 
-    // ─────────────────────────── HELPERS ────────────────────────────────────
+    // ──────────────────────────── HELPERS ───────────────────────────────────
 
-    /** Timestamp de corte (48h atrás) para filtrar datos mostrados en FREE */
+    /** Cutoff timestamp (48 h ago) for filtering data shown in FREE */
     fun historyStartMs(): Long =
         System.currentTimeMillis() - MAX_HISTORY_HOURS * 60 * 60 * 1_000L
 
-    /**
-     * Devuelve el número de días de estadísticas disponibles según el plan.
-     */
+    /** Returns the number of stats days available for the given plan. */
     fun maxStatsDays(isPremium: Boolean): Int =
         if (isPremium) MAX_STATS_DAYS_PREMIUM else MAX_STATS_DAYS_FREE
 

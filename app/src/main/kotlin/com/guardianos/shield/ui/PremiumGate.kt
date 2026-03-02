@@ -118,92 +118,92 @@ object ConversionTracker {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Modelo de funcionalidades premium — usadas en dialogs y pantalla de upgrade
+// Premium feature model — used in dialogs and upgrade screen
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Funcionalidades individuales bloqueadas en el plan gratuito */
+/** Individual features locked in the free plan */
 enum class PremiumFeature(
     val titulo: String,
     val descripcion: String,
     val icono: ImageVector
 ) {
-    // ── Nuevas restricciones FREE añadidas ───────────────────────────────
+    // ── New FREE restrictions ────────────────────────────────────────────
     DNS_ILIMITADO(
-        titulo = "DNS Ilimitado 24/7",
-        descripcion = "En el plan gratuito el filtrado DNS se detiene después de 2 horas diarias. Con Premium funciona sin límite de tiempo.",
+        titulo = "DNS ilimitado 24/7",
+        descripcion = "En el plan gratuito el filtrado DNS se detiene tras 2 horas diarias. Con Premium funciona sin límite de tiempo.",
         icono = Icons.Rounded.Security
     ),
     HISTORIAL_COMPLETO(
-        titulo = "Historial Completo (30 días)",
+        titulo = "Historial completo (30 días)",
         descripcion = "En el plan gratuito solo puedes ver el historial de las últimas 48 horas. Premium te da acceso a 30 días.",
         icono = Icons.Rounded.History
     ),
     EXPORTAR_HISTORIAL(
-        titulo = "Exportar Historial",
-        descripcion = "Exporta el historial de bloqueos en formato CSV para análisis y seguimiento detallado. Solo disponible en Premium.",
+        titulo = "Exportar historial",
+        descripcion = "Exporta tu historial de bloqueos en formato CSV para análisis detallado. Disponible solo en Premium.",
         icono = Icons.Rounded.Share
     ),
     FILTROS_ILIMITADOS(
-        titulo = "Filtros Personalizados Ilimitados",
-        descripcion = "Los filtros personalizados son una función exclusiva Premium. Desbloquea para añadir dominios bloqueados/permitidos sin límite.",
+        titulo = "Filtros personalizados ilimitados",
+        descripcion = "Los filtros personalizados son una función exclusiva de Premium. Desbloquea para añadir dominios bloqueados/permitidos ilimitados.",
         icono = Icons.Rounded.FilterList
     ),
-    // ── Features avanzados existentes ────────────────────────────────────
+    // ── Funciones avanzadas existentes ───────────────────────────────────────
     MULTIPLES_PERFILES(
-        titulo = "Múltiples Perfiles",
-        descripcion = "Gestiona hasta 10 perfiles de hijos independientes, cada uno con sus propias restricciones y horarios.",
+        titulo = "Perfiles múltiples",
+        descripcion = "Gestiona hasta 3 perfiles independientes de menores, cada uno con sus propias restricciones y horarios.",
         icono = Icons.Rounded.People
     ),
     HORARIOS_AVANZADOS(
-        titulo = "Horarios Avanzados",
-        descripcion = "Configura horarios por día de la semana, excepciones para fines de semana y periodos vacacionales.",
+        titulo = "Horarios avanzados",
+        descripcion = "Configura horarios por día de la semana, con excepciones de fin de semana y períodos festivos.",
         icono = Icons.Rounded.Schedule
     ),
     PIN_PARENTAL(
-        titulo = "PIN Parental",
-        descripcion = "Protege la configuración con un PIN para que los niños no puedan desactivar la protección.",
+        titulo = "PIN parental",
+        descripcion = "Protege los ajustes con un PIN para que los menores no puedan desactivar la protección.",
         icono = Icons.Rounded.Lock
     ),
     ESTADISTICAS_DETALLADAS(
-        titulo = "Estadísticas Detalladas (30 días)",
-        descripcion = "Informes semanales y mensuales, uso por app y por hora, gráficos de tendencias de 30 días.",
+        titulo = "Estadísticas detalladas (30 días)",
+        descripcion = "Informes semanales y mensuales, uso por app y por hora, gráficas de tendencia de 30 días.",
         icono = Icons.Rounded.BarChart
     ),
     MONITOREO_TIEMPO_REAL(
-        titulo = "Monitoreo en Tiempo Real",
-        descripcion = "Detecta apps abiertas al instante y redirige automáticamente al intentar eludir la protección.",
+        titulo = "Monitorización en tiempo real",
+        descripcion = "Detecta las apps abiertas al instante y redirige automáticamente cuando se intenta saltarse la protección.",
         icono = Icons.Rounded.Visibility
     ),
     ALERTAS_PUSH(
-        titulo = "Alertas Push Parentales",
-        descripcion = "Recibe notificaciones inmediatas cuando se detecta un intento de acceso a contenido bloqueado.",
+        titulo = "Alertas parentales push",
+        descripcion = "Recibe notificaciones inmediatas cuando se detecta un intento de acceder a contenido bloqueado.",
         icono = Icons.Rounded.NotificationsActive
     ),
     BLOQUEO_GRANULAR(
-        titulo = "Bloqueo Granular de Apps",
+        titulo = "Bloqueo granular de apps",
         descripcion = "Bloquea redes sociales específicas (Instagram, TikTok…) por horario o de forma permanente.",
         icono = Icons.Rounded.Block
     ),
 
-    // ── Features nuevas ───────────────────────────────────────────────────────
+    // ── Nuevas funciones ──────────────────────────────────────────────────────────
     PACTO_DIGITAL(
         titulo = "Pacto Digital Familiar",
-        descripcion = "El menor puede enviar peticiones al padre/madre (más tiempo, desbloquear una app…) y el padre responde desde el mismo dispositivo con PIN. Todo 100% local, sin servidores.",
+        descripcion = "El menor puede enviar peticiones al padre/madre (más tiempo, desbloquear una app…) y el padre responde desde el mismo dispositivo con PIN. 100% local, sin servidores.",
         icono = Icons.Rounded.Handshake
     ),
     BLOQUEO_APPS_REAL(
-        titulo = "Bloqueo Real de Apps",
+        titulo = "Bloqueo real de apps",
         descripcion = "Bloquea apps instaladas (Instagram, TikTok, juegos…) fuera del horario permitido usando el servicio de accesibilidad. Sin root, sin VPN adicional.",
         icono = Icons.Rounded.AppBlocking
     ),
     ANTI_TAMPERING(
-        titulo = "Protección Anti-Desinstalación",
+        titulo = "Protección anti-desinstalación",
         descripcion = "Registra GuardianOS Shield como Administrador del dispositivo para que el menor no pueda desinstalarlo sin el PIN parental.",
         icono = Icons.Rounded.AdminPanelSettings
     ),
     TRUST_FLOW(
-        titulo = "TrustFlow Engine",
-        descripcion = "El nivel de restricción se adapta automáticamente según la racha del menor: Cadete (bloqueo total), Explorador (pantalla de reflexión 15s), Guardián (acceso libre con registro). Tu hijo gana autonomía siendo responsable.",
+        titulo = "Motor TrustFlow",
+        descripcion = "El nivel de restricción se adapta automáticamente según la racha del menor: Cadete (bloqueo total), Explorador (pantalla de reflexión 15 s), Guardián (acceso libre con registro). Tu hijo/a gana autonomía siendo responsable.",
         icono = Icons.Rounded.TrendingUp
     )
 }
@@ -296,7 +296,7 @@ fun PremiumGateDialog(
                     Icon(Icons.Rounded.Star, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        "Desbloquear por 14,99 € (único)",
+                        "Desbloquear por 14,99 € (pago único)",
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
@@ -306,7 +306,7 @@ fun PremiumGateDialog(
 
                 TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        "Continuar con la versión gratuita",
+                        "Continuar con el plan gratuito",
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                         fontSize = 13.sp
                     )
@@ -380,13 +380,13 @@ fun FreePlanBanner(onUpgrade: () -> Unit) {
 
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = "Plan Gratuito activo",
+                    text = "Plan gratuito activo",
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     color = Color(0xFF5D4037)
                 )
                 Text(
-                    text = "Múltiples perfiles, horarios y alertas por 14,99 € vitalicio",
+                    text = "Perfiles múltiples, horarios y alertas — 14,99 € vitalicio",
                     fontSize = 12.sp,
                     color = Color(0xFF795548),
                     lineHeight = 16.sp
@@ -597,7 +597,7 @@ fun FreePremiumGateScreen(
 
             TextButton(onClick = onBack) {
                 Text(
-                    "Volver a la pantalla anterior",
+                    "Volver",
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
             }

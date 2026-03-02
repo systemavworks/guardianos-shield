@@ -28,8 +28,8 @@ object DeviceAdminHelper {
             putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, getComponentName(context))
             putExtra(
                 DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                "GuardianOS Shield necesita este permiso para impedir que un menor " +
-                "desinstale la app de control parental sin el PIN del padre/madre."
+                "GuardianOS Shield needs this permission to prevent a child " +
+                "from uninstalling the parental control app without the parent PIN."
             )
         }
 

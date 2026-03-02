@@ -114,7 +114,7 @@ class LightweightMonitorService : LifecycleService() {
     private fun showRiskAppNotification(appName: String, category: String) {
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("⚠️ App de riesgo detectada")
-            .setContentText("Se ha instalado $appName (categoría: $category)")
+            .setContentText("$appName has been installed (category: $category)")
             .setSmallIcon(R.drawable.ic_warning)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)

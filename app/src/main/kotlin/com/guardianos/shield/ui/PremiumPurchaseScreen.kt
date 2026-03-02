@@ -152,25 +152,25 @@ fun PremiumPurchaseScreen(
                         // label, inFree, freeIsLimited (naranja ⚠️ si está pero limitado)
                         data class FeatureRow(val label: String, val inFree: Boolean, val freeIsLimited: Boolean = false)
                         val features = listOf(
-                            FeatureRow("DNS activo — datos registrados 48h", inFree = true, freeIsLimited = true),
+                            FeatureRow("DNS activo — 48h de datos registrados", inFree = true, freeIsLimited = true),
                             FeatureRow("DNS — historial completo 30 días", inFree = false),
                             FeatureRow("Historial últimas 48h", inFree = true, freeIsLimited = true),
-                            FeatureRow("Historial 30 días completo", inFree = false),
-                            FeatureRow("Sin exportar historial", inFree = true, freeIsLimited = true),
-                            FeatureRow("Exportar historial CSV", inFree = false),
-                            FeatureRow("Monitoreo apps — datos últimas 48h", inFree = true, freeIsLimited = true),
-                            FeatureRow("Monitoreo apps — datos 30 días", inFree = false),
+                            FeatureRow("Historial completo 30 días", inFree = false),
+                            FeatureRow("Exportar historial no disponible", inFree = true, freeIsLimited = true),
+                            FeatureRow("Exportar historial como CSV", inFree = false),
+                            FeatureRow("Monitoreo de apps — datos últimas 48h", inFree = true, freeIsLimited = true),
+                            FeatureRow("Monitoreo de apps — datos 30 días", inFree = false),
                             FeatureRow("Filtros personalizados no disponibles", inFree = false),
                             FeatureRow("Filtros personalizados ilimitados", inFree = false),
-                            FeatureRow("Protección adulto/malware/redes sociales (48h)", inFree = true, freeIsLimited = true),
-                            FeatureRow("Protección completa con estadísticas 30d", inFree = false),
+                            FeatureRow("Protección adultos/malware/redes sociales (48h)", inFree = true, freeIsLimited = true),
+                            FeatureRow("Protección completa con estadísticas 30 días", inFree = false),
                             FeatureRow("Modo parental no disponible", inFree = false),
                             FeatureRow("Modo parental completo", inFree = false),
                             FeatureRow("Horarios por día no disponibles", inFree = false),
                             FeatureRow("Horarios avanzados por día", inFree = false),
-                            FeatureRow("Múltiples perfiles (hasta 10)", inFree = false),
+                            FeatureRow("Múltiples perfiles (hasta 3)", inFree = false),
                             FeatureRow("PIN parental anti-bypass", inFree = false),
-                            FeatureRow("Alertas push parentales", inFree = false)
+                            FeatureRow("Alertas parentales por notificación", inFree = false)
                         )
                         features.forEach { f ->
                             Row(
@@ -257,7 +257,7 @@ fun PremiumPurchaseScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
                 Text(
-                    text = "Operación 100% segura y gestionada por Google Play. Guardianos Shield cumple con la legislación vigente y protege tu privacidad.",
+                    text = "Compra 100% segura gestionada por Google Play. GuardianOS Shield cumple con la legislación aplicable y protege tu privacidad.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center
@@ -307,7 +307,7 @@ fun PremiumPurchaseScreen(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                     )
                     Text(
-                        text = "T&C",
+                        text = "Términos",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = linkColor,
                             fontWeight = FontWeight.Bold,
@@ -339,7 +339,7 @@ fun PremiumPurchaseScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Versión $version  •  Guardianos Shield  •  © $year",
+                    text = "Versión $version  •  GuardianOS Shield  •  © $year",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center,

@@ -1,1 +1,1 @@
-Control parental con filtrado DNS. Sin rastreadores, sin anuncios, completamente libre.
+Control parental y filtrado DNS. Sin rastreadores, sin anuncios. Código abierto.

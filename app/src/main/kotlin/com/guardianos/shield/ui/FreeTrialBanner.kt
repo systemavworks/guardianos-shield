@@ -67,13 +67,13 @@ fun FreeTrialBanner(
                 Spacer(Modifier.width(10.dp))
                 Column {
                     Text(
-                        text = "Modo Free — $tiempoTexto",
+                        text = "Prueba gratuita — $tiempoTexto",
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
                         color = accentColor
                     )
                     Text(
-                        text = "Actualiza para protección ilimitada",
+                        text = "Mejora para protección ilimitada",
                         fontSize = 11.sp,
                         color = accentColor.copy(alpha = 0.75f)
                     )

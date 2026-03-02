@@ -590,4 +590,21 @@
     <string name="stats_insight_moderate">Actividad moderada: %d bloqueos en el período. El sistema protege correctamente. Revisa el desglose si alguna categoría destaca.</string>
     <string name="stats_insight_low">Actividad baja: %d bloqueos en el período. La protección funciona con normalidad.</string>
 
+
+    <string name="app_blocked_request_permission">Pedir permiso al padre/madre</string>
+    <string name="app_blocked_back_home">Volver al inicio</string>
+    <string name="app_blocked_footer">GuardianOS Shield — protección local</string>
+    <string name="app_blocked_dialog_title">Pedir acceso</string>
+    <string name="app_blocked_dialog_text">Dile a tu padre/madre por qué quieres usar %1$s ahora:</string>
+    <string name="app_blocked_dialog_placeholder">Ej.: He terminado los deberes</string>
+    <string name="app_blocked_dialog_send">Enviar petición</string>
+    <string name="caution_mode_title">Modo Precaución</string>
+    <string name="caution_mode_streak">🔥 Llevas %1$d días de racha</string>
+    <string name="caution_mode_thinking">¿Seguro que quieres romperla? Reflexiona %1$d s…</string>
+    <string name="caution_mode_can_continue">Puedes continuar — el acceso quedará registrado para tu tutor/a.</string>
+    <string name="caution_mode_continue">Continuar (se registrará en el informe)</string>
+    <string name="caution_mode_wait">Espera %1$d s…</string>
+    <string name="caution_mode_go_back">Volver (mantén la racha 🔥)</string>
+    <string name="caution_mode_footer">GuardianOS Shield — Motor TrustFlow</string>
+
 </resources>

@@ -506,7 +506,7 @@
     <string name="trust_trusted_desc">You\'ve had %d streak days. Flexible access registered.</string>
     <string name="trust_days_to_trusted">%d days to Trust Zone 🟢</string>
     <string name="trust_days_to_caution">%d days to Caution Mode 🟡</string>
-    <string name="trust_free_preview">With %d streak days you could be in %s</string>
+    <string name="trust_free_preview">With %1$d streak days you could be in %2$s</string>
     <string name="trust_free_upgrade">PREMIUM — Tap to unlock</string>
     <string name="trust_zone_trusted">Trust Zone 🟢</string>
     <string name="trust_zone_caution">Caution Mode 🟡</string>
@@ -595,5 +595,23 @@
     <string name="stats_insight_high">High activity: %d blocked attempts in the period. Check which apps or domains generate the most attempts in the breakdown.</string>
     <string name="stats_insight_moderate">Moderate activity: %d blocks in the period. The system is protecting correctly. Check the breakdown if any category stands out.</string>
     <string name="stats_insight_low">Low activity: %d blocks in the period. Protection is working normally.</string>
+
+
+    <!-- APP BLOCKED (AppBlockedActivity) -->
+    <string name="app_blocked_request_permission">Request parent permission</string>
+    <string name="app_blocked_back_home">Back to home</string>
+    <string name="app_blocked_footer">GuardianOS Shield — local protection</string>
+    <string name="app_blocked_dialog_title">Request access</string>
+    <string name="app_blocked_dialog_text">Tell your parent/guardian why you want to use %1$s right now:</string>
+    <string name="app_blocked_dialog_placeholder">E.g.: I\'ve finished my homework</string>
+    <string name="app_blocked_dialog_send">Send request</string>
+    <string name="caution_mode_title">Caution Mode</string>
+    <string name="caution_mode_streak">🔥 You\'re on a %1$d-day streak</string>
+    <string name="caution_mode_thinking">Are you sure you want to break it? Think for %1$d s…</string>
+    <string name="caution_mode_can_continue">You can continue — access will be logged for your guardian.</string>
+    <string name="caution_mode_continue">Continue (will be logged in the report)</string>
+    <string name="caution_mode_wait">Wait %1$d s…</string>
+    <string name="caution_mode_go_back">Go back (keep streak 🔥)</string>
+    <string name="caution_mode_footer">GuardianOS Shield — TrustFlow Engine</string>
 
 </resources>

@@ -120,6 +120,9 @@ class GuardianRepository(
 
     val activeProfile: Flow<UserProfileEntity?> = profileDao.getActiveProfile()
 
+    /** Flow reactivo con todos los perfiles ordenados por id — para el selector multi-perfil */
+    val allProfilesFlow: Flow<List<UserProfileEntity>> = profileDao.getAllProfiles()
+
     suspend fun getActiveProfile(): UserProfileEntity? = activeProfile.firstOrNull()
 
     // ── TrustFlow Engine ─────────────────────────────────────────────────────
@@ -251,6 +254,11 @@ class GuardianRepository(
             age <= 12 -> "8-12"
             age <= 17 -> "13-17"
             else -> "18+"
+        }
+
+        // Desactivar todos los perfiles existentes antes de activar el nuevo
+        profileDao.getAll().forEach { p ->
+            if (p.isActive) profileDao.update(p.copy(isActive = false))
         }
 
         val newProfile = UserProfileEntity(

@@ -103,3 +103,6 @@ security-report/apktool_out/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Vídeos (archivos grandes, no subir a git)
+play_store_assets/video/

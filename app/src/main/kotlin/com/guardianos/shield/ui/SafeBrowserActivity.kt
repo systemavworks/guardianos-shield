@@ -240,7 +240,7 @@ class SafeBrowserActivity : ComponentActivity() {
                                 )
                                 Spacer(Modifier.width(6.dp))
                                 Text(
-                                    text = "Plan FREE: últimas ${FreeTierLimits.MAX_BROWSER_HISTORY_FREE} URLs.",
+                                    text = "FREE plan: last ${FreeTierLimits.MAX_BROWSER_HISTORY_FREE} URLs.",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color(0xFFE65100),
                                     modifier = Modifier.weight(1f)
@@ -718,7 +718,7 @@ class SafeBrowserActivity : ComponentActivity() {
             .setContentTitle("🚫 Sitio bloqueado")
             .setContentText("$category: $domain")
             .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("Se ha bloqueado el acceso a:\n$domain\n\nCategoría: $category"))
+                .bigText("Access to the following has been blocked:\n$domain\n\nCategory: $category"))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()

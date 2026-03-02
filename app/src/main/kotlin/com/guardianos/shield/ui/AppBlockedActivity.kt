@@ -21,10 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.guardianos.shield.R
 import com.guardianos.shield.data.GuardianDatabase
 import com.guardianos.shield.data.GuardianRepository
 import com.guardianos.shield.ui.theme.GuardianShieldTheme
@@ -254,7 +256,7 @@ private fun PantallaAppBloqueada(
             ) {
                 Icon(Icons.Rounded.Send, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Pedir permiso al padre/madre", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.app_blocked_request_permission), fontWeight = FontWeight.Bold)
             }
 
             // Botón secundario: volver al inicio
@@ -266,11 +268,11 @@ private fun PantallaAppBloqueada(
             ) {
                 Icon(Icons.Rounded.Home, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Volver al inicio")
+                Text(stringResource(R.string.app_blocked_back_home))
             }
 
             Text(
-                text = "GuardianOS Shield — protección local",
+                text = stringResource(R.string.app_blocked_footer),
                 fontSize = 11.sp,
                 color = Color.White.copy(alpha = 0.3f)
             )
@@ -281,17 +283,17 @@ private fun PantallaAppBloqueada(
             AlertDialog(
                 onDismissRequest = { mostrarDialogoPeticion = false },
                 icon = { Icon(Icons.Rounded.Send, contentDescription = null) },
-                title = { Text("Pedir permiso") },
+                title = { Text(stringResource(R.string.app_blocked_dialog_title)) },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
-                            "Escribe al padre/madre por qué quieres usar $nombreApp ahora:",
+                            stringResource(R.string.app_blocked_dialog_text, nombreApp),
                             style = MaterialTheme.typography.bodyMedium
                         )
                         OutlinedTextField(
                             value = razonTexto,
                             onValueChange = { razonTexto = it },
-                            placeholder = { Text("Ej: He terminado los deberes") },
+                            placeholder = { Text(stringResource(R.string.app_blocked_dialog_placeholder)) },
                             maxLines = 3,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -306,10 +308,10 @@ private fun PantallaAppBloqueada(
                             }
                         },
                         enabled = razonTexto.isNotBlank()
-                    ) { Text("Enviar petición") }
+                    ) { Text(stringResource(R.string.app_blocked_dialog_send)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { mostrarDialogoPeticion = false }) { Text("Cancelar") }
+                    TextButton(onClick = { mostrarDialogoPeticion = false }) { Text(stringResource(R.string.action_cancel)) }
                 }
             )
         }
@@ -371,7 +373,7 @@ private fun PantallaModoPrevencion(
             }
 
             Text(
-                text = "Modo Precaución",
+                text = stringResource(R.string.caution_mode_title),
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFFFC107)
@@ -397,16 +399,16 @@ private fun PantallaModoPrevencion(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "🔥 Llevas $rachaActual días de racha",
+                        text = stringResource(R.string.caution_mode_streak, rachaActual),
                         color = Color(0xFFFFC107),
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
                     Text(
                         text = if (!cuentaAtrasFinalizada)
-                            "¿Seguro que quieres romperla? Reflexiona $segundosRestantes s..."
+                            stringResource(R.string.caution_mode_thinking, segundosRestantes)
                         else
-                            "Puedes continuar — el acceso quedará registrado para tu tutor/a.",
+                            stringResource(R.string.caution_mode_can_continue),
                         color = Color.White.copy(alpha = 0.80f),
                         textAlign = TextAlign.Center,
                         fontSize = 14.sp
@@ -444,9 +446,9 @@ private fun PantallaModoPrevencion(
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = if (cuentaAtrasFinalizada)
-                        "Continuar (se registrará en el informe)"
+                        stringResource(R.string.caution_mode_continue)
                     else
-                        "Espera $segundosRestantes s...",
+                        stringResource(R.string.caution_mode_wait, segundosRestantes),
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -460,11 +462,11 @@ private fun PantallaModoPrevencion(
             ) {
                 Icon(Icons.Rounded.Home, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Volver (mantener racha 🔥)")
+                Text(stringResource(R.string.caution_mode_go_back))
             }
 
             Text(
-                text = "GuardianOS Shield — TrustFlow Engine",
+                text = stringResource(R.string.caution_mode_footer),
                 fontSize = 11.sp,
                 color = Color.White.copy(alpha = 0.30f)
             )

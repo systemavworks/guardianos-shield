@@ -34,10 +34,12 @@ fun CustomFiltersScreen(
     onRemoveFilter: (String) -> Unit,
     onBack: () -> Unit,
     isPremium: Boolean = false,
+    isFreeTrialActive: Boolean = true,
     onShowPremium: () -> Unit = {}
 ) {
-    // Plan FREE: pantalla completamente bloqueada
-    if (!isPremium) {
+    // Accesible durante el trial de 48h o con plan premium
+    val tieneAcceso = isPremium || isFreeTrialActive
+    if (!tieneAcceso) {
         FreePremiumGateScreen(
             feature = PremiumFeature.FILTROS_ILIMITADOS,
             onUpgrade = onShowPremium,

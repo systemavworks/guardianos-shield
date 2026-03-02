@@ -51,6 +51,7 @@ class RealisticAppBlocker : Service() {
         "com.twitter.android",
         "com.reddit.frontpage",
         "com.whatsapp",
+        "com.whatsapp.w4b",                // WhatsApp Business
         "com.telegram.messenger",
         "com.discord"
     )
@@ -292,7 +293,7 @@ class RealisticAppBlocker : Service() {
 
     private fun createNotification() = NotificationCompat.Builder(this, CHANNEL_ID)
         .setContentTitle("🛡️ GuardianOS Shield")
-        .setContentText("Protección de apps activa")
+        .setContentText("App protection active")
         .setSmallIcon(R.drawable.ic_shield)
         .setOngoing(true)
         .setPriority(NotificationCompat.PRIORITY_LOW)
