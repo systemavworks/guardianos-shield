@@ -216,8 +216,9 @@ dependencies {
     // Security - EncryptedSharedPreferences
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    // Google Play Billing Library para compras in-app (v8 recomendado por Google Play)
-    implementation("com.android.billingclient:billing-ktx:8.0.0")
+    // Google Play Billing Library para compras in-app (v7+ requerido por Play Console desde ago 2025)
+    // Nota: billing 8.x requiere Kotlin 2.1+; usar 7.1.1 hasta migrar Kotlin
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
 
 }
 

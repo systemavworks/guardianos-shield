@@ -12,14 +12,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * BillingManager: gestiona compras in-app con Google Play Billing Library 8+
+ * BillingManager: gestiona compras in-app con Google Play Billing Library 7+
  *
  * - Pago único vitalicio: Product ID "premium_guardianos" (configurar en Play Console)
  * - Implementa PurchasesUpdatedListener + BillingClientStateListener directamente
  * - Restaura el estado premium tras reconexión o reinstalación via queryPurchases()
  * - Las callbacks de Billing se procesan en Main para seguridad de StateFlow
  * - v7+: enablePendingPurchases() requiere PendingPurchasesParams explícito
- * - v8+: onPurchasesUpdated usa List<Purchase>? en lugar de MutableList<Purchase>?
+ * - Nota: billing 8.x requiere Kotlin 2.1+; pendiente al migrar Kotlin
  *
  * Contacto: info@guardianos.es — https://guardianos.es/shield
  */
@@ -214,7 +214,7 @@ class BillingManager(private val context: Context) :
 
     // ─────────────────────────── CALLBACK DE COMPRA ───────────────────────────
 
-    override fun onPurchasesUpdated(billingResult: BillingResult, purchases: List<Purchase>?) {
+    override fun onPurchasesUpdated(billingResult: BillingResult, purchases: MutableList<Purchase>?) {
         when (billingResult.responseCode) {
             BillingClient.BillingResponseCode.OK -> {
                 purchases?.forEach { processPurchase(it) }

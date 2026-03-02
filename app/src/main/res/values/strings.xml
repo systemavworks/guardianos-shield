@@ -500,7 +500,7 @@
     <string name="trust_trusted_desc">Llevas %d días de racha. Acceso flexible registrado.</string>
     <string name="trust_days_to_trusted">%d días para Zona de Confianza 🟢</string>
     <string name="trust_days_to_caution">%d días para Modo Precaución 🟡</string>
-    <string name="trust_free_preview">Con %d días de racha podrías estar en %s</string>
+    <string name="trust_free_preview">Con %1$d días de racha podrías estar en %2$s</string>
     <string name="trust_free_upgrade">PREMIUM — Toca para desbloquear</string>
     <string name="trust_zone_trusted">Zona de Confianza 🟢</string>
     <string name="trust_zone_caution">Modo Precaución 🟡</string>
