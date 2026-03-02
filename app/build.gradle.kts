@@ -34,8 +34,8 @@ android {
         // applicationId base — los flavors lo sobreescriben/añaden
         minSdk = 31  // Android 12 (Snow Cone) — mínimo para FOREGROUND_SERVICE_SPECIAL_USE y APIs de accesibilidad estables
         targetSdk = 35 // Android 15
-        versionCode = 4
-        versionName = "1.1.0"
+        versionCode = 5
+        versionName = "1.1.1"
 
         // Optimización RAM para tu Aspire E5-571G
         vectorDrawables {
@@ -159,7 +159,7 @@ android {
         outputs.all {
             val output = this as? com.android.build.gradle.internal.api.BaseVariantOutputImpl
             output?.outputFileName =
-                "guardianos-shield-v1.1.0-${flavorSuffix}-${variant.buildType.name}.apk"
+                "guardianos-shield-v1.1.1-${flavorSuffix}-${variant.buildType.name}.apk"
         }
     }
 }

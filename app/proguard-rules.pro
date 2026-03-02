@@ -33,7 +33,6 @@
 -optimizationpasses 5
 -allowaccessmodification
 -repackageclasses ''
--flattenpackagehierarchy ''
 
 # ============= SECURITY (EncryptedSharedPreferences) =============
 -keep class androidx.security.crypto.** { *; }
