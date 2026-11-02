@@ -94,7 +94,7 @@ gh release create v1.1.0 \
 Después de crear el release, la URL será:
 
 ```
-https://github.com/systemavworks/guardianos-shield/releases/download/v1.1.0/app-release.apk
+https://github.com/systemavworks/guardianos-shield/releases/download/v1.2.0/guardianos-shield-v1.2.0-release.apk
 ```
 
 **Formato genérico**:
@@ -104,7 +104,7 @@ https://github.com/{usuario}/{repo}/releases/download/{tag}/{archivo}
 
 Para tu caso:
 ```
-https://github.com/systemavworks/guardianos-shield/releases/download/v1.1.0/app-release.apk
+https://github.com/systemavworks/guardianos-shield/releases/download/v1.2.0/guardianos-shield-v1.2.0-release.apk
 ```
 
 ---
@@ -207,7 +207,7 @@ https://github.com/systemavworks/guardianos-shield/releases/download/v1.1.0/app-
     <h1>🛡️ GuardianOS Shield</h1>
     <p class="subtitle">Control Parental con Filtrado DNS Seguro</p>
     
-    <a href="https://github.com/systemavworks/guardianos-shield/releases/download/v1.1.0/app-release.apk" 
+    <a href="https://github.com/systemavworks/guardianos-shield/releases/download/v1.2.0/guardianos-shield-v1.2.0-release.apk" 
        class="download-btn"
        download="GuardianOS-Shield-v1.1.0.apk">
       📥 Descargar APK v1.1.0
@@ -270,7 +270,7 @@ gh release create v1.2.0 \
   --notes "🚀 Nuevas funcionalidades..."
 
 # 5. Actualizar HTML en tu web con nueva URL:
-# https://github.com/systemavworks/guardianos-shield/releases/download/v1.2.0/app-release.apk
+# https://github.com/systemavworks/guardianos-shield/releases/download/v1.2.0/guardianos-shield-v1.2.0-release.apk
 ```
 
 ---
@@ -282,7 +282,7 @@ Después de publicar, prueba el enlace:
 ```bash
 # Descargar con curl para verificar
 curl -L -o test-download.apk \
-  "https://github.com/systemavworks/guardianos-shield/releases/download/v1.1.0/app-release.apk"
+  "https://github.com/systemavworks/guardianos-shield/releases/download/v1.2.0/guardianos-shield-v1.2.0-release.apk"
 
 # Verificar tamaño
 ls -lh test-download.apk
@@ -346,7 +346,7 @@ gh release create v1.1.0 \
   --notes "Primera versión pública"
 
 # URL de descarga resultante:
-# https://github.com/systemavworks/guardianos-shield/releases/download/v1.1.0/app-release.apk
+# https://github.com/systemavworks/guardianos-shield/releases/download/v1.2.0/guardianos-shield-v1.2.0-release.apk
 ```
 
 ---
@@ -354,7 +354,7 @@ gh release create v1.1.0 \
 ## 🎯 Resultado Final
 
 **Tu web**: https://guardianos.es/shield/  
-**Descarga directa**: https://github.com/systemavworks/guardianos-shield/releases/download/v1.1.0/app-release.apk  
+**Descarga directa**: https://github.com/systemavworks/guardianos-shield/releases/download/v1.2.0/guardianos-shield-v1.2.0-release.apk  
 **Código fuente**: https://github.com/systemavworks/guardianos-shield  
 
 Los usuarios podrán descargar la APK directamente desde tu web, y tú tendrás control total sobre las versiones en GitHub Releases.
