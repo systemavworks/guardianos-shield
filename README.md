@@ -25,10 +25,10 @@ Sin rastreo • Sin servidores externos • Privacidad total
 - ✅ **Compatible Android 12-15+**: Optimizado para todas las versiones modernas
 
 **Requisitos mínimos**: Android 12 (API 31) o superior  
-**Optimizado para**: Android 12, 13, 14 y 15+
+**Optimizado para**: Android 12, 13, 14, 15 y 16
 
 Desarrollado en **Andalucía, España** por **Victor Shift Lara**  
-🌐 Web oficial: [https://guardianos.es](https://guardianos.es)  
+🌐 Web oficial: [https://guardianos.es](https://guardianos.es/shield)  
 📧 Contacto: info@guardianos.es
 
 ---
@@ -42,7 +42,7 @@ guardianos-shield/
 ├── app/src/main/kotlin/com/guardianos/shield/
 │   ├── MainActivity.kt                      # Activity principal (Jetpack Compose)
 │   ├── billing/                             # 💳 Facturación y Planes
-│   │   ├── BillingManager.kt               # Google Play Billing 6+ (pago único 14,99 €)
+│   │   ├── BillingManager.kt               # Google Play Billing 6+ (pago único 19,99 €)
 │   │   └── FreeTierLimits.kt               # Límites plan gratuito (historial 48h, features)
 │   ├── data/                                # 📦 Capa de Datos
 │   │   ├── GuardianDatabase.kt             # Room Database (v4)
@@ -124,7 +124,7 @@ guardianos-shield/
 
 ### 💳 Capa de Facturación (`billing/`)
 
-- **BillingManager**: Integración con Google Play Billing Library 6+; pago único vitalicio `premium_guardianos` (14,99 €); restaura el estado premium tras reinstalación vía `queryPurchases()`
+- **BillingManager**: Integración con Google Play Billing Library 6+; pago único vitalicio `premium_guardianos` (19,99 €); restaura el estado premium tras reinstalación vía `queryPurchases()`
 - **FreeTierLimits**: Define límites del plan gratuito — historial máximo 48 h, sin perfiles múltiples, sin horarios personalizados, sin filtros propios, sin alertas push
 
 ### 🎨 Capa de UI (`ui/`)
@@ -705,7 +705,7 @@ El uso no autorizado de estas marcas, nombres o assets visuales puede constituir
 
 **Victor Shift Lara**  
 📍 Andalucía, España  
-🌐 Web: [https://guardianos.es](https://guardianos.es)  
+🌐 Web: [https://guardianos.es](https://guardianos.es/shield)  
 📧 Email: [info@guardianos.es](mailto:info@guardianos.es)  
 💼 GitHub: [@systemavworks](https://github.com/systemavworks/guardianos-shield)
 
@@ -745,7 +745,7 @@ El uso no autorizado de estas marcas, nombres o assets visuales puede constituir
 - [x] Racha diaria con badges y animaciones (`StreakWidget`)
 - [x] PIN parental cifrado con AES256-GCM + AndroidKeyStore
 - [x] Anti-desinstalación via Device Admin
-- [x] Plan Premium con Google Play Billing 6+ (14,99 € vitalicio)
+- [x] Plan Premium con Google Play Billing 6+ (19,99 € vitalicio)
 - [x] Plan Gratuito con límites de 48 h de historial
 - [x] Estadísticas ampliadas (`StatisticEntity`, `DomainStat`)
 - [x] Room Database v4 con migraciones
