@@ -34,8 +34,12 @@ android {
         // applicationId base — los flavors lo sobreescriben/añaden
         minSdk = 31  // Android 12 (Snow Cone) — mínimo para FOREGROUND_SERVICE_SPECIAL_USE y APIs de accesibilidad estables
         targetSdk = 35 // Android 15
-        versionCode = 5
-        versionName = "1.1.1"
+        // versionCode 6: por encima de la build 3 (APK v1.2.0 publicada) y de la
+        // build 5 (desarrollo previo en main) → cualquier instalación previa
+        // puede actualizarse sin problema (Android exige versionCode estrictamente mayor).
+        versionCode = 6
+        versionName = "1.2.0"
+        buildConfigField("boolean", "PRO_ENABLED", "false")
 
         // Optimización RAM para tu Aspire E5-571G
         vectorDrawables {
@@ -108,6 +112,13 @@ android {
             )
             signingConfig = signingConfigs.getByName("release")
             buildConfigField("boolean", "FORCE_PREMIUM", "false")
+        }
+        create("pro") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".pro"
+            versionNameSuffix = "-pro"
+            matchingFallbacks += listOf("release")
+            buildConfigField("boolean", "PRO_ENABLED", "true")
         }
     }
 
@@ -213,6 +224,9 @@ dependencies {
     androidTestImplementation(libs.androidx.test.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     
+    // Fragment - versión explícita para evitar dependencia transitiva obsoleta (Play Console)
+    implementation(libs.androidx.fragment.ktx)
+
     // Security - EncryptedSharedPreferences
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
