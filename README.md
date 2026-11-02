@@ -27,7 +27,7 @@ Sin rastreo • Sin servidores externos • Privacidad total
 **Requisitos mínimos**: Android 12 (API 31) o superior  
 **Optimizado para**: Android 12, 13, 14, 15 y 16
 
-Desarrollado en **Andalucía, España** por **Victor Shift Lara**  
+Desarrollado en **Andalucía, España** por **Viktor Shift Llara**  
 🌐 Web oficial: [https://guardianos.es](https://guardianos.es/shield)  
 📧 Contacto: info@guardianos.es
 
